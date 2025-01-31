@@ -4,6 +4,7 @@ use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TahunAjaranController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,6 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/kategori-kebutuhan',BerkebutuhanKhususController::class);
     Route::resource('/pekerjaan',PekerjaanController::class);
     Route::resource('/penghasilan',PenghasilanController::class);
+    Route::resource('/tahun-ajaran', TahunAjaranController::class);
     
 });
 

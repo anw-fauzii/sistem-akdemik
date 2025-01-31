@@ -10,12 +10,12 @@ class PekerjaanController extends Controller
     public function index()
     {
         $pekerjaan = Pekerjaan::all();
-        return view('data_master.pekerjaan.index', compact('pekerjaan'));
+        return view('pelengkap.pekerjaan.index', compact('pekerjaan'));
     }
 
     public function create()
     {
-        return view('data_master.pekerjaan.create');
+        return view('pelengkap.pekerjaan.create');
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class PekerjaanController extends Controller
     public function edit($id)
     {
         $pekerjaan = Pekerjaan::findOrFail($id);
-        return view('data_master.pekerjaan.edit', compact('pekerjaan'));
+        return view('pelengkap.pekerjaan.edit', compact('pekerjaan'));
     }
 
     public function update(Request $request, $id)

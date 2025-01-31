@@ -10,12 +10,12 @@ class PenghasilanController extends Controller
     public function index()
     {
         $penghasilan = Penghasilan::all();
-        return view('data_master.penghasilan.index', compact('penghasilan'));
+        return view('pelengkap.penghasilan.index', compact('penghasilan'));
     }
 
     public function create()
     {
-        return view('data_master.penghasilan.create');
+        return view('pelengkap.penghasilan.create');
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class PenghasilanController extends Controller
     public function edit($id)
     {
         $penghasilan = Penghasilan::findOrFail($id);
-        return view('data_master.penghasilan.edit', compact('penghasilan'));
+        return view('pelengkap.penghasilan.edit', compact('penghasilan'));
     }
 
     public function update(Request $request, $id)

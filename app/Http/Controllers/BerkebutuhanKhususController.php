@@ -10,12 +10,12 @@ class BerkebutuhanKhususController extends Controller
     public function index()
     {
         $kategori = BerkebutuhanKhusus::all();
-        return view('data_master.berkebutuhan_khusus.index', compact('kategori'));
+        return view('pelengkap.berkebutuhan_khusus.index', compact('kategori'));
     }
 
     public function create()
     {
-        return view('data_master.berkebutuhan_khusus.create');
+        return view('pelengkap.berkebutuhan_khusus.create');
     }
 
     public function store(Request $request)
@@ -37,7 +37,7 @@ class BerkebutuhanKhususController extends Controller
     public function edit($id)
     {
         $kategori = BerkebutuhanKhusus::findOrFail($id);
-        return view('data_master.berkebutuhan_khusus.edit', compact('kategori'));
+        return view('pelengkap.berkebutuhan_khusus.edit', compact('kategori'));
     }
 
     public function update(Request $request, $id)
