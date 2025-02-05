@@ -64,15 +64,20 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('tahun-ajaran*')) ? 'mm-active' : ''}}">
-                        <i class="metismenu-icon pe-7s-plugin"></i>
-                           Data Master
+                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-rocket"></i>
+                           Data Pelengkap
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('tahun-ajaran*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('tahun-ajaran*','guru*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('tahun-ajaran.index')}}" class="{{(request()->is('tahun-ajaran*')) ? 'mm-active' : ''}}">
                                 Tahun Ajaran
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('guru.index')}}" class="{{(request()->is('guru*')) ? 'mm-active' : ''}}">
+                                Guru
                             </a>
                         </li>
                     </ul>

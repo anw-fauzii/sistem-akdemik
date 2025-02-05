@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BerkebutuhanKhususController;
+use App\Http\Controllers\GuruController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\ProfileController;
@@ -34,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/pekerjaan',PekerjaanController::class);
     Route::resource('/penghasilan',PenghasilanController::class);
     Route::resource('/tahun-ajaran', TahunAjaranController::class);
+    Route::resource('/guru', GuruController::class);
     
 });
 
