@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('guru', function (Blueprint $table) {
-            $table->id();
-            $table->string('nipy');
+            $table->string('nipy', 100)->primary();
             $table->foreign('nipy')->references('email')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->string('nama_lengkap', 100);
             $table->string('gelar', 10);

@@ -2,22 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Guru;
-use App\Models\User;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
-class GuruController extends Controller
+class SiswaController extends Controller
 {
     public function index()
     {
-        $guru = Guru::all();
-        return view('data_master.guru.index', compact('guru'));
+        $siswa = Siswa::all();
+        return view('data_master.siswa.index', compact('siswa'));
     }
 
     public function create()
     {
-        return view('data_master.guru.create');
+        return view('data_master.siswa.create');
     }
 
     public function store(Request $request, $id)
@@ -31,7 +29,7 @@ class GuruController extends Controller
             'jenis_kelamin' => 'required',
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required|date',
-            'nuptk' => 'nullable|unique:guru,nuptk',
+            'nuptk' => 'nullable|unique:siswa,nuptk',
             'alamat' => 'required',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
@@ -49,9 +47,10 @@ class GuruController extends Controller
         ]);
 
         try {
-            Guru::create($validated);
-            
-            return redirect()->route('guru.index')->with('success', 'Tahun ajaran berhasil diupdate');
+            $siswa = Siswa::findOrFail($id);
+            $siswa->update($validated);
+
+            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diupdate');
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -64,8 +63,8 @@ class GuruController extends Controller
 
     public function edit($id)
     {
-        $guru = Guru::findOrFail($id);
-        return view('data_master.guru.edit', compact('guru'));
+        $siswa = Siswa::findOrFail($id);
+        return view('data_master.siswa.edit', compact('siswa'));
     }
 
     public function update(Request $request, $id)
@@ -74,12 +73,12 @@ class GuruController extends Controller
             'nama_lengkap' => 'required',
             'gelar' => 'required',
             'jabatan' => 'required',
-            'nipy' => 'required|unique:guru,nipy,'. $id, 
+            'nipy' => 'required|unique:siswa,nipy,'. $id, 
             'telepon' => 'required',
             'jenis_kelamin' => 'required',
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required|date',
-            'nuptk' => 'nullable|unique:guru,nuptk',
+            'nuptk' => 'nullable|unique:siswa,nuptk',
             'alamat' => 'required',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
@@ -97,10 +96,10 @@ class GuruController extends Controller
         ]);
 
         try {
-            $guru = Guru::findOrFail($id);
-            $guru->update($validated);
+            $siswa = Siswa::findOrFail($id);
+            $siswa->update($validated);
 
-            return redirect()->route('guru.index')->with('success', 'Tahun ajaran berhasil disimpan');
+            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil disimpan');
         } catch (\Exception $e) {
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
@@ -108,13 +107,13 @@ class GuruController extends Controller
 
     public function destroy($id)
     {
-        $guru = Guru::findOrFail($id);
-        if ($guru->user) { 
-            $guru->user->delete();
+        $siswa = Siswa::findOrFail($id);
+        if ($siswa->user) { 
+            $siswa->user->delete();
         }
-        $guru->delete();
+        $siswa->delete();
     
-        return redirect()->route('guru.index')->with('success', 'Guru dan akun User terkait berhasil dihapus');
+        return redirect()->route('siswa.index')->with('success', 'Siswa dan akun User terkait berhasil dihapus');
     }
 
 }

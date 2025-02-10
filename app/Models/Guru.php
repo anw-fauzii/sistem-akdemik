@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Guru extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'nipy';
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'guru';
     protected $fillable = [
         'nama_lengkap',
