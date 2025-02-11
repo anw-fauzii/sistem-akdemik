@@ -31,20 +31,24 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama Lengkap</th>
-                            <th>Guru</th>
+                            <th>Nama Kelas</th>
+                            <th>Wali Kelas</th>
+                            <th>Guru Pendamping</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $no = 1;
+                        @endphp
                         @forelse ($data_kelas as $item)
                             <tr>
-                                <td>{{$item->id}}</td>
-                                <td>{{$item->nama_tahun_ajaran}}</td>
-                                <td>{{$item->semester}}</td>
+                                <td>{{$no++}}</td>
+                                <td>{{$item->nama_kelas}}</td>
+                                <td>{{$item->guru->nama_lengkap}}, {{$item->guru->gelar}}.</td>
+                                <td>{{$item->pendamping->nama_lengkap}}, {{$item->pendamping->gelar}}.</td>
                                 <td class="d-flex">
                                     <a href="{{ route('kelas.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
-                                
                                     <form action="{{ route('kelas.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
@@ -72,9 +76,10 @@
                 text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

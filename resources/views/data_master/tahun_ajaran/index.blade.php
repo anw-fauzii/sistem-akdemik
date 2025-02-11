@@ -31,8 +31,8 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama Lengkap</th>
-                            <th>Guru</th>
+                            <th>Tahun Ajaran</th>
+                            <th>Semester</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -72,9 +72,10 @@
                 text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

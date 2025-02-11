@@ -70,9 +70,10 @@
                 text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

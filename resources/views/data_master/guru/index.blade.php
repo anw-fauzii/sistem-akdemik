@@ -43,9 +43,9 @@
                                 <td>{{$item->nama_lengkap}}, {{$item->gelar}}.</td>
                                 <td>{{$item->jabatan}}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('guru.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('guru.edit', $item->nipy) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                 
-                                    <form action="{{ route('guru.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('guru.destroy', $item->nipy) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>
@@ -72,9 +72,10 @@
                 text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

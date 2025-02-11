@@ -31,6 +31,6 @@ class Kelas extends Model
     }
 
     public function pendamping(){
-        return $this->belongsTo(Guru::class,'pendamping_id','id');
+        return $this->belongsTo(Guru::class,'pendamping_nipy','nipy');
     }
 }

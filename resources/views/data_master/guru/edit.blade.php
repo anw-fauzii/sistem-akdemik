@@ -26,7 +26,7 @@
             Update Data
         </div>
         <div class="card-body">
-            <form  method="post" action="{{route('guru.update', $guru->id)}}" id="createForm">
+            <form  method="post" action="{{route('guru.update', $guru->nipy)}}" id="createForm">
                 @csrf
                 @method('PUT')
                 <div class="form-row">
@@ -114,8 +114,8 @@
                     </div>
                     <div class="col-md-6">
                         <div class="position-relative form-group">
-                            <label for="tempat_lahir" class="">tempat_lahir/Whatsapp</label>
-                            <input name="tempat_lahir" id="tempat_lahir" placeholder="tempat_lahir" type="text" class="form-control @error('tempat_lahir') is-invalid @enderror" value="{{ $guru->tempat_lahir ?? old('tempat_lahir') }}">
+                            <label for="tempat_lahir" class="">Tempat Lahir</label>
+                            <input name="tempat_lahir" id="tempat_lahir" placeholder="Masukan Tempat Lahir" type="text" class="form-control @error('tempat_lahir') is-invalid @enderror" value="{{ $guru->tempat_lahir ?? old('tempat_lahir') }}">
                             @error('tempat_lahir')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                     {{ strtolower($message) }}
@@ -125,7 +125,7 @@
                     </div>
                     <div class="col-md-6">
                         <div class="position-relative form-group">
-                            <label for="tanggal_lahir" class="">tanggal_lahir</label>
+                            <label for="tanggal_lahir" class="">Tanggal Lahir</label>
                             <input name="tanggal_lahir" id="tanggal_lahir" placeholder="tanggal_lahir" type="date" class="form-control @error('tanggal_lahir') is-invalid @enderror" value="{{ $guru->tanggal_lahir ?? old('tanggal_lahir') }}">
                             @error('tanggal_lahir')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">

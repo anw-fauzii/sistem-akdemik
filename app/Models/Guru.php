@@ -20,12 +20,13 @@ class Guru extends Model
         'telepon',
         'jenis_kelamin',
         'tempat_lahir',
-        'tanggal_lahir',
         'nuptk',
         'alamat',
         'avatar',
-        'status'
+        'status',
+        'tanggal_lahir'
     ];
+    protected $dates = ['tanggal_lahir'];
     
     public function user()
     {

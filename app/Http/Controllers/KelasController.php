@@ -15,12 +15,7 @@ class KelasController extends Controller
         $tahun_ajaran = TahunAjaran::latest()->first();
         if($tahun_ajaran){
             $data_kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)->orderBy('id', 'ASC')->get();
-            foreach ($data_kelas as $kelas) {
-                $jumlah_anggota = Siswa::where('kelas_id', $kelas->id)->count();
-                $kelas->jumlah_anggota = $jumlah_anggota;
-            }
-            $data_guru = Guru::orderBy('nama_lengkap', 'ASC')->get();
-            return view('data_master.kelas.index', compact('data_kelas', 'tahun_ajaran', 'data_guru'));
+            return view('data_master.kelas.index', compact('data_kelas', 'tahun_ajaran'));
         }else{
             return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
         }
@@ -28,13 +23,38 @@ class KelasController extends Controller
 
     public function create()
     {
-        $guru = Guru::whereStatus(false)->get();
+        $guru = Guru::whereStatus(true)->get();
         return view('data_master.kelas.create', compact('guru'));
     }
 
     public function store(Request $request)
     {
-        //
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        $validated = $request->validate([
+            'guru_nipy' => 'required',
+            'pendamping_nipy' => 'required',
+            'tingkatan_kelas' => 'required',
+            'nama_kelas' => 'required',
+            'romawi' => 'required',
+            'spp' => 'required|numeric',
+            'biaya_makan' => 'required|numeric',
+        ], [
+            'guru_nipy.required' => 'Wali kelas wajib diisi.',
+            'pendamping_nipy.required' => 'Guru pendamping wajib diisi.',
+            'tingkatan_kelas.required' => 'Tingkatan kelas wajib diisi.',
+            'nama_kelas.required' => 'Nama kelas wajib diisi.',
+            'romawi.required' => 'Romawi wajib diisi.',
+            'spp.required' => 'SPP wajib diisi.',
+            'spp.numeric' => 'SPP harus berupa angka.',
+            'biaya_makan.required' => 'Biaya Makan wajib diisi.',
+            'biaya_makan.numeric' => 'Biaya Makan harus berupa angka.',
+        ]);
+        if (!$tahun_ajaran) {
+            return back()->withErrors(['tahun_ajaran_id' => 'Tahun ajaran tidak ditemukan.']);
+        }
+        $validated['tahun_ajaran_id'] = $tahun_ajaran->id;
+        Kelas::create($validated);      
+        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil disimpan');   
     }
 
     public function show(Kelas $kelas)
@@ -42,18 +62,43 @@ class KelasController extends Controller
         //
     }
 
-    public function edit(Kelas $kelas)
+    public function edit($id)
     {
-        //
+        $kelas = Kelas::findOrFail($id);
+        $guru = Guru::whereStatus(true)->get();
+        return view('data_master.kelas.edit', compact('guru','kelas'));
     }
 
-    public function update(Request $request, Kelas $kelas)
+    public function update(Request $request, $id)
     {
-        //
+        $validated = $request->validate([
+            'guru_nipy' => 'required',
+            'pendamping_nipy' => 'required',
+            'tingkatan_kelas' => 'required',
+            'nama_kelas' => 'required',
+            'romawi' => 'required',
+            'spp' => 'required|numeric',
+            'biaya_makan' => 'required|numeric',
+        ], [
+            'guru_nipy.required' => 'Wali kelas wajib diisi.',
+            'pendamping_nipy.required' => 'Guru pendamping wajib diisi.',
+            'tingkatan_kelas.required' => 'Tingkatan kelas wajib diisi.',
+            'nama_kelas.required' => 'Nama kelas wajib diisi.',
+            'romawi.required' => 'Romawi wajib diisi.',
+            'spp.required' => 'SPP wajib diisi.',
+            'spp.numeric' => 'SPP harus berupa angka.',
+            'biaya_makan.required' => 'Biaya Makan wajib diisi.',
+            'biaya_makan.numeric' => 'Biaya Makan harus berupa angka.',
+        ]);
+        $kelas = Kelas::findOrFail($id);
+        $kelas->update($validated); 
+        return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dipudate');   
     }
 
-    public function destroy(Kelas $kelas)
+    public function destroy($id)
     {
-        //
+        $kelas = Kelas::findOrFail($id);
+        $kelas->delete(); 
+        return redirect()->route('kelas.index')->with('success', 'Kelas terkait berhasil dihapus');
     }
 }

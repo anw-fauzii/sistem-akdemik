@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('nuptk', 16)->unique()->nullable();
             $table->string('alamat');
             $table->string('avatar')->nullable();
-            $table->boolean('status')->default(false);
+            $table->boolean('status')->default(true);
             $table->timestamps();
         });
     }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class GuruController extends Controller
@@ -20,7 +21,7 @@ class GuruController extends Controller
         return view('data_master.guru.create');
     }
 
-    public function store(Request $request, $id)
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'nama_lengkap' => 'required',
@@ -48,11 +49,25 @@ class GuruController extends Controller
             'alamat.required' => 'Alamat wajib diisi.',
         ]);
 
+        DB::beginTransaction(); // Memulai transaksi
+
         try {
-            Guru::create($validated);
-            
-            return redirect()->route('guru.index')->with('success', 'Tahun ajaran berhasil diupdate');
+            $user = User::create([
+                'name' => $validated['nama_lengkap'],
+                'email' => $validated['nipy'],
+                'password' => Hash::make('pass1234'),
+            ]);
+
+            $guru = new Guru($validated); 
+            $guru->nipy = $validated['nipy'];
+            $guru->save();
+    
+            DB::commit(); 
+    
+            return redirect()->route('guru.index')->with('success', 'Guru berhasil ditambahkan.');
         } catch (\Exception $e) {
+            DB::rollBack(); 
+    
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
@@ -74,7 +89,7 @@ class GuruController extends Controller
             'nama_lengkap' => 'required',
             'gelar' => 'required',
             'jabatan' => 'required',
-            'nipy' => 'required|unique:guru,nipy,'. $id, 
+            'nipy' => 'required|unique:guru,nipy,' . $id . ',nipy',
             'telepon' => 'required',
             'jenis_kelamin' => 'required',
             'tempat_lahir' => 'required',
@@ -96,12 +111,34 @@ class GuruController extends Controller
             'alamat.required' => 'Alamat wajib diisi.',
         ]);
 
-        try {
-            $guru = Guru::findOrFail($id);
-            $guru->update($validated);
+        DB::beginTransaction(); // Memulai transaksi
 
-            return redirect()->route('guru.index')->with('success', 'Tahun ajaran berhasil disimpan');
+        try {
+            // Update data di tabel User
+            $user = User::where('email', $id)->first();
+            if (!$user) {
+                throw new \Exception("User dengan email NIPY $id tidak ditemukan.");
+            }
+    
+            $user->update([
+                'name' => $validated['nama_lengkap'],
+                'email' => $validated['nipy'],
+            ]);
+    
+            // Update data di tabel Guru
+            $guru = Guru::where('nipy', $user->email)->first();
+            if (!$guru) {
+                throw new \Exception("Guru dengan NIPY $id tidak ditemukan.");
+            }
+    
+            $guru->update($validated);
+    
+            DB::commit(); // Commit transaksi jika berhasil
+    
+            return redirect()->route('guru.index')->with('success', 'Data guru berhasil diupdate.');
+    
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
