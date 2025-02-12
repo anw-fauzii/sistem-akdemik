@@ -36,9 +36,12 @@
                         </tr>
                     </thead>
                     <tbody>
+                        @php
+                            $no = 1;
+                        @endphp
                         @forelse ($penghasilan as $item)
                             <tr>
-                                <td>{{$item->id}}</td>
+                                <td>{{$no++}}</td>
                                 <td>{{$item->nama_penghasilan}}</td>
                                 <td class="d-flex">
                                     <a href="{{ route('penghasilan.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>

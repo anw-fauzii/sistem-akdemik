@@ -1,7 +1,7 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Kebutuhan Khusus</title>
+    <title>Transportasi</title>
 @endsection
 
 @section('content')
@@ -12,9 +12,9 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-plugin icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Berkebutuhan Khusus
+                <div>Transportasi
                     <div class="page-title-subheading">
-                        Merupakan kategori untuk yang memiliki kebutuhan khusus
+                        Merupakan kategori untuk jenis transportasi
                     </div>
                 </div>
             </div>  
@@ -23,7 +23,7 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('kategori-kebutuhan.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('transportasi.create')}}" class="btn btn-primary">Tambah Baru</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -31,7 +31,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Kebutuhan Khusus</th>
+                            <th>Tahun Ajaran</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -39,14 +39,14 @@
                         @php
                             $no = 1;
                         @endphp
-                        @forelse ($kategori as $item)
+                        @forelse ($transportasi as $item)
                             <tr>
                                 <td>{{$no++}}</td>
-                                <td>{{$item->nama_berkebutuhan_khusus}}</td>
+                                <td>{{$item->nama_transportasi}}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('kategori-kebutuhan.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('transportasi.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                 
-                                    <form action="{{ route('kategori-kebutuhan.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('transportasi.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>

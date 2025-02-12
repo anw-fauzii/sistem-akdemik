@@ -8,6 +8,7 @@ use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TahunAjaranController;
+use App\Http\Controllers\TransportasiController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,6 +36,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('/kategori-kebutuhan',BerkebutuhanKhususController::class);
     Route::resource('/pekerjaan',PekerjaanController::class);
+    Route::resource('/transportasi',TransportasiController::class);
     Route::resource('/penghasilan',PenghasilanController::class);
     Route::resource('/tahun-ajaran', TahunAjaranController::class);
     Route::resource('/guru', GuruController::class);
