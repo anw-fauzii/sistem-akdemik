@@ -2,7 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BerkebutuhanKhusus;
+use App\Models\JenjangPendidikan;
+use App\Models\Kelas;
+use App\Models\Pekerjaan;
+use App\Models\Penghasilan;
 use App\Models\Siswa;
+use App\Models\TahunAjaran;
+use App\Models\Transportasi;
 use Illuminate\Http\Request;
 
 class SiswaController extends Controller
@@ -15,22 +22,82 @@ class SiswaController extends Controller
 
     public function create()
     {
-        return view('data_master.siswa.create');
+        $pekerjaan = Pekerjaan::all();
+        $penghasilan = Penghasilan::all();
+        $transportasi = Transportasi::all();
+        $berkebutuhan_khusus = BerkebutuhanKhusus::all();
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        $pendidikan = JenjangPendidikan::all();
+        $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
+        return view('data_master.siswa.create', compact('kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
     }
 
-    public function store(Request $request, $id)
+    public function store(Request $request)
     {
         $validated = $request->validate([
+            'nis' => 'required|unique:siswa,nis', 
+            'kelas_id' => 'required',
+            'guru_nipy' => 'required',
+            'jenis_pendaftaran' => 'required',
             'nama_lengkap' => 'required',
-            'gelar' => 'required',
-            'jabatan' => 'required',
-            'nipy' => 'required|unique:users,email', 
-            'telepon' => 'required',
             'jenis_kelamin' => 'required',
+            'nisn' => 'unique:siswa,nisn', 
+            'nik' => 'required',
+            'no_kk' => 'required',
             'tempat_lahir' => 'required',
-            'tanggal_lahir' => 'required|date',
-            'nuptk' => 'nullable|unique:siswa,nuptk',
+            'tanggal_lahir' => 'required',
+            'akta_lahir' => 'required',
+            'agama' => 'required',
+            'kewarganegaraan' => 'required',
+            'nama_negara' => 'required',
+            'berkebutuhan_khusus_id' => 'required',
             'alamat' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'desa' => 'required',
+            'kecamatan' => 'required',
+            'kabupaten' => 'required',
+            'provinsi' => 'required',
+            'kode_pos' => 'required',
+            'lintang' => 'required',
+            'bujur' => 'required',
+            'tempat_tinggal' => 'required',
+            'transportasi_id' => 'required',
+            'anak_ke' => 'required',
+            'jumlah_saudara' => 'required',
+            
+            'nik_ayah' => 'required',
+            'nama_ayah' => 'required', 
+            'lahir_ayah' => 'required',
+            'jenjang_pendidikan_ayah_id' => 'required', 
+            'pekerjaan_ayah_id' => 'required',
+            'penghasilan_ayah_id' => 'required',
+            'berkebutuhan_khusus_ayah_id' => 'required',
+    
+            'nik_ibu' => 'required',
+            'nama_ibu' => 'required', 
+            'lahir_ibu' => 'required',
+            'jenjang_pendidikan_ibu_id' => 'required',
+            'pekerjaan_ibu_id' => 'required',
+            'penghasilan_ibu_id' => 'required',
+            'berkebutuhan_khusus_ibu_id' => 'required',
+    
+            'nik_wali' => 'required',
+            'nama_wali' => 'required', 
+            'lahir_wali' => 'required',
+            'jenjang_pendidikan_wali_id' => 'required',
+            'pekerjaan_wali_id' => 'required',
+            'penghasilan_wali_id' => 'required',
+            'berkebutuhan_khusus_wali_id' => 'required',
+    
+            'nomor_hp' => 'required',
+            'whatsapp' => 'required',
+            'email' => 'required',
+    
+            'tinggi_badan' => 'required',
+            'berat_badan' => 'required',
+            'jarak' => 'required',
+            'waktu_tempuh' => 'required',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'gelar.required' => 'Gelar wajib diisi.',
@@ -47,7 +114,7 @@ class SiswaController extends Controller
         ]);
 
         try {
-            $siswa = Siswa::findOrFail($id);
+            $siswa = Siswa::findOrFail();
             $siswa->update($validated);
 
             return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diupdate');

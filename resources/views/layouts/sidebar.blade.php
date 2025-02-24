@@ -45,7 +45,7 @@
                            Data Pelengkap
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('kategori-kebutuhan*','pekerjaan*','penghasilan*','transportasi*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('kategori-kebutuhan*','pekerjaan*','penghasilan*','transportasi*','jenjang-pendidikan*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('kategori-kebutuhan.index')}}" class="{{(request()->is('kategori-kebutuhan*')) ? 'mm-active' : ''}}">
                                 Berkebutuhan Khusus
@@ -64,6 +64,11 @@
                         <li>
                             <a href="{{route('transportasi.index')}}" class="{{(request()->is('transportasi*')) ? 'mm-active' : ''}}">
                                 Transportasi
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('jenjang-pendidikan.index')}}" class="{{(request()->is('jenjang-pendidikan*')) ? 'mm-active' : ''}}">
+                                Jenjang Pendidikan
                             </a>
                         </li>
                     </ul>

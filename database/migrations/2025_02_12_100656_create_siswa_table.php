@@ -41,31 +41,44 @@ return new class extends Migration
             $table->enum('tempat_tinggal', ['1', '2', '3', '4', '5']);
             $table->unsignedBigInteger('transportasi_id')->unsigned();
             $table->string('anak_ke', 2);
+            $table->string('jumlah_saudara', 2);
             
             $table->bigInteger('nik_ayah')->unique()->nullable();
             $table->string('nama_ayah', 150)->nullable();
             $table->integer('lahir_ayah')->nullable();
-            $table->string('pendidikan_ayah', 30)->nullable();
+            $table->unsignedBigInteger('jenjang_pendidikan_ayah_id')->nullable();
             $table->unsignedBigInteger('pekerjaan_ayah_id')->nullable();
             $table->unsignedBigInteger('penghasilan_ayah_id')->nullable();
-            $table->unsignedBigInteger('berkebutuhan_khusus_id')->nullable();
+            $table->unsignedBigInteger('berkebutuhan_khusus_ayah_id')->nullable();
 
-            $table->string('alamat');
-            $table->string('nomor_hp', 13)->unique()->nullable();
+            $table->bigInteger('nik_ibu')->unique()->nullable();
+            $table->string('nama_ibu', 150)->nullable();
+            $table->integer('lahir_ibu')->nullable();
+            $table->unsignedBigInteger('jenjang_pendidikan_ibu_id')->nullable();
+            $table->unsignedBigInteger('pekerjaan_ibu_id')->nullable();
+            $table->unsignedBigInteger('penghasilan_ibu_id')->nullable();
+            $table->unsignedBigInteger('berkebutuhan_khusus_ibu_id')->nullable();
 
-            $table->string('nama_ayah', 100);
-            $table->string('nama_ibu', 100);
-            $table->string('pekerjaan_ayah', 100);
-            $table->string('pekerjaan_ibu', 100);
-            
-            $table->string('pendidikan_ayah', 100);
-            $table->string('pendidikan_ibu', 100);
-            $table->string('nama_wali', 100)->nullable();
-            $table->string('pekerjaan_wali', 100)->nullable();
-            $table->string('pendidikan_wali', 100)->nullable();
+            $table->bigInteger('nik_wali')->unique()->nullable();
+            $table->string('nama_wali', 150)->nullable();
+            $table->integer('lahir_wali')->nullable();
+            $table->unsignedBigInteger('jenjang_pendidikan_wali_id')->nullable();
+            $table->unsignedBigInteger('pekerjaan_wali_id')->nullable();
+            $table->unsignedBigInteger('penghasilan_wali_id')->nullable();
+            $table->unsignedBigInteger('berkebutuhan_khusus_wali_id')->nullable();
+
+            $table->string('nomor_hp', 30)->nullable();
+            $table->string('whatsapp', 30)->nullable();
+            $table->string('email', 30)->nullable();
+
+            $table->integer('tinggi_badan')->nullable();
+            $table->integer('berat_badan')->nullable();
+            $table->integer('jarak')->nullable();
+            $table->integer('waktu_tempuh')->nullable();
+            $table->integer('lingkar_kepala')->nullable();
 
             $table->string('avatar')->nullable();
-            $table->enum('status', ['1', '2', '3']);
+            $table->enum('status', ['1', '2', '3'])->default('1');
             $table->timestamps();
 
             $table->foreign('nis')->references('email')->on('users')->onDelete('cascade')->onUpdate('cascade');
@@ -74,9 +87,20 @@ return new class extends Migration
             $table->foreign('berkebutuhan_khusus_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('transportasi_id')->references('id')->on('transportasi')->onDelete('cascade')->onUpdate('cascade');
 
+            $table->foreign('jenjang_pendidikan_ayah_id')->references('id')->on('jenjang_pendidikan')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('pekerjaan_ayah_id')->references('id')->on('pekerjaan')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('penghasilan_ayah_id')->references('id')->on('penghasilan')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('berkebutuhan_khusus_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('berkebutuhan_khusus_ayah_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
+
+            $table->foreign('jenjang_pendidikan_ibu_id')->references('id')->on('jenjang_pendidikan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('pekerjaan_ibu_id')->references('id')->on('pekerjaan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('penghasilan_ibu_id')->references('id')->on('penghasilan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('berkebutuhan_khusus_ibu_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
+
+            $table->foreign('jenjang_pendidikan_wali_id')->references('id')->on('jenjang_pendidikan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('pekerjaan_wali_id')->references('id')->on('pekerjaan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('penghasilan_wali_id')->references('id')->on('penghasilan')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('berkebutuhan_khusus_wali_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
 
         });
     }

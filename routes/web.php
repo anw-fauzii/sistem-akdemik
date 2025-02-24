@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\GuruController;
+use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PenghasilanController;
@@ -42,6 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/guru', GuruController::class);
     Route::resource('/siswa', SiswaController::class);
     Route::resource('/kelas', KelasController::class);
+    Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class);
     
 });
 
