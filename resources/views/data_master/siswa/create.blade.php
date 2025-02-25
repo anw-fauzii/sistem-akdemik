@@ -71,8 +71,23 @@
                             <div class="form-row">
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="nis" class="">nis</label>
-                                        <input name="nis" id="nis" placeholder="nis" type="text" class="form-control @error('nis') is-invalid @enderror" value="{{ old('nis') }}">
+                                        <label for="jenis_pendaftaran" class="">Jenis Pendaftaran</label>
+                                        <select name="jenis_pendaftaran" id="jenis_pendaftaran" class="form-control @error('jenis_pendaftaran') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih jenis kelamin --</option>
+                                            <option value="1" {{ old('jenis_pendaftaran') == '1' ? 'selected' : '' }}>Siswa Baru</option>
+                                            <option value="2" {{ old('jenis_pendaftaran') == '2' ? 'selected' : '' }}>Siswa Pindahan</option>
+                                        </select>
+                                        @error('jenis_pendaftaran')
+                                            <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                                {{ strtolower($message) }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="nis" class="">NIS</label>
+                                        <input name="nis" id="nis" placeholder="Masukan NIS" type="number" class="form-control @error('nis') is-invalid @enderror" value="{{ old('nis') }}">
                                         @error('nis')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -86,7 +101,7 @@
                                         <select name="kelas_id" id="kelas_id"  class="multiselect-dropdown form-control @error('kelas_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kelas --</option>
                                             @foreach ($kelas as $item)
-                                                <option value="{{$item->id}}" {{ old('kelas_id') == '1' ? 'selected' : '' }}>{{$item->nama_kelas}}</option>
+                                                <option value="{{$item->id}}" {{ old('kelas_id') == $item->id ? 'selected' : '' }}>{{$item->nama_kelas}}</option>
                                             @endforeach
                                         </select>
                                         @error('kelas_id')
@@ -98,8 +113,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="nama_lengkap" class="">nama_lengkap</label>
-                                        <input name="nama_lengkap" id="nama_lengkap" placeholder="nama_lengkap" type="text" class="form-control @error('nama_lengkap') is-invalid @enderror" value="{{ old('nama_lengkap') }}">
+                                        <label for="nama_lengkap" class="">Nama Lengkap</label>
+                                        <input name="nama_lengkap" id="nama_lengkap" placeholder="Masukan Nama Lengkap" type="text" class="form-control @error('nama_lengkap') is-invalid @enderror" value="{{ old('nama_lengkap') }}">
                                         @error('nama_lengkap')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -111,7 +126,7 @@
                                     <div class="position-relative form-group">
                                         <label for="jenis_kelamin">Jenis Kelamin</label>
                                         <select name="jenis_kelamin" id="jenis_kelamin" class="form-control @error('jenis_kelamin') is-invalid @enderror">
-                                            <option value="" selected disabled>-- Pilih jenis_kelamin --</option>
+                                            <option value="" selected disabled>-- Pilih jenis kelamin --</option>
                                             <option value="L" {{ old('jenis_kelamin') == 'L' ? 'selected' : '' }}>Laki-Laki</option>
                                             <option value="P" {{ old('jenis_kelamin') == 'P' ? 'selected' : '' }}>Perempuan</option>
                                         </select>
@@ -124,8 +139,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="nisn" class="">nisn</label>
-                                        <input name="nisn" id="nisn" placeholder="Masukkan dalam format nisn" type="number" class="form-control @error('nisn') is-invalid @enderror" value="{{ old('nisn') }}">
+                                        <label for="nisn" class="">NISN</label>
+                                        <input name="nisn" id="nisn" placeholder="Masukkan NISN" type="number" class="form-control @error('nisn') is-invalid @enderror" value="{{ old('nisn') }}">
                                         @error('nisn')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -135,8 +150,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="nik" class="">nik</label>
-                                        <input name="nik" id="nik" placeholder="Masukkan dalam format nik" type="number" class="form-control @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
+                                        <label for="nik" class="">NIK</label>
+                                        <input name="nik" id="nik" placeholder="Masukkan NIK Siswa" type="number" class="form-control @error('nik') is-invalid @enderror" value="{{ old('nik') }}">
                                         @error('nik')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -146,8 +161,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="no_kk" class="">no_kk</label>
-                                        <input name="no_kk" id="no_kk" placeholder="Masukkan dalam format no_kk" type="number" class="form-control @error('no_kk') is-invalid @enderror" value="{{ old('no_kk') }}">
+                                        <label for="no_kk" class="">No Kartu Keluarga</label>
+                                        <input name="no_kk" id="no_kk" placeholder="Masukkan No Kartu Keluarga" type="number" class="form-control @error('no_kk') is-invalid @enderror" value="{{ old('no_kk') }}">
                                         @error('no_kk')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -157,8 +172,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="tempat_lahir" class="">tempat_lahir</label>
-                                        <input name="tempat_lahir" id="tempat_lahir" placeholder="Masukkan dalam format tempat_lahir" type="text" class="form-control @error('tempat_lahir') is-invalid @enderror" value="{{ old('tempat_lahir') }}">
+                                        <label for="tempat_lahir" class="">Tempat Lahir</label>
+                                        <input name="tempat_lahir" id="tempat_lahir" placeholder="Masukkan tempat lahir" type="text" class="form-control @error('tempat_lahir') is-invalid @enderror" value="{{ old('tempat_lahir') }}">
                                         @error('tempat_lahir')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -168,8 +183,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="tanggal_lahir" class="">tanggal_lahir</label>
-                                        <input name="tanggal_lahir" id="tanggal_lahir" placeholder="Masukkan dalam format tanggal_lahir" type="date" class="form-control @error('tanggal_lahir') is-invalid @enderror" value="{{ old('tanggal_lahir') }}">
+                                        <label for="tanggal_lahir" class="">Tanggal lahir</label>
+                                        <input name="tanggal_lahir" id="tanggal_lahir" placeholder="Masukkan tanggal lahir" type="date" class="form-control @error('tanggal_lahir') is-invalid @enderror" value="{{ old('tanggal_lahir') }}">
                                         @error('tanggal_lahir')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -179,8 +194,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="akta_lahir" class="">akta_lahir</label>
-                                        <input name="akta_lahir" id="akta_lahir" placeholder="Masukkan dalam format akta_lahir" type="text" class="form-control @error('akta_lahir') is-invalid @enderror" value="{{ old('akta_lahir') }}">
+                                        <label for="akta_lahir" class="">Akta Lahir</label>
+                                        <input name="akta_lahir" id="akta_lahir" placeholder="Masukkan Akta Lahir" type="text" class="form-control @error('akta_lahir') is-invalid @enderror" value="{{ old('akta_lahir') }}">
                                         @error('akta_lahir')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -205,8 +220,8 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="nama_negara" class="">nama_negara</label>
-                                        <input name="nama_negara" id="nama_negara" placeholder="Masukkan dalam format nama_negara" type="text" class="form-control @error('nama_negara') is-invalid @enderror" value="{{ old('nama_negara') }}">
+                                        <label for="nama_negara" class="">Nama Negara</label>
+                                        <input name="nama_negara" id="nama_negara" placeholder="Masukkan nama negara" type="text" class="form-control @error('nama_negara') is-invalid @enderror" value="{{ old('nama_negara') }}">
                                         @error('nama_negara')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -220,7 +235,7 @@
                                         <select name="berkebutuhan_khusus_id" id="berkebutuhan_khusus_id"  class="multiselect-dropdown form-control @error('berkebutuhan_khusus_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kelas --</option>
                                             @foreach ($berkebutuhan_khusus as $item)
-                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_id') == '1' ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
+                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_id') == $item->id ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
                                             @endforeach
                                         </select>
                                         @error('berkebutuhan_khusus_id')
@@ -310,7 +325,7 @@
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
                                         <label for="kode_pos" class="">Kode Pos</label>
-                                        <input name="kode_pos" id="kode_pos" placeholder="Masukkan kode_pos" type="text" class="form-control @error('kode_pos') is-invalid @enderror" value="{{ old('kode_pos') }}">
+                                        <input name="kode_pos" id="kode_pos" placeholder="Masukkan Kode Pos" type="text" class="form-control @error('kode_pos') is-invalid @enderror" value="{{ old('kode_pos') }}">
                                         @error('kode_pos')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
@@ -365,7 +380,7 @@
                                         <select name="transportasi_id" id="transportasi_id"  class="multiselect-dropdown form-control @error('transportasi_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kelas --</option>
                                             @foreach ($transportasi as $item)
-                                                <option value="{{$item->id}}" {{ old('transportasi_id') == '1' ? 'selected' : '' }}>{{$item->nama_transportasi}}</option>
+                                                <option value="{{$item->id}}" {{ old('transportasi_id') == $item->id ? 'selected' : '' }}>{{$item->nama_transportasi}}</option>
                                             @endforeach
                                         </select>
                                         @error('transportasi_id')
@@ -436,7 +451,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="jarak" class="">5. Jarak ke Sekolah</label>
+                                        <label for="jarak" class="">6. Jarak ke Sekolah</label>
                                         <input name="jarak" id="jarak" placeholder="Masukkan jarak ke Sekolah" type="number" class="form-control @error('jarak') is-invalid @enderror" value="{{ old('jarak') }}">
                                         @error('jarak')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
@@ -447,7 +462,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="waktu_tempuh" class="">6. Waktu Tempuh</label>
+                                        <label for="waktu_tempuh" class="">7. Waktu Tempuh</label>
                                         <input name="waktu_tempuh" id="waktu_tempuh" placeholder="Masukkan waktu tempuh" type="number" class="form-control @error('waktu_tempuh') is-invalid @enderror" value="{{ old('waktu_tempuh') }}">
                                         @error('waktu_tempuh')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
@@ -462,9 +477,9 @@
                             <div class="form-row">
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="no_hp" class="">no_hp</label>
-                                        <input name="no_hp" id="no_hp" placeholder="Masukkan no_hp" type="text" class="form-control @error('no_hp') is-invalid @enderror" value="{{ old('no_hp') }}">
-                                        @error('no_hp')
+                                        <label for="nomor_hp" class="">No Handphone</label>
+                                        <input name="nomor_hp" id="nomor_hp" placeholder="Masukkan no handphone" type="text" class="form-control @error('nomor_hp') is-invalid @enderror" value="{{ old('nomor_hp') }}">
+                                        @error('nomor_hp')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                                 {{ strtolower($message) }}
                                             </div>
@@ -473,7 +488,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="whatsapp" class="">whatsapp</label>
+                                        <label for="whatsapp" class="">Whatsapp</label>
                                         <input name="whatsapp" id="whatsapp" placeholder="Masukkan whatsapp" type="text" class="form-control @error('whatsapp') is-invalid @enderror" value="{{ old('whatsapp') }}">
                                         @error('whatsapp')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
@@ -484,7 +499,7 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="position-relative form-group">
-                                        <label for="email" class="">email</label>
+                                        <label for="email" class="">Email</label>
                                         <input name="email" id="email" placeholder="Masukkan email" type="text" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
                                         @error('email')
                                             <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
@@ -536,7 +551,7 @@
                                         <select name="penghasilan_ayah_id" id="penghasilan_ayah_id"  class="multiselect-dropdown form-control @error('penghasilan_ayah_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Penghasilan --</option>
                                             @foreach ($penghasilan as $item)
-                                                <option value="{{$item->id}}" {{ old('penghasilan_ayah_id') == '1' ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
+                                                <option value="{{$item->id}}" {{ old('penghasilan_ayah_id') == $item->id ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
                                             @endforeach
                                         </select>
                                         @error('penghasilan_ayah_id')
@@ -552,7 +567,7 @@
                                         <select name="pekerjaan_ayah_id" id="pekerjaan_ayah_id"  class="multiselect-dropdown form-control @error('pekerjaan_ayah_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pekerjaan --</option>
                                             @foreach ($pekerjaan as $item)
-                                                <option value="{{$item->id}}" {{ old('pekerjaan_ayah_id') == '1' ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
+                                                <option value="{{$item->id}}" {{ old('pekerjaan_ayah_id') == $item->id ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
                                             @endforeach
                                         </select>
                                         @error('pekerjaan_ayah_id')
@@ -568,7 +583,7 @@
                                         <select name="berkebutuhan_khusus_ayah_id" id="berkebutuhan_khusus_ayah_id"  class="multiselect-dropdown form-control @error('berkebutuhan_khusus_ayah_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kebutuhan Khusus --</option>
                                             @foreach ($berkebutuhan_khusus as $item)
-                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_ayah_id') == '1' ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
+                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_ayah_id') == $item->id ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
                                             @endforeach
                                         </select>
                                         @error('berkebutuhan_khusus_ayah_id')
@@ -584,7 +599,7 @@
                                         <select name="jenjang_pendidikan_ayah_id" id="jenjang_pendidikan_ayah_id"  class="multiselect-dropdown form-control @error('jenjang_pendidikan_ayah_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pendidikan --</option>
                                             @foreach ($pendidikan as $item)
-                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_ayah_id') == '1' ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
+                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_ayah_id') == $item->id ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
                                             @endforeach
                                         </select>
                                         @error('jenjang_pendidikan_ayah_id')
@@ -637,7 +652,7 @@
                                         <select name="penghasilan_ibu_id" id="penghasilan_ibu_id"  class="multiselect-dropdown form-control @error('penghasilan_ibu_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Penghasilan --</option>
                                             @foreach ($penghasilan as $item)
-                                                <option value="{{$item->id}}" {{ old('penghasilan_ibu_id') == '1' ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
+                                                <option value="{{$item->id}}" {{ old('penghasilan_ibu_id') == $item->id ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
                                             @endforeach
                                         </select>
                                         @error('penghasilan_ibu_id')
@@ -653,7 +668,7 @@
                                         <select name="pekerjaan_ibu_id" id="pekerjaan_ibu_id"  class="multiselect-dropdown form-control @error('pekerjaan_ibu_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pekerjaan --</option>
                                             @foreach ($pekerjaan as $item)
-                                                <option value="{{$item->id}}" {{ old('pekerjaan_ibu_id') == '1' ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
+                                                <option value="{{$item->id}}" {{ old('pekerjaan_ibu_id') == $item->id ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
                                             @endforeach
                                         </select>
                                         @error('pekerjaan_ibu_id')
@@ -669,7 +684,7 @@
                                         <select name="berkebutuhan_khusus_ibu_id" id="berkebutuhan_khusus_ibu_id"  class="multiselect-dropdown form-control @error('berkebutuhan_khusus_ibu_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kebutuhan Khusus --</option>
                                             @foreach ($berkebutuhan_khusus as $item)
-                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_ibu_id') == '1' ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
+                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_ibu_id') == $item->id ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
                                             @endforeach
                                         </select>
                                         @error('berkebutuhan_khusus_ibu_id')
@@ -685,7 +700,7 @@
                                         <select name="jenjang_pendidikan_ibu_id" id="jenjang_pendidikan_ibu_id"  class="multiselect-dropdown form-control @error('jenjang_pendidikan_ibu_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pendidikan --</option>
                                             @foreach ($pendidikan as $item)
-                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_ibu_id') == '1' ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
+                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_ibu_id') == $item->id ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
                                             @endforeach
                                         </select>
                                         @error('jenjang_pendidikan_ibu_id')
@@ -738,7 +753,7 @@
                                         <select name="penghasilan_wali_id" id="penghasilan_wali_id"  class="multiselect-dropdown form-control @error('penghasilan_wali_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Penghasilan --</option>
                                             @foreach ($penghasilan as $item)
-                                                <option value="{{$item->id}}" {{ old('penghasilan_wali_id') == '1' ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
+                                                <option value="{{$item->id}}" {{ old('penghasilan_wali_id') == $item->id ? 'selected' : '' }}>{{$item->nama_penghasilan}}</option>
                                             @endforeach
                                         </select>
                                         @error('penghasilan_wali_id')
@@ -754,7 +769,7 @@
                                         <select name="pekerjaan_wali_id" id="pekerjaan_wali_id"  class="multiselect-dropdown form-control @error('pekerjaan_wali_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pekerjaan --</option>
                                             @foreach ($pekerjaan as $item)
-                                                <option value="{{$item->id}}" {{ old('pekerjaan_wali_id') == '1' ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
+                                                <option value="{{$item->id}}" {{ old('pekerjaan_wali_id') == $item->id ? 'selected' : '' }}>{{$item->nama_pekerjaan}}</option>
                                             @endforeach
                                         </select>
                                         @error('pekerjaan_wali_id')
@@ -770,7 +785,7 @@
                                         <select name="berkebutuhan_khusus_wali_id" id="berkebutuhan_khusus_wali_id"  class="multiselect-dropdown form-control @error('berkebutuhan_khusus_wali_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Kebutuhan Khusus --</option>
                                             @foreach ($berkebutuhan_khusus as $item)
-                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_wali_id') == '1' ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
+                                                <option value="{{$item->id}}" {{ old('berkebutuhan_khusus_wali_id') == $item->id ? 'selected' : '' }}>{{$item->nama_berkebutuhan_khusus}}</option>
                                             @endforeach
                                         </select>
                                         @error('berkebutuhan_khusus_wali_id')
@@ -786,7 +801,7 @@
                                         <select name="jenjang_pendidikan_wali_id" id="jenjang_pendidikan_wali_id"  class="multiselect-dropdown form-control @error('jenjang_pendidikan_wali_id') is-invalid @enderror">
                                             <option value="" selected disabled>-- Pilih Pendidikan --</option>
                                             @foreach ($pendidikan as $item)
-                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_wali_id') == '1' ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
+                                                <option value="{{$item->id}}" {{ old('jenjang_pendidikan_wali_id') == $item->id ? 'selected' : '' }}>{{$item->nama_jenjang_pendidikan}}</option>
                                             @endforeach
                                         </select>
                                         @error('jenjang_pendidikan_wali_id')

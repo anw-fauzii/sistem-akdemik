@@ -8,6 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Siswa extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'nis';
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $table = 'siswa';
     protected $fillable = [
         'nis',
@@ -73,6 +76,7 @@ class Siswa extends Model
         'berat_badan',
         'jarak',
         'lingkar_kepala',
+        'waktu_tempuh',
         'lingkar',
 
         'avatar',

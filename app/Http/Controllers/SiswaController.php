@@ -10,7 +10,10 @@ use App\Models\Penghasilan;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use App\Models\Transportasi;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class SiswaController extends Controller
 {
@@ -37,7 +40,6 @@ class SiswaController extends Controller
         $validated = $request->validate([
             'nis' => 'required|unique:siswa,nis', 
             'kelas_id' => 'required',
-            'guru_nipy' => 'required',
             'jenis_pendaftaran' => 'required',
             'nama_lengkap' => 'required',
             'jenis_kelamin' => 'required',
@@ -47,7 +49,6 @@ class SiswaController extends Controller
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required',
             'akta_lahir' => 'required',
-            'agama' => 'required',
             'kewarganegaraan' => 'required',
             'nama_negara' => 'required',
             'berkebutuhan_khusus_id' => 'required',
@@ -96,6 +97,7 @@ class SiswaController extends Controller
     
             'tinggi_badan' => 'required',
             'berat_badan' => 'required',
+            'lingkar_kepala' => 'required',
             'jarak' => 'required',
             'waktu_tempuh' => 'required',
         ], [
@@ -113,12 +115,26 @@ class SiswaController extends Controller
             'alamat.required' => 'Alamat wajib diisi.',
         ]);
 
-        try {
-            $siswa = Siswa::findOrFail();
-            $siswa->update($validated);
+        DB::beginTransaction(); // Memulai transaksi
 
-            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diupdate');
+        try {
+            $user = User::create([
+                'name' => $validated['nama_lengkap'],
+                'email' => $validated['nis'],
+                'password' => Hash::make('pass1234'),
+            ]);
+
+            $siswa = new Siswa($validated); 
+            $siswa->nis = $validated['nis'];
+            $siswa->agama = 1;
+            $siswa->save();
+    
+            DB::commit(); 
+    
+            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil ditambahkan.');
         } catch (\Exception $e) {
+            DB::rollBack(); 
+    
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }

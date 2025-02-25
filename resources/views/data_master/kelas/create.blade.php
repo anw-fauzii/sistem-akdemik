@@ -68,7 +68,7 @@
                             <select name="guru_nipy" id="guru_nipy"  class="multiselect-dropdown form-control @error('guru_nipy') is-invalid @enderror">
                                 <option value="" selected disabled>-- Pilih Wali Kelas --</option>
                                 @foreach ($guru as $item)
-                                    <option value="{{$item->nipy}}" {{ old('guru_nipy') == '1' ? 'selected' : '' }}>{{$item->nama_lengkap}}, {{$item->gelar}}.</option>
+                                    <option value="{{$item->nipy}}" {{ old('guru_nipy') == $item->id ? 'selected' : '' }}>{{$item->nama_lengkap}}, {{$item->gelar}}.</option>
                                 @endforeach
                             </select>
                         </div>
@@ -79,7 +79,7 @@
                             <select name="pendamping_nipy" id="pendamping_nipy"  class="multiselect-dropdown form-control @error('pendamping_nipy') is-invalid @enderror">
                                 <option value="" selected disabled>-- Pilih Wali Kelas --</option>
                                 @foreach ($guru as $item)
-                                <option value="{{$item->nipy}}" {{ old('pendamping_nipy') == '1' ? 'selected' : '' }}>{{$item->nama_lengkap}}, {{$item->gelar}}.</option>
+                                <option value="{{$item->nipy}}" {{ old('pendamping_nipy') == $item->id ? 'selected' : '' }}>{{$item->nama_lengkap}}, {{$item->gelar}}.</option>
                                 @endforeach
                             </select>
                         </div>

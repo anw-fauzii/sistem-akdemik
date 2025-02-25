@@ -30,8 +30,8 @@
                 <table class="mb-0 table table-hover table-striped" id="myTable2">
                     <thead>
                         <tr>
-                            <th>No</th>
-                            <th>siswa</th>
+                            <th>NIS</th>
+                            <th>Nama Siswa</th>
                             <th>Semester</th>
                             <th>Aksi</th>
                         </tr>
@@ -39,13 +39,13 @@
                     <tbody>
                         @forelse ($siswa as $item)
                             <tr>
-                                <td>{{$item->nipy}}</td>
-                                <td>{{$item->nama_lengkap}}, {{$item->gelar}}.</td>
+                                <td>{{$item->nis}}</td>
+                                <td>{{$item->nama_lengkap}}</td>
                                 <td>{{$item->jabatan}}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('siswa.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('siswa.edit', $item->nis) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                 
-                                    <form action="{{ route('siswa.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('siswa.destroy', $item->nis) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>
