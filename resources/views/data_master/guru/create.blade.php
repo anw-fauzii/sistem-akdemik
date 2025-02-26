@@ -155,7 +155,7 @@
 </div>
 
 <script>
-    document.getElementById("kebutuhanForm").addEventListener("submit", function(event) {
+    document.getElementById("createForm").addEventListener("submit", function(event) {
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerText = "Menyimpan...";
     });

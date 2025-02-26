@@ -61,6 +61,7 @@ class GuruController extends Controller
             $guru = new Guru($validated); 
             $guru->nipy = $validated['nipy'];
             $guru->save();
+            $guru->assignRole('guru');
     
             DB::commit(); 
     

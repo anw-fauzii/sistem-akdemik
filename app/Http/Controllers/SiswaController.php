@@ -44,11 +44,11 @@ class SiswaController extends Controller
             'nama_lengkap' => 'required',
             'jenis_kelamin' => 'required',
             'nisn' => 'unique:siswa,nisn', 
-            'nik' => 'required',
-            'no_kk' => 'required',
+            'nik' => 'unique:siswa,nik', 
+            'no_kk' => 'unique:siswa,no_kk', 
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required',
-            'akta_lahir' => 'required',
+            'akta_lahir' => 'unique:siswa,akta_lahir', 
             'kewarganegaraan' => 'required',
             'nama_negara' => 'required',
             'berkebutuhan_khusus_id' => 'required',
@@ -60,14 +60,12 @@ class SiswaController extends Controller
             'kabupaten' => 'required',
             'provinsi' => 'required',
             'kode_pos' => 'required',
-            'lintang' => 'required',
-            'bujur' => 'required',
             'tempat_tinggal' => 'required',
             'transportasi_id' => 'required',
             'anak_ke' => 'required',
             'jumlah_saudara' => 'required',
             
-            'nik_ayah' => 'required',
+            'nik_ayah' => 'required|unique:siswa,nik_ayah', 
             'nama_ayah' => 'required', 
             'lahir_ayah' => 'required',
             'jenjang_pendidikan_ayah_id' => 'required', 
@@ -75,7 +73,7 @@ class SiswaController extends Controller
             'penghasilan_ayah_id' => 'required',
             'berkebutuhan_khusus_ayah_id' => 'required',
     
-            'nik_ibu' => 'required',
+            'nik_ibu' => 'required|unique:siswa,nik_ibu', 
             'nama_ibu' => 'required', 
             'lahir_ibu' => 'required',
             'jenjang_pendidikan_ibu_id' => 'required',
@@ -83,13 +81,7 @@ class SiswaController extends Controller
             'penghasilan_ibu_id' => 'required',
             'berkebutuhan_khusus_ibu_id' => 'required',
     
-            'nik_wali' => 'required',
-            'nama_wali' => 'required', 
-            'lahir_wali' => 'required',
-            'jenjang_pendidikan_wali_id' => 'required',
-            'pekerjaan_wali_id' => 'required',
-            'penghasilan_wali_id' => 'required',
-            'berkebutuhan_khusus_wali_id' => 'required',
+            'nik_wali' => 'unique:siswa,nik_wali', 
     
             'nomor_hp' => 'required',
             'whatsapp' => 'required',
@@ -97,7 +89,6 @@ class SiswaController extends Controller
     
             'tinggi_badan' => 'required',
             'berat_badan' => 'required',
-            'lingkar_kepala' => 'required',
             'jarak' => 'required',
             'waktu_tempuh' => 'required',
         ], [
@@ -128,6 +119,7 @@ class SiswaController extends Controller
             $siswa->nis = $validated['nis'];
             $siswa->agama = 1;
             $siswa->save();
+            $siswa->assignRole('siswa');
     
             DB::commit(); 
     
@@ -146,8 +138,15 @@ class SiswaController extends Controller
 
     public function edit($id)
     {
+        $pekerjaan = Pekerjaan::all();
+        $penghasilan = Penghasilan::all();
+        $transportasi = Transportasi::all();
+        $berkebutuhan_khusus = BerkebutuhanKhusus::all();
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        $pendidikan = JenjangPendidikan::all();
+        $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
         $siswa = Siswa::findOrFail($id);
-        return view('data_master.siswa.edit', compact('siswa'));
+        return view('data_master.siswa.edit', compact('siswa','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
     }
 
     public function update(Request $request, $id)

@@ -26,7 +26,7 @@
             Update Data
         </div>
         <div class="card-body">
-            <form  method="post" action="{{route('guru.update', $guru->nipy)}}" id="createForm">
+            <form  method="post" action="{{route('guru.update', $guru->nipy)}}" id="editForm">
                 @csrf
                 @method('PUT')
                 <div class="form-row">
@@ -156,7 +156,7 @@
 </div>
 
 <script>
-    document.getElementById("kebutuhanForm").addEventListener("submit", function(event) {
+    document.getElementById("editForm").addEventListener("submit", function(event) {
         document.getElementById("submitBtn").disabled = true;
         document.getElementById("submitBtn").innerText = "Menyimpan...";
     });
