@@ -1,7 +1,7 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Siswa</title>
+    <title>Bulan SPP</title>
 @endsection
 
 @section('content')
@@ -10,11 +10,11 @@
         <div class="page-title-wrapper">
             <div class="page-title-heading">
                 <div class="page-title-icon">
-                    <i class="pe-7s-rocket icon-gradient bg-mean-fruit"></i>
+                    <i class="pe-7s-cash icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Siswa
+                <div>Bulan SPP
                     <div class="page-title-subheading">
-                        Merupakan siswa yang Berada di sekolah
+                        Merupakan Bulan yang dilakukan pembayaran
                     </div>
                 </div>
             </div>  
@@ -23,29 +23,32 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('siswa.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('bulan-spp.create')}}" class="btn btn-primary">Tambah Baru</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="mb-0 table table-hover table-striped" id="myTable2">
                     <thead>
                         <tr>
-                            <th>NIS</th>
-                            <th>Nama Siswa</th>
-                            <th>Kelas</th>
+                            <th>No</th>
+                            <th>Bulan</th>
+                            <th>Tambahan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($siswa as $item)
+                        @php
+                            $no = 1;
+                        @endphp
+                        @forelse ($bulan_spp as $item)
                             <tr>
-                                <td>{{$item->nis}}</td>
-                                <td>{{$item->nama_lengkap}}</td>
-                                <td>{{$item->kelas->nama_kelas}}</td>
+                                <td>{{$no++}}</td>
+                                <td>{{$item->nama_bulan}}</td>
+                                <td>Rp. {{ number_format($item->tambahan, 0, ',', '.') }}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('siswa.edit', $item->nis) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('bulan-spp.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                 
-                                    <form action="{{ route('siswa.destroy', $item->nis) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('bulan-spp.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>

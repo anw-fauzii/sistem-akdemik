@@ -89,4 +89,14 @@ class Siswa extends Model
     {
         return $this->belongsTo(User::class, 'nis', 'email');
     }
+
+    public function kelas()
+    {
+        return $this->belongsTo(Kelas::class);
+    }
+    
+    public function siswa()
+    {
+        return $this->belongsTo(Siswa::class, 'siswa_nis', 'nis');
+    }
 }

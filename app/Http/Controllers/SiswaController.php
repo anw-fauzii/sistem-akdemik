@@ -43,12 +43,12 @@ class SiswaController extends Controller
             'jenis_pendaftaran' => 'required',
             'nama_lengkap' => 'required',
             'jenis_kelamin' => 'required',
-            'nisn' => 'unique:siswa,nisn', 
-            'nik' => 'unique:siswa,nik', 
+            'nisn' => 'nullable|unique:siswa,nisn', 
+            'nik' => 'nullable|unique:siswa,nik', 
             'no_kk' => 'unique:siswa,no_kk', 
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required',
-            'akta_lahir' => 'unique:siswa,akta_lahir', 
+            'akta_lahir' => 'nullable|unique:siswa,akta_lahir', 
             'kewarganegaraan' => 'required',
             'nama_negara' => 'required',
             'berkebutuhan_khusus_id' => 'required',
@@ -65,7 +65,7 @@ class SiswaController extends Controller
             'anak_ke' => 'required',
             'jumlah_saudara' => 'required',
             
-            'nik_ayah' => 'required|unique:siswa,nik_ayah', 
+            'nik_ayah' => 'required', 
             'nama_ayah' => 'required', 
             'lahir_ayah' => 'required',
             'jenjang_pendidikan_ayah_id' => 'required', 
@@ -73,7 +73,7 @@ class SiswaController extends Controller
             'penghasilan_ayah_id' => 'required',
             'berkebutuhan_khusus_ayah_id' => 'required',
     
-            'nik_ibu' => 'required|unique:siswa,nik_ibu', 
+            'nik_ibu' => 'required', 
             'nama_ibu' => 'required', 
             'lahir_ibu' => 'required',
             'jenjang_pendidikan_ibu_id' => 'required',
@@ -81,7 +81,7 @@ class SiswaController extends Controller
             'penghasilan_ibu_id' => 'required',
             'berkebutuhan_khusus_ibu_id' => 'required',
     
-            'nik_wali' => 'unique:siswa,nik_wali', 
+            'nik_wali' => 'nullable|unique:siswa,nik_wali', 
     
             'nomor_hp' => 'required',
             'whatsapp' => 'required',
@@ -119,7 +119,7 @@ class SiswaController extends Controller
             $siswa->nis = $validated['nis'];
             $siswa->agama = 1;
             $siswa->save();
-            $siswa->assignRole('siswa');
+            $user->assignRole('siswa');
     
             DB::commit(); 
     
@@ -152,16 +152,59 @@ class SiswaController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
+            'nis' => 'required|unique:siswa,nis,' . $id . ',nis', 
+            'kelas_id' => 'required',
+            'jenis_pendaftaran' => 'required',
             'nama_lengkap' => 'required',
-            'gelar' => 'required',
-            'jabatan' => 'required',
-            'nipy' => 'required|unique:siswa,nipy,'. $id, 
-            'telepon' => 'required',
             'jenis_kelamin' => 'required',
+            'nisn' => 'unique:siswa,nisn,' . $id . ',nis',
+            'nik' => 'unique:siswa,nik,' . $id . ',nis',
+            'no_kk' => 'unique:siswa,no_kk,' . $id . ',nis',
             'tempat_lahir' => 'required',
-            'tanggal_lahir' => 'required|date',
-            'nuptk' => 'nullable|unique:siswa,nuptk',
+            'tanggal_lahir' => 'required',
+            'akta_lahir' => 'unique:siswa,akta_lahir,' . $id . ',nis',
+            'kewarganegaraan' => 'required',
+            'nama_negara' => 'required',
+            'berkebutuhan_khusus_id' => 'required',
             'alamat' => 'required',
+            'rt' => 'required',
+            'rw' => 'required',
+            'desa' => 'required',
+            'kecamatan' => 'required',
+            'kabupaten' => 'required',
+            'provinsi' => 'required',
+            'kode_pos' => 'required',
+            'tempat_tinggal' => 'required',
+            'transportasi_id' => 'required',
+            'anak_ke' => 'required',
+            'jumlah_saudara' => 'required',
+            
+            'nik_ayah' => 'required|unique:siswa,nik_ayah,' . $id . ',nis', 
+            'nama_ayah' => 'required', 
+            'lahir_ayah' => 'required',
+            'jenjang_pendidikan_ayah_id' => 'required', 
+            'pekerjaan_ayah_id' => 'required',
+            'penghasilan_ayah_id' => 'required',
+            'berkebutuhan_khusus_ayah_id' => 'required',
+    
+            'nik_ibu' => 'required|unique:siswa,nik_ibu,' . $id . ',nis',
+            'nama_ibu' => 'required', 
+            'lahir_ibu' => 'required',
+            'jenjang_pendidikan_ibu_id' => 'required',
+            'pekerjaan_ibu_id' => 'required',
+            'penghasilan_ibu_id' => 'required',
+            'berkebutuhan_khusus_ibu_id' => 'required',
+    
+            'nik_wali' => 'unique:siswa,nik_wali,' . $id . ',nis',
+    
+            'nomor_hp' => 'required',
+            'whatsapp' => 'required',
+            'email' => 'required',
+    
+            'tinggi_badan' => 'required',
+            'berat_badan' => 'required',
+            'jarak' => 'required',
+            'waktu_tempuh' => 'required',
         ], [
             'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
             'gelar.required' => 'Gelar wajib diisi.',
@@ -177,12 +220,32 @@ class SiswaController extends Controller
             'alamat.required' => 'Alamat wajib diisi.',
         ]);
 
-        try {
-            $siswa = Siswa::findOrFail($id);
-            $siswa->update($validated);
+        DB::beginTransaction();
 
-            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil disimpan');
+        try {
+            $user = User::where('email', $id)->first();
+            if (!$user) {
+                throw new \Exception("User dengan nis $id tidak ditemukan.");
+            }
+    
+            $user->update([
+                'name' => $validated['nama_lengkap'],
+                'email' => $validated['nis'],
+            ]);
+    
+            $siswa = Siswa::where('nis', $user->email)->first();
+            if (!$siswa) {
+                throw new \Exception("Siswa dengan NIS $id tidak ditemukan.");
+            }
+    
+            $siswa->update($validated);
+    
+            DB::commit();
+    
+            return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil diupdate.');
+    
         } catch (\Exception $e) {
+            DB::rollBack();
             return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }

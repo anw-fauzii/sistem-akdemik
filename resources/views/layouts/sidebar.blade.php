@@ -74,7 +74,7 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-rocket"></i>
                            Data Master
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
@@ -101,6 +101,26 @@
                             </a>
                         </li>
                     </ul>
+                </li>
+                <li>
+                    <a href="#" class="{{(request()->is('bulan-spp*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-cash"></i>
+                           Data Keuangan
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                    </a>
+                    <ul class="{{(request()->is('bulan-spp*')) ? 'mm-show' : ''}}">
+                        <li>
+                            <a href="{{route('bulan-spp.index')}}" class="{{(request()->is('bulan-spp*')) ? 'mm-active' : ''}}">
+                                Bulan SPP
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="{{route('presensi.index')}}" class="{{(request()->is('presensi*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-smile"></i>
+                            Presensi
+                    </a>
                 </li>
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();

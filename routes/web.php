@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\BerkebutuhanKhususController;
+use App\Http\Controllers\BulanSppController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PenghasilanController;
+use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TahunAjaranController;
@@ -44,6 +46,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/siswa', SiswaController::class);
     Route::resource('/kelas', KelasController::class);
     Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class);
+    Route::resource('/bulan-spp', BulanSppController::class);
+    Route::resource('/presensi', PresensiController::class);
     
 });
 
