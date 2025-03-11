@@ -108,10 +108,15 @@
                            Data Keuangan
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('bulan-spp*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('bulan-spp*','pembayaran-spp*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('bulan-spp.index')}}" class="{{(request()->is('bulan-spp*')) ? 'mm-active' : ''}}">
                                 Bulan SPP
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('pembayaran-spp.create')}}" class="{{(request()->is('pembayaran-spp*')) ? 'mm-active' : ''}}">
+                                Pembayaran SPP
                             </a>
                         </li>
                     </ul>

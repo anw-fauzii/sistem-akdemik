@@ -33,4 +33,9 @@ class Kelas extends Model
     public function pendamping(){
         return $this->belongsTo(Guru::class,'pendamping_nipy','nipy');
     }
+    
+    public function anggotaKelas()
+    {
+        return $this->hasMany(AnggotaKelas::class, 'kelas_id');
+    }
 }

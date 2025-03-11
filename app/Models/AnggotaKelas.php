@@ -23,7 +23,12 @@ class AnggotaKelas extends Model
     
     public function kelas()
     {
-        return $this->belongsTo(Kelas::class, 'kelas_id');
+        return $this->belongsTo(Kelas::class);
+    }
+
+    public function pembayaranSPP()
+    {
+        return $this->hasMany(PembayaranSpp::class, 'anggota_kelas_id');
     }
 
 }

@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-smile icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Presensi
+                <div>Presensi {{ \Carbon\Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y') }}
                     <div class="page-title-subheading">
                         Merupakan Presensi yang Berada di sekolah
                     </div>
@@ -82,10 +82,10 @@
                 <table class="mb-0 table table-hover table-striped" id="myTable2">
                     <thead>
                         <tr>
-                            <th>NIS</th>
+                            <th>No</th>
                             <th>Nama</th>
                             @foreach ($tanggal_tercatat as $tanggal)
-                                <th>{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</th>
+                                <th class="text-center">{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -95,17 +95,32 @@
                             <td colspan="2" class="text-center">Belum ada data </td>
                         </tr>
                         @else
+                        @php
+                            $no = 1;
+                        @endphp
                             @foreach ($anggotaKelas as $anggota)
                                 <tr>
-                                    <td>{{ $anggota->siswa_nis }}</td>
+                                    <td>{{$no++}}</td>
                                     <td>{{ $anggota->siswa->nama_lengkap }}</td>
                                     @foreach ($tanggal_tercatat as $tanggal)
                                         @php
                                             $presensiData = $presensi->where('anggota_kelas_id', $anggota->id)->where('tanggal', $tanggal)->first();
                                         @endphp
-                                        <td>
-                                            {{ $presensiData ? $presensiData->status : '-' }}
-                                        </td>
+                                            @if ($presensiData)
+                                                @if ($presensiData->status == 'hadir')
+                                                <td class="text-center"> &#10003; </td>
+                                                @elseif ($presensiData->status == 'sakit')
+                                                <td class="text-center" style="background-color: yellow;"> S </td>
+                                                @elseif ($presensiData->status == 'izin')
+                                                <td class="text-center" style="background-color: green; color:white">  I </td>
+                                                @elseif ($presensiData->status == 'alpha')
+                                                <td class="text-center" style="background-color: red; color:white">  A </td>
+                                                @else
+                                                    {{ $presensiData->status }} 
+                                                @endif
+                                            @else
+                                                <td class="text-center" style="background-color: black;"> -</td>
+                                            @endif
                                     @endforeach
                                 </tr>
                             @endforeach

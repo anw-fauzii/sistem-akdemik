@@ -6,6 +6,7 @@ use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\PresensiController;
 use App\Http\Controllers\ProfileController;
@@ -48,7 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class);
     Route::resource('/bulan-spp', BulanSppController::class);
     Route::resource('/presensi', PresensiController::class);
-    
+    Route::resource('/pembayaran-spp', PembayaranSppController::class);
+    Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran.spp.cari');
 });
 
 require __DIR__.'/auth.php';

@@ -15,9 +15,11 @@ class Presensi extends Model
         'status',
     ];
 
+    protected $dates = ['tanggal'];
+
     public function anggotaKelas()
     {
-        return $this->belongsTo(AnggotaKelas::class, 'anggota_kelas_id');
+        return $this->belongsTo(AnggotaKelas::class);
     }    
 
 }

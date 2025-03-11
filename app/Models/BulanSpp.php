@@ -16,4 +16,9 @@ class BulanSpp extends Model
     ];
 
     protected $dates = ['bulan_angka'];
+
+    public function pembayaranSPP()
+    {
+        return $this->hasMany(PembayaranSpp::class, 'bulan_spp_id');
+    }
 }
