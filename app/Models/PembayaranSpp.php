@@ -18,6 +18,6 @@ class PembayaranSpp extends Model
 
     public function bulanSPP()
     {
-        return $this->belongsTo(BulanSPP::class);
+        return $this->belongsTo(BulanSpp::class);
     }
 }

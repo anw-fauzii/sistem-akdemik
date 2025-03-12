@@ -81,8 +81,6 @@ class SiswaController extends Controller
             'penghasilan_ibu_id' => 'required',
             'berkebutuhan_khusus_ibu_id' => 'required',
     
-            'nik_wali' => 'nullable|unique:siswa,nik_wali', 
-    
             'nomor_hp' => 'required',
             'whatsapp' => 'required',
             'email' => 'required',
@@ -157,12 +155,12 @@ class SiswaController extends Controller
             'jenis_pendaftaran' => 'required',
             'nama_lengkap' => 'required',
             'jenis_kelamin' => 'required',
-            'nisn' => 'unique:siswa,nisn,' . $id . ',nis',
-            'nik' => 'unique:siswa,nik,' . $id . ',nis',
+            'nisn' => 'nullable|unique:siswa,nisn,' . $id . ',nis',
+            'nik' => 'nullable|unique:siswa,nik,' . $id . ',nis',
             'no_kk' => 'unique:siswa,no_kk,' . $id . ',nis',
             'tempat_lahir' => 'required',
             'tanggal_lahir' => 'required',
-            'akta_lahir' => 'unique:siswa,akta_lahir,' . $id . ',nis',
+            'akta_lahir' => 'nullable|unique:siswa,akta_lahir,' . $id . ',nis',
             'kewarganegaraan' => 'required',
             'nama_negara' => 'required',
             'berkebutuhan_khusus_id' => 'required',
@@ -179,7 +177,7 @@ class SiswaController extends Controller
             'anak_ke' => 'required',
             'jumlah_saudara' => 'required',
             
-            'nik_ayah' => 'required|unique:siswa,nik_ayah,' . $id . ',nis', 
+            'nik_ayah' => 'required', 
             'nama_ayah' => 'required', 
             'lahir_ayah' => 'required',
             'jenjang_pendidikan_ayah_id' => 'required', 
@@ -187,15 +185,13 @@ class SiswaController extends Controller
             'penghasilan_ayah_id' => 'required',
             'berkebutuhan_khusus_ayah_id' => 'required',
     
-            'nik_ibu' => 'required|unique:siswa,nik_ibu,' . $id . ',nis',
+            'nik_ibu' => 'required',
             'nama_ibu' => 'required', 
             'lahir_ibu' => 'required',
             'jenjang_pendidikan_ibu_id' => 'required',
             'pekerjaan_ibu_id' => 'required',
             'penghasilan_ibu_id' => 'required',
             'berkebutuhan_khusus_ibu_id' => 'required',
-    
-            'nik_wali' => 'unique:siswa,nik_wali,' . $id . ',nis',
     
             'nomor_hp' => 'required',
             'whatsapp' => 'required',

@@ -21,21 +21,17 @@
         </div> 
     </div>
 
-    @if(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
-
     <div class="main-card card">
         <div class="card-header">
             Cek data pembayaran
         </div>
         <div class="card-body">
-            <form action="{{ route('pembayaran.spp.cari') }}" method="POST">
+            <form action="{{ route('pembayaran-spp.cari') }}" method="POST">
                 @csrf
                 <div class="row align-items-center">
                     <div class="col-md-5 d-flex align-items-center">
                         <label class="mr-sm-2 text-nowrap" style="text-align: right;">Tahun Ajaran</label>
-                        <select name="tahun_ajaran_id" class="form-control @error('tahun_ajaran_id') is-invalid @enderror">
+                        <select name="tahun_ajaran_id" class="multiselect-dropdown form-control @error('tahun_ajaran_id') is-invalid @enderror">
                             <option value="" selected disabled>-- Tahun Ajaran --</option>
                             @foreach ($tahun_ajaran as $item)
                                 <option value="{{ $item->id }}" {{ isset($tahun_ajaran_id) && $tahun_ajaran_id == $item->id ? 'selected' : '' }}>
@@ -46,7 +42,7 @@
                     </div>
                     <div class="col-md-5 d-flex align-items-center">
                         <label class="mr-sm-2 text-nowrap" style="text-align: right;">Siswa</label>
-                        <select name="siswa_nis" class="form-control @error('siswa_nis') is-invalid @enderror">
+                        <select name="siswa_nis" class="multiselect-dropdown form-control @error('siswa_nis') is-invalid @enderror">
                             <option value="" selected disabled>-- Pilih Siswa --</option>
                             @foreach ($siswa_list as $item)
                                 <option value="{{ $item->nis }}" {{ isset($siswa_nis) && $siswa_nis == $item->nis ? 'selected' : '' }}>
@@ -102,16 +98,48 @@
                                 <th>Biaya Makan</th>
                                 <th>Total Pembayaran</th>
                                 <th>Keterangan</th>
+                                <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($tagihan_spp as $tagihan)
                                 <tr>
-                                    <td>{{ $tagihan->bulan_spp->nama_bulan }}</td>
-                                    <td>Rp {{ number_format($tagihan->nominal_spp, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($tagihan->biaya_makan, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($tagihan->total_pembayaran, 0, ',', '.') }}</td>
-                                    <td>{{ $tagihan->keterangan }}</td>
+                                    <td>{{ $tagihan->nama_bulan }}</td>
+                                    @php
+                                        $biaya_makan_potongan = $biaya_makan;
+                                        if ($tagihan->jumlah_absen > 7) {
+                                            $biaya_makan_potongan *= 0.75;
+                                        }
+                                    @endphp
+                                    <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($biaya_makan_potongan + $tagihan->tambahan, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($biaya_makan_potongan + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+                                    <td>
+                                        @if($tagihan->keterangan === 'Lunas')
+                                            <div class="badge badge-pill badge-warning">Lunas</div>
+                                        @else
+                                            <div class="badge badge-pill badge-danger">Belum Lunas</div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($tagihan->keterangan === 'Lunas' && isset($tagihan->pembayaran_id))
+                                            <!-- Tombol Hapus -->
+                                            <form action="{{ route('pembayaran-spp.destroy', $tagihan->pembayaran_id) }}" method="POST">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm delete-button">Hapus</button>
+                                            </form>
+                                        @else
+                                            <!-- Tombol Bayar -->
+                                            <form action="{{ route('pembayaran-spp.store') }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="siswa_nis" value="{{ $siswa_nis }}">
+                                                <input type="hidden" name="tahun_ajaran_id" value="{{ $tahun_ajaran_id }}">
+                                                <input type="hidden" name="bulan_spp_id" value="{{ $tagihan->id }}">
+                                                <button type="submit" class="btn btn-success btn-sm submit-button">Bayar</button>
+                                            </form>
+                                        @endif
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -122,4 +150,44 @@
     </div>
     @endif
 </div>
+<script>
+    document.querySelectorAll('.submit-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah yakin akan untuk dilunasi?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Tidak',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.closest('form').submit();
+                }
+            });
+        });
+    });
+    document.querySelectorAll('.delete-button').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Konfirmasi',
+                text: 'Apakah yakin akan untuk diretur?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: 'Ya',
+                cancelButtonText: 'Tidak',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.closest('form').submit();
+                }
+            });
+        });
+    });
+</script>
 @endsection

@@ -50,7 +50,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/bulan-spp', BulanSppController::class);
     Route::resource('/presensi', PresensiController::class);
     Route::resource('/pembayaran-spp', PembayaranSppController::class);
-    Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran.spp.cari');
+    Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
 });
 
 require __DIR__.'/auth.php';

@@ -115,7 +115,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="{{route('pembayaran-spp.create')}}" class="{{(request()->is('pembayaran-spp*')) ? 'mm-active' : ''}}">
+                            <a href="{{route('pembayaran-spp.index')}}" class="{{(request()->is('pembayaran-spp*')) ? 'mm-active' : ''}}">
                                 Pembayaran SPP
                             </a>
                         </li>
