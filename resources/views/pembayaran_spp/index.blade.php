@@ -105,15 +105,13 @@
                             @foreach ($tagihan_spp as $tagihan)
                                 <tr>
                                     <td>{{ $tagihan->nama_bulan }}</td>
-                                    @php
-                                        $biaya_makan_potongan = $biaya_makan;
-                                        if ($tagihan->jumlah_absen > 7) {
-                                            $biaya_makan_potongan *= 0.75;
-                                        }
-                                    @endphp
+
                                     <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($biaya_makan_potongan + $tagihan->tambahan, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($biaya_makan_potongan + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+
+                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
+
+                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+
                                     <td>
                                         @if($tagihan->keterangan === 'Lunas')
                                             <div class="badge badge-pill badge-warning">Lunas</div>
