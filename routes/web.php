@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\BulanSppController;
+use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
@@ -51,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('/presensi', PresensiController::class);
     Route::resource('/pembayaran-spp', PembayaranSppController::class);
     Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
+    Route::resource('/ekstrakurikuler', EkstrakurikulerController::class);
 });
 
 require __DIR__.'/auth.php';

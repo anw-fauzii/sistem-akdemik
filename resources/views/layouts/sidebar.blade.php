@@ -74,12 +74,12 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-rocket"></i>
                            Data Master
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('tahun-ajaran.index')}}" class="{{(request()->is('tahun-ajaran*')) ? 'mm-active' : ''}}">
                                 Tahun Ajaran
@@ -98,6 +98,11 @@
                         <li>
                             <a href="{{route('siswa.index')}}" class="{{(request()->is('siswa*')) ? 'mm-active' : ''}}">
                                 Siswa
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('ekstrakurikuler.index')}}" class="{{(request()->is('ekstrakurikuler*')) ? 'mm-active' : ''}}">
+                                Ekstrakurikuler
                             </a>
                         </li>
                     </ul>
