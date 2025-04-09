@@ -27,7 +27,7 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <form action="{{ route('presensi.store') }}" method="POST">
+                <form action="{{ route('presensi-ekstrakurikuler.store') }}" method="POST">
                     @csrf
             
                     <div class="mb-3">
@@ -45,7 +45,7 @@
                         <tbody>
                             @foreach($siswaList as $siswa)
                                 <tr>
-                                    <td>{{ $siswa->siswa->nama_lengkap }}</td>
+                                    <td>{{ $siswa->anggotaKelas->siswa->nama_lengkap }}</td>
                                     <td>
                                         <select name="presensi[{{ $siswa->id }}]" class="form-control">
                                             <option value="Hadir">Hadir</option>

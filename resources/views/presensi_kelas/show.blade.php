@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-smile icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Presensi {{ now()->translatedFormat('F Y') }}
+                <div>Presensi {{ \Carbon\Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y') }}
                     <div class="page-title-subheading">
                         Merupakan Presensi yang Berada di sekolah
                     </div>
@@ -63,14 +63,14 @@
     </div>
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('presensi.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('presensi-kelas.create')}}" class="btn btn-primary">Tambah Baru</a>
                 &nbsp;<button class="btn btn-warning dropdown" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="metismenu-icon pe-7s-refresh-2"></i> PERIODE
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
                     @foreach($bulan_spp as $bulan)
                     <li>
-                        <a href="{{ route('presensi.show', $bulan->id) }}" class="dropdown-item">
+                        <a href="{{ route('presensi-kelas.show', $bulan->id) }}" class="dropdown-item">
                             {{ $bulan->nama_bulan }}
                         </a>
                     </li>

@@ -12,7 +12,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class PresensiController extends Controller
+class PresensiKelasController extends Controller
 {
     public function index(Request $request)
     {
@@ -33,7 +33,7 @@ class PresensiController extends Controller
         $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort()->values();
         $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
 
-        return view('presensi.index', compact('anggotaKelas', 'presensi', 'tanggal_tercatat', 'bulan_spp', 'bulan'));
+        return view('presensi_kelas.index', compact('anggotaKelas', 'presensi', 'tanggal_tercatat', 'bulan_spp', 'bulan'));
     }
 
     public function create()
@@ -48,7 +48,7 @@ class PresensiController extends Controller
         }
         $siswaList = AnggotaKelas::where('kelas_id', $kelas->id)->with('siswa')->get();
 
-        return view('presensi.create', compact('siswaList', 'kelas'));
+        return view('presensi_kelas.create', compact('siswaList', 'kelas'));
     }
 
     public function store(Request $request)
@@ -70,7 +70,7 @@ class PresensiController extends Controller
             );
         }
 
-        return redirect()->route('presensi.index')->with('success', 'Presensi berhasil disimpan.');
+        return redirect()->route('presensi-kelas.index')->with('success', 'Presensi berhasil disimpan.');
     }
 
     public function show($id)
@@ -87,7 +87,7 @@ class PresensiController extends Controller
                             ->where('tanggal', 'like', "$bulanFilter%")
                             ->get();
         $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort();
-        return view('presensi.show', compact('bulan', 'anggotaKelas', 'presensi', 'tanggal_tercatat','bulan_spp'));
+        return view('presensi_kelas.show', compact('bulan', 'anggotaKelas', 'presensi', 'tanggal_tercatat','bulan_spp'));
     }
 
     public function edit(Presensi $presensi)

@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-rocket icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Kelas
+                <div>Anggota Kelas {{$kelas->nama_kelas}}
                     <div class="page-title-subheading">
                         Daftar Kelas
                     </div>
@@ -31,9 +31,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama Kelas</th>
-                            <th>Wali Kelas</th>
-                            <th>Guru Pendamping</th>
+                            <th>Nama Siswa</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -41,12 +39,10 @@
                         @php
                             $no = 1;
                         @endphp
-                        @forelse ($data_kelas as $item)
+                        @forelse ($anggota_kelas as $item)
                             <tr>
                                 <td>{{$no++}}</td>
-                                <td>{{$item->nama_kelas}}</td>
-                                <td>{{$item->guru->nama_lengkap}}, {{$item->guru->gelar}}.</td>
-                                <td>{{$item->pendamping->nama_lengkap}}, {{$item->pendamping->gelar}}.</td>
+                                <td>{{$item->siswa->nama_lengkap}}</td>
                                 <td class="d-flex">
                                     <a href="{{ route('kelas.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                     <a href="{{ route('kelas.show', $item->id) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 1rem;"></i></a>

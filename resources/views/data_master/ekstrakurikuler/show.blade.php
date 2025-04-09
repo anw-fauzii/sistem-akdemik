@@ -1,7 +1,7 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Kelas</title>
+    <title>Ekstrakurikuler</title>
 @endsection
 
 @section('content')
@@ -12,9 +12,9 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-rocket icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Kelas
+                <div>Anggota Ekstrakurikuler {{$ekstrakurikuler->nama_ekstrakurikuler}}
                     <div class="page-title-subheading">
-                        Daftar Kelas
+                        Daftar Ekstrakurikuler
                     </div>
                 </div>
             </div>  
@@ -23,7 +23,7 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('kelas.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('ekstrakurikuler.create')}}" class="btn btn-primary">Tambah Baru</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -31,9 +31,8 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Nama Kelas</th>
-                            <th>Wali Kelas</th>
-                            <th>Guru Pendamping</th>
+                            <th>Nama Siswa</th>
+                            <th>Kelas</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -41,16 +40,15 @@
                         @php
                             $no = 1;
                         @endphp
-                        @forelse ($data_kelas as $item)
+                        @forelse ($anggota_ekstrakurikuler as $item)
                             <tr>
                                 <td>{{$no++}}</td>
-                                <td>{{$item->nama_kelas}}</td>
-                                <td>{{$item->guru->nama_lengkap}}, {{$item->guru->gelar}}.</td>
-                                <td>{{$item->pendamping->nama_lengkap}}, {{$item->pendamping->gelar}}.</td>
+                                <td>{{$item->anggotaKelas->siswa->nama_lengkap}}</td>
+                                <td>{{$item->anggotaKelas->siswa->kelas->nama_kelas}}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('kelas.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
-                                    <a href="{{ route('kelas.show', $item->id) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 1rem;"></i></a>
-                                    <form action="{{ route('kelas.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <a href="{{ route('ekstrakurikuler.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('ekstrakurikuler.show', $item->id) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 1rem;"></i></a>
+                                    <form action="{{ route('ekstrakurikuler.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>

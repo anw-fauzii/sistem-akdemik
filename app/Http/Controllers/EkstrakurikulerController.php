@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnggotaEkstrakurikuler;
 use App\Models\Ekstrakurikuler;
 use App\Models\Guru;
 use App\Models\TahunAjaran;
@@ -44,7 +45,9 @@ class EkstrakurikulerController extends Controller
 
     public function show($id)
     {
-        //
+        $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
+        $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::whereEkstrakurikulerId($id)->get();
+        return view('data_master.ekstrakurikuler.show', compact('ekstrakurikuler','anggota_ekstrakurikuler'));
     }
 
     public function edit($id)

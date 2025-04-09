@@ -127,10 +127,23 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="{{route('presensi.index')}}" class="{{(request()->is('presensi*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('presensi-kelas*','presensi-ekstrakurikuler*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-smile"></i>
-                            Presensi
+                           Presensi
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
+                    <ul class="{{(request()->is('presensi-kelas*','presensi-ekstrakurikuler*')) ? 'mm-show' : ''}}">
+                        <li>
+                            <a href="{{route('presensi-kelas.index')}}" class="{{(request()->is('presensi-kelas*')) ? 'mm-active' : ''}}">
+                                Kelas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('presensi-ekstrakurikuler.index')}}" class="{{(request()->is('presensi-ekstrakurikuler*')) ? 'mm-active' : ''}}">
+                                Ekstrakurikuler
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();

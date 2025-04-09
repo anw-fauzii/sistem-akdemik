@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnggotaKelas;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Siswa;
@@ -57,9 +58,11 @@ class KelasController extends Controller
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil disimpan');   
     }
 
-    public function show(Kelas $kelas)
+    public function show($id)
     {
-        //
+        $kelas = Kelas::findOrFail($id);
+        $anggota_kelas = AnggotaKelas::whereKelasId($id)->get();
+        return view('data_master.kelas.show', compact('kelas','anggota_kelas'));
     }
 
     public function edit($id)
