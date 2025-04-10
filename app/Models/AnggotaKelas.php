@@ -30,5 +30,9 @@ class AnggotaKelas extends Model
     {
         return $this->hasMany(PembayaranSpp::class, 'anggota_kelas_id');
     }
-
+    
+    public function ekstrakurikuler()
+    {
+        return $this->hasMany(AnggotaEkstrakurikuler::class)->with('ekstrakurikuler');
+    }
 }

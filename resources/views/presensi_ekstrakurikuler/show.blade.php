@@ -14,7 +14,7 @@
                 </div>
                 <div>Presensi {{ \Carbon\Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y') }}
                     <div class="page-title-subheading">
-                        Merupakan Presensi yang Berada di sekolah
+                        Merupakan Presensi Ekstrakurikuler {{$ekstrakurikuler->nama_ekstrakurikuler}}
                     </div>
                 </div>
             </div>  
@@ -63,14 +63,14 @@
     </div>
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('presensi-kelas.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('presensi-ekstrakurikuler.create')}}" class="btn btn-primary">Tambah Baru</a>
                 &nbsp;<button class="btn btn-warning dropdown" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="metismenu-icon pe-7s-refresh-2"></i> PERIODE
                 </button>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
                     @foreach($bulan_spp as $bulan)
                     <li>
-                        <a href="{{ route('presensi-kelas.show', $bulan->id) }}" class="dropdown-item">
+                        <a href="{{ route('presensi-ekstrakurikuler.show', $bulan->id) }}" class="dropdown-item">
                             {{ $bulan->nama_bulan }}
                         </a>
                     </li>
@@ -101,7 +101,7 @@
                             @foreach ($anggotaEkstrakurikuler as $anggota)
                                 <tr>
                                     <td>{{$no++}}</td>
-                                    <td>{{ $anggota->anggotaKelas->siswa->nama_lengkap }}</td>
+                                    <td>{{ $anggota->anggotaKelas->siswa->nama_lengkap }} <strong>({{ $anggota->anggotaKelas->siswa->kelas->nama_kelas }})</strong></td>
                                     @foreach ($tanggal_tercatat as $tanggal)
                                         @php
                                             $presensiData = $presensi->where('anggota_ekstrakurikuler_id', $anggota->id)->where('tanggal', $tanggal)->first();

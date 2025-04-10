@@ -11,7 +11,7 @@ class AnggotaEkstrakurikuler extends Model
     protected $table = 'anggota_ekstrakurikuler';
     protected $fillable = [
         'anggota_kelas_id',
-        'ekstrakulikuler_id',
+        'ekstrakurikuler_id',
     ];
 
     public function anggotaKelas()
@@ -19,7 +19,7 @@ class AnggotaEkstrakurikuler extends Model
         return $this->belongsTo(AnggotaKelas::class);
     }
 
-    public function ekstrakulikuler()
+    public function ekstrakurikuler()
     {
         return $this->belongsTo(Ekstrakurikuler::class);
     }

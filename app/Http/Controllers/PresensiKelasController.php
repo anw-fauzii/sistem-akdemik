@@ -80,9 +80,14 @@ class PresensiKelasController extends Controller
         $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
         $bulan = BulanSpp::findOrFail($id);
         $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-        $anggotaKelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahunAjaran) {
-            $query->where('tahun_ajaran_id', $tahunAjaran->id);
-        })->get();
+        $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+                    ->where('guru_nipy', Auth::user()->email)
+                    ->first();
+
+        if (!$kelas) {
+            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+        }
+        $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
         $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
                             ->where('tanggal', 'like', "$bulanFilter%")
                             ->get();

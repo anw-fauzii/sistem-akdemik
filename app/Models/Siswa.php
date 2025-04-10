@@ -16,6 +16,7 @@ class Siswa extends Model
         'nis',
         'kelas_id',
         'guru_nipy',
+        'ekstrakurikuler_id',
         'jenis_pendaftaran',
         'nama_lengkap',
         'jenis_kelamin',
@@ -99,4 +100,10 @@ class Siswa extends Model
     {
         return $this->belongsTo(Siswa::class, 'siswa_nis', 'nis');
     }
+
+    public function ekstrakurikuler()
+    {
+        return $this->belongsTo(Ekstrakurikuler::class);
+    }
+    
 }

@@ -9,7 +9,7 @@ class PembayaranSpp extends Model
 {
     use HasFactory;
     protected $table = 'pembayaran_spp';
-    protected $fillable = ['anggota_kelas_id', 'bulan_spp_id', 'nominal_spp', 'biaya_makan', 'total_pembayaran', 'keterangan'];
+    protected $fillable = ['anggota_kelas_id', 'bulan_spp_id', 'nominal_spp', 'biaya_makan', 'total_pembayaran', 'keterangan','ekstrakurikuler'];
 
     public function anggotaKelas()
     {

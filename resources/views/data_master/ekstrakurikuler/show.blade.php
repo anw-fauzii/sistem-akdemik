@@ -23,7 +23,8 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('ekstrakurikuler.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <button type="button" class="btn btn-primary" onclick="showCreateModal()">TAMBAH SISWA</button>
+            @include('data_master.ekstrakurikuler.modalCreate')
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -46,9 +47,7 @@
                                 <td>{{$item->anggotaKelas->siswa->nama_lengkap}}</td>
                                 <td>{{$item->anggotaKelas->siswa->kelas->nama_kelas}}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('ekstrakurikuler.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
-                                    <a href="{{ route('ekstrakurikuler.show', $item->id) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 1rem;"></i></a>
-                                    <form action="{{ route('ekstrakurikuler.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('anggota-ekstrakurikuler.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>

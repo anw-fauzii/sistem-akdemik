@@ -14,7 +14,7 @@
                 </div>
                 <div>Presensi {{ now()->translatedFormat('F Y') }}
                     <div class="page-title-subheading">
-                        Merupakan Presensi yang Berada di sekolah
+                        Merupakan Presensi Ekstrakurikuler {{$ekstrakurikuler->nama_ekstrakurikuler}}
                     </div>
                 </div>
             </div>  
@@ -101,7 +101,7 @@
                             @foreach ($anggotaEkstrakurikuler as $anggota)
                                 <tr>
                                     <td>{{$no++}}</td>
-                                    <td>{{ $anggota->anggotaKelas->siswa->nama_lengkap }}</td>
+                                    <td>{{ $anggota->anggotaKelas->siswa->nama_lengkap }} <strong>({{ $anggota->anggotaKelas->siswa->kelas->nama_kelas }})</strong></td>
                                     @foreach ($tanggal_tercatat as $tanggal)
                                         @php
                                             $presensiData = $presensi->where('anggota_ekstrakurikuler_id', $anggota->id)->where('tanggal', $tanggal)->first();

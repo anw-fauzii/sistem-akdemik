@@ -17,6 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger('bulan_spp_id');
             $table->integer('nominal_spp');
             $table->integer('biaya_makan');
+            $table->integer('ekstrakurikuler');
             $table->integer('total_pembayaran');
             $table->string('keterangan');
             $table->timestamps();

@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggotaEkstrakurikuler;
+use App\Models\AnggotaKelas;
 use App\Models\Ekstrakurikuler;
 use App\Models\Guru;
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 
@@ -45,9 +47,21 @@ class EkstrakurikulerController extends Controller
 
     public function show($id)
     {
-        $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
-        $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::whereEkstrakurikulerId($id)->get();
-        return view('data_master.ekstrakurikuler.show', compact('ekstrakurikuler','anggota_ekstrakurikuler'));
+        $tapel = TahunAjaran::latest()->first();
+        $ekstrakurikuler = Ekstrakurikuler::findorfail($id);
+        $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::where('ekstrakurikuler_id',$id)->get();
+        $siswa_belum_masuk_ekstrakurikuler = Siswa::where('ekstrakurikuler_id', null)->get();
+        foreach ($siswa_belum_masuk_ekstrakurikuler as $belum_masuk_ekstrakurikuler) {
+            $kelas_sebelumnya = AnggotaKelas::where('siswa_nis', $belum_masuk_ekstrakurikuler->nis)->where('tahun_ajaran_id', $tapel->id)->orderBy('id', 'ASC')->first();
+            if (is_null($kelas_sebelumnya)) {
+                $belum_masuk_ekstrakurikuler->kelas_sebelumnya = null;
+                $belum_masuk_ekstrakurikuler->anggota_kelas = null;
+            } else {
+                $belum_masuk_ekstrakurikuler->kelas_sebelumnya = $kelas_sebelumnya->kelas->nama_kelas;
+                $belum_masuk_ekstrakurikuler->anggota_kelas = $kelas_sebelumnya->id;
+            }
+        }
+    return view('data_master.ekstrakurikuler.show', compact('ekstrakurikuler', 'anggota_ekstrakurikuler', 'siswa_belum_masuk_ekstrakurikuler'));
     }
 
     public function edit($id)

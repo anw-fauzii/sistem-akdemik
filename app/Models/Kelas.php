@@ -20,7 +20,7 @@ class Kelas extends Model
         'biaya_makan',
     ];
 
-    public function tapel()
+    public function tahun_ajaran()
     {
         return $this->belongsTo(TahunAjaran::class);
     }

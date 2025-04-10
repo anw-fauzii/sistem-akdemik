@@ -62,7 +62,16 @@ class KelasController extends Controller
     {
         $kelas = Kelas::findOrFail($id);
         $anggota_kelas = AnggotaKelas::whereKelasId($id)->get();
-        return view('data_master.kelas.show', compact('kelas','anggota_kelas'));
+        $siswa_belum_masuk_kelas = Siswa::whereKelasId(NULL)->get();
+        foreach ($siswa_belum_masuk_kelas as $belum_masuk_kelas) {
+            $kelas_sebelumnya = AnggotaKelas::where('siswa_nis', $belum_masuk_kelas->id)->orderBy('id', 'DESC')->first();
+            if (is_null($kelas_sebelumnya)) {
+                $belum_masuk_kelas->kelas_sebelumnya = null;
+            } else {
+                $belum_masuk_kelas->kelas_sebelumnya = $kelas_sebelumnya->kelas->nama_kelas;
+            }
+        }
+        return view('data_master.kelas.show', compact('kelas','anggota_kelas','siswa_belum_masuk_kelas'));
     }
 
     public function edit($id)

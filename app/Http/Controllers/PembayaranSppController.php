@@ -7,6 +7,7 @@ use App\Models\BulanSpp;
 use App\Models\Kelas;
 use App\Models\PembayaranSpp;
 use App\Models\Presensi;
+use App\Models\PresensiEkstrakurikuler;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Carbon\Carbon;
@@ -33,9 +34,6 @@ class PembayaranSppController extends Controller
 
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -43,38 +41,35 @@ class PembayaranSppController extends Controller
             'tahun_ajaran_id' => 'required',
             'bulan_spp_id' => 'required|exists:bulan_spp,id'
         ]);
-
+    
         // Cari siswa berdasarkan NIS dan tahun ajaran
         $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($request) {
             $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
         })->where('siswa_nis', $request->siswa_nis)->first();
-
+    
         if (!$anggota_kelas) {
             return redirect()->route('pembayaran-spp.index')->with('error', 'Data siswa tidak ditemukan!');
         }
-
-        // Cek apakah pembayaran sudah ada
+    
         if (PembayaranSpp::where('anggota_kelas_id', $anggota_kelas->id)
             ->where('bulan_spp_id', $request->bulan_spp_id)
             ->exists()) {
             return redirect()->route('pembayaran-spp.index')->with('error', 'Tagihan ini sudah dibayar!');
         }
-
-        // Ambil informasi kelas dan biaya
+    
         $kelas = $anggota_kelas->kelas;
         $nominal_spp = $kelas->spp ?? 0;
         $biaya_makan = $kelas->biaya_makan ?? 0;
-
-        // Ambil informasi bulan SPP
+    
         $bulan_spp = BulanSpp::find($request->bulan_spp_id);
         if (!$bulan_spp) {
             return redirect()->route('pembayaran-spp.index')->with('error', 'Bulan SPP tidak valid!');
         }
-
+    
         $bulan = Carbon::parse($bulan_spp->bulan_angka)->month;
         $tambahan = $bulan_spp->tambahan ?? 0;
-
-        // Hitung jumlah sakit berturut-turut
+    
+        // Hitung sakit berturut-turut
         $sakit_beruntun = Presensi::where('anggota_kelas_id', $anggota_kelas->id)
             ->where('status', 'sakit')
             ->whereMonth('tanggal', $bulan)
@@ -83,14 +78,14 @@ class PembayaranSppController extends Controller
             ->pluck('tanggal')
             ->map(fn($tanggal) => Carbon::parse($tanggal)->format('Y-m-d'))
             ->toArray();
-
+    
         $max_sakit_beruntun = 0;
         $current_streak = 1;
-
+    
         for ($i = 1; $i < count($sakit_beruntun); $i++) {
             $prev_date = Carbon::parse($sakit_beruntun[$i - 1]);
             $current_date = Carbon::parse($sakit_beruntun[$i]);
-
+    
             if ($current_date->diffInDays($prev_date) == 1) {
                 $current_streak++;
             } else {
@@ -99,29 +94,45 @@ class PembayaranSppController extends Controller
             }
         }
         $max_sakit_beruntun = max($max_sakit_beruntun, $current_streak);
-
-        // Potongan biaya makan
+    
+        // Potongan makan
         $biaya_makan_potongan = $biaya_makan;
         if ($max_sakit_beruntun > 7) {
-            $biaya_makan_potongan *= 0.75; // Maksimal potongan 25%
+            $biaya_makan_potongan *= 0.75;
         }
-
-        // Total pembayaran
-        $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan;
-
+    
+        // ✅ Tambahkan perhitungan biaya ekstrakurikuler
+        $total_ekskul = 0;
+    
+        $ekskul_aktif = $anggota_kelas->ekstrakurikuler; // relasi di model AnggotaKelas
+        foreach ($ekskul_aktif as $ekskul_item) {
+            $hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $ekskul_item->id)
+                ->where('status', 'hadir')
+                ->whereMonth('tanggal', $bulan)
+                ->exists();
+    
+            if ($hadir && $ekskul_item->ekstrakurikuler) {
+                $total_ekskul += $ekskul_item->ekstrakurikuler->biaya ?? 0;
+            }
+        }
+    
+        $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul;
+    
         // Simpan pembayaran
         PembayaranSpp::create([
             'anggota_kelas_id' => $anggota_kelas->id,
             'bulan_spp_id' => $request->bulan_spp_id,
             'nominal_spp' => $nominal_spp,
-            'biaya_makan' => $biaya_makan_potongan,
+            'biaya_makan' => $biaya_makan_potongan + $tambahan,
             'tambahan' => $tambahan,
+            'ekstrakurikuler' => $total_ekskul,
             'total_pembayaran' => $total_pembayaran,
             'keterangan' => 'Lunas'
         ]);
-
+    
         return redirect()->route('pembayaran-spp.index')->with('success', 'Pembayaran berhasil disimpan.');
     }
+    
 
     
 
@@ -201,45 +212,53 @@ class PembayaranSppController extends Controller
         ->map(function ($tagihan) use ($anggota_kelas, $biaya_makan) {
             $bulan = date('m', strtotime($tagihan->bulan_angka));
     
-            // Ambil semua tanggal sakit di bulan ini
+            // Hitung absen sakit bulan ini
             $absen_sakit = Presensi::where('anggota_kelas_id', $anggota_kelas->id)
                 ->where('status', 'sakit')
                 ->whereMonth('tanggal', $bulan)
                 ->orderBy('tanggal', 'asc')
                 ->pluck('tanggal')
-                ->map(fn($tanggal) => Carbon::parse($tanggal));
-                $potongan = 0;
-                if ($absen_sakit->count() >= 7) {
-                    // Pastikan tanggal sudah terurut
-                    $sorted_sakit = $absen_sakit->sort()->values();
-                
-                    $streak = 1; // Mulai hitung streak
-                    $potongan = 0; // Default tidak ada potongan
-                
-                    for ($i = 1; $i < $sorted_sakit->count(); $i++) {
-                        $diff = $sorted_sakit[$i]->diffInDays($sorted_sakit[$i - 1]);
-                
-                        if ($diff == 1) { // Jika selisih 1 hari, berarti berturut-turut
-                            $streak++;
-                            if ($streak >= 7) { // Jika sudah mencapai 7 hari berturut-turut
-                                $potongan = 0.25 * $biaya_makan;
-                                break; // Maksimal 25%, jadi berhenti di sini
-                            }
-                        } else {
-                            $streak = 1; // Reset streak jika ada jeda masuk sekolah
+                ->map(fn($tanggal) => \Carbon\Carbon::parse($tanggal));
+    
+            $potongan = 0;
+            if ($absen_sakit->count() >= 7) {
+                $sorted = $absen_sakit->sort()->values();
+                $streak = 1;
+                for ($i = 1; $i < $sorted->count(); $i++) {
+                    $diff = $sorted[$i]->diffInDays($sorted[$i - 1]);
+                    if ($diff == 1) {
+                        $streak++;
+                        if ($streak >= 7) {
+                            $potongan = 0.25 * $biaya_makan;
+                            break;
                         }
+                    } else {
+                        $streak = 1;
                     }
                 }
-                
-
+            }
+    
             $total_biaya_makan = $biaya_makan - $potongan;
+    
+            // Hitung biaya ekstrakurikuler jika hadir di bulan itu
+            $biaya_ekskul_bulan_ini = $anggota_kelas->ekstrakurikuler->sum(function ($item) use ($bulan) {
+                $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                    ->where('status', 'hadir')
+                    ->whereMonth('tanggal', $bulan)
+                    ->exists();
+    
+                return $pernah_hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
+            });
     
             $tagihan->jumlah_absen = $absen_sakit->count();
             $tagihan->potongan_makan = $potongan;
             $tagihan->total_biaya_makan = $total_biaya_makan;
+            $tagihan->biaya_ekskul = $biaya_ekskul_bulan_ini;
     
             return $tagihan;
         });
+    
+        $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
     
         $tahun_ajaran = TahunAjaran::all();
         $siswa_list = Siswa::all();
@@ -252,10 +271,9 @@ class PembayaranSppController extends Controller
             'tahun_ajaran_id',
             'siswa_nis',
             'spp',
-            'biaya_makan'
+            'biaya_makan',
+            'total_ekskul'
         ));
     }
     
-
-
 }

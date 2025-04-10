@@ -96,6 +96,7 @@
                                 <th>Bulan</th>
                                 <th>Nominal SPP</th>
                                 <th>Biaya Makan</th>
+                                <th>Ekstrakurikuler</th>
                                 <th>Total Pembayaran</th>
                                 <th>Keterangan</th>
                                 <th>Aksi</th>
@@ -109,8 +110,9 @@
                                     <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
 
                                     <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</td>
 
-                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
 
                                     <td>
                                         @if($tagihan->keterangan === 'Lunas')

@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('nis', 100)->primary();
             $table->unsignedBigInteger('kelas_id')->unsigned()->nullable();
             $table->string('guru_nipy')->nullable();
+            $table->unsignedBigInteger('ekstrakurikuler_id')->unsigned()->nullable();
             $table->enum('jenis_pendaftaran', ['1', '2']);
             $table->string('nama_lengkap', 100);
             $table->enum('jenis_kelamin', ['L', 'P']);
@@ -83,6 +84,7 @@ return new class extends Migration
 
             $table->foreign('nis')->references('email')->on('users')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('guru_nipy')->references('nipy')->on('guru')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('ekstrakurikuler_id')->references('id')->on('ekstrakurikuler')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('kelas_id')->references('id')->on('kelas')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('berkebutuhan_khusus_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('transportasi_id')->references('id')->on('transportasi')->onDelete('cascade')->onUpdate('cascade');

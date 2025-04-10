@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AnggotaEkstrakurikulerController;
+use App\Http\Controllers\AnggotaKelasController;
 use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\BulanSppController;
 use App\Http\Controllers\EkstrakurikulerController;
@@ -55,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/pembayaran-spp', PembayaranSppController::class);
     Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
     Route::resource('/ekstrakurikuler', EkstrakurikulerController::class);
+    Route::resource('/anggota-kelas', AnggotaKelasController::class);
+    Route::resource('/anggota-ekstrakurikuler', AnggotaEkstrakurikulerController::class);
 });
 
 require __DIR__.'/auth.php';
