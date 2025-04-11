@@ -13,11 +13,12 @@ return new class extends Migration
     {
         Schema::create('kelas', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('tahun_ajaran_id')->unsigned();
+            $table->unsignedBigInteger('tahun_ajaran_id');
             $table->string('guru_nipy');
             $table->string('pendamping_nipy');
             $table->string('tingkatan_kelas', 2);
             $table->string('nama_kelas', 30);
+            $table->string('jenjang', 30);
             $table->string('romawi', 30);
             $table->integer('spp');
             $table->integer('biaya_makan');

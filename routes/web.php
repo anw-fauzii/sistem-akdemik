@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AnggotaEkstrakurikulerController;
 use App\Http\Controllers\AnggotaKelasController;
 use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\BulanSppController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
@@ -34,10 +36,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -59,6 +57,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/ekstrakurikuler', EkstrakurikulerController::class);
     Route::resource('/anggota-kelas', AnggotaKelasController::class);
     Route::resource('/anggota-ekstrakurikuler', AnggotaEkstrakurikulerController::class);
+    Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
+    Route::resource('agenda', AgendaController::class);
 });
 
 require __DIR__.'/auth.php';

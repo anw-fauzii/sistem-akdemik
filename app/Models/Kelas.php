@@ -15,6 +15,7 @@ class Kelas extends Model
         'pendamping_nipy',
         'tingkatan_kelas',
         'nama_kelas',
+        'jenjang',
         'romawi',
         'spp',
         'biaya_makan',

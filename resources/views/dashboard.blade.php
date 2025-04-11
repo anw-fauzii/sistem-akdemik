@@ -1,7 +1,7 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Beranda</title>
+    <title>Dashboard Yayasan</title>
 @endsection
 
 @section('content')
@@ -12,122 +12,120 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-home icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Hallo {{Auth::user()->name}} !!
+                <div>
+                    Halo {{ Auth::user()->name }}!
                     <div class="page-title-subheading">
-                        Selamat datang di sistem Penerimaan Peserta Didik Baru
-                    </div>
-                </div>
-            </div>  
-        </div> 
-    </div>
-    <div class="row">
-        <div class="col-md-7">
-            <div class="main-card mb-3 card">
-                <div class="card-body">
-                    <h5 class="card-title">Alur Penerimaan peserta didik baru</h5>
-                    <div class="vertical-time-icons vertical-timeline vertical-timeline--animate vertical-timeline--one-column">
-                        <div class="vertical-timeline-item vertical-timeline-element">
-                            <div>
-                                <div class="vertical-timeline-element-icon bounce-in">
-                                    <div class="timeline-icon border-primary">
-                                        <i class="pe-7s-cloud-upload"></i>
-                                    </div>
-                                </div>
-                                <div class="vertical-timeline-element-content bounce-in">
-                                    <p>Langkah Pertama</p>
-                                    <h4 class="timeline-title mt-2">Ajukan Pendaftaran</h4>
-                                    <p>Pilih gelombang pendaftaran dan pilih jursan yang anda inginkan di menu pendaftaran.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vertical-timeline-item vertical-timeline-element">
-                            <div>
-                                <div class="vertical-timeline-element-icon bounce-in">
-                                    <div class="timeline-icon border-primary">
-                                        <i class="pe-7s-note2"></i>
-                                    </div>
-                                </div>
-                                <div class="vertical-timeline-element-content bounce-in">
-                                    <p>Langkah Kedua</p>
-                                    <h4 class="timeline-title mt-2">Mengisi Formulir Pendaftaran</h4>
-                                    <p>Isi setiap formulir dengan benar dan sesuai dengan identitas diri ananda.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vertical-timeline-item vertical-timeline-element">
-                            <div>
-                                <div class="vertical-timeline-element-icon bounce-in">
-                                    <div class="timeline-icon border-primary">
-                                        <i class="pe-7s-id"></i>
-                                    </div>
-                                </div>
-                                <div class="vertical-timeline-element-content bounce-in">
-                                    <p>Langkah Ketiga</p>
-                                    <h4 class="timeline-title mt-2">Unggah Dokumen Kependudukan</h4>
-                                    <p>Unggah dokumen kependudukan dengan benar dan sesuai dengan identitas diri ananda.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vertical-timeline-item vertical-timeline-element">
-                            <div>
-                                <div class="vertical-timeline-element-icon bounce-in">
-                                    <div class="timeline-icon border-primary">
-                                        <i class="pe-7s-print"></i>
-                                    </div>
-                                </div>
-                                <div class="vertical-timeline-element-content bounce-in">
-                                    <p>Langkah Keempat</p>
-                                    <h4 class="timeline-title mt-2">Konfirmasi Pembayaran</h4>
-                                    <p>Segera lakukan pembayaran pendaftaran ketika sudah selesai melakukan proses pendaftaran.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="vertical-timeline-item vertical-timeline-element">
-                            <div>
-                                <div class="vertical-timeline-element-icon bounce-in">
-                                    <div class="timeline-icon border-primary">
-                                        <i class="pe-7s-speaker"></i>
-                                    </div>
-                                </div>
-                                <div class="vertical-timeline-element-content bounce-in">
-                                    <p>Langkah Kelima</p>
-                                    <h4 class="timeline-title mt-2">Tunggu Pengumuman</h4>
-                                    <p>Panitia akan mengumumkan hasil seleksi penerimaan peserta didik baru di menu pendaftaran.</p>
-                                </div>
-                            </div>
-                        </div>
+                        Selamat datang di Sistem Informasi Akademik Yayasan Pendidikan
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-5">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="main-card mb-3 card">
-                        <div class="card-body">
-                            <h5 class="card-title">Kontak PPDB</h5>
-                            <div class="table-responsive">
-                                <table class="table table striped">
-                                    <tr>
-                                        <th>Konfirmasi Pembayaran</th>
-                                        <td><a href="http://wa.me/+6281318490859" target="_blank" rel="noopener noreferrer">+6281318490859</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Admin Web PPDB</th>
-                                        <td><a href="http://wa.me/+6289609592234" target="_blank" rel="noopener noreferrer">+6289609592234</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th>Info PPDB</th>
-                                        <td><a href="http://wa.me/+6289624502559" target="_blank" rel="noopener noreferrer">+6289624502559</a></td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
+    </div>
+
+    {{-- Ringkasan Data --}}
+    <div class="row">
+        <div class="col-md-3 col-lg-3">
+            <div class="card mb-3 widget-chart text-left">
+                <div class="icon-wrapper rounded-circle">
+                    <div class="icon-wrapper-bg bg-info"></div>
+                    <i class="pe-7s-users text-info"></i>
+                </div>
+                <div class="widget-chart-content">
+                    <div class="widget-subheading">Siswa TK</div>
+                    <div class="h5 font-weight-bold mb-0">{{ $siswa_tk }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-lg-3">
+            <div class="card mb-3 widget-chart text-left">
+                <div class="icon-wrapper rounded-circle">
+                    <div class="icon-wrapper-bg bg-success"></div>
+                    <i class="pe-7s-users text-success"></i>
+                </div>
+                <div class="widget-chart-content">
+                    <div class="widget-subheading">Siswa SD</div>
+                    <div class="h5 font-weight-bold mb-0">{{ $siswa_sd }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-lg-3">
+            <div class="card mb-3 widget-chart text-left">
+                <div class="icon-wrapper rounded-circle">
+                    <div class="icon-wrapper-bg bg-warning"></div>
+                    <i class="pe-7s-id text-warning"></i>
+                </div>
+                <div class="widget-chart-content">
+                    <div class="widget-subheading">Total Guru</div>
+                    <div class="h5 font-weight-bold mb-0">{{ $guru }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3 col-lg-3">
+            <div class="card mb-3 widget-chart text-left">
+                <div class="icon-wrapper rounded-circle">
+                    <div class="icon-wrapper-bg bg-danger"></div>
+                    <i class="pe-7s-door-lock text-danger"></i>
+                </div>
+                <div class="widget-chart-content">
+                    <div class="widget-subheading">Jumlah Kelas</div>
+                    <div class="h5 font-weight-bold mb-0">{{ $kelas }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Agenda dan Kalender --}}
+    <div class="row">
+
+        {{-- Kalender Kegiatan --}}
+        <div class="col-md-12">
+            <div class="card mb-3">
+                <div class="card-header bg-primary text-white">
+                    Kalender Kegiatan Yayasan
+                </div>
+                <div class="card-body">
+                    <div id="kalender"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
 
+@section('js')
+    
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js'></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('kalender');
+    
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                height: 500,
+                locale: 'id',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                buttonText: {
+                    today: 'Hari ini',
+                    month: 'Bulan',
+                    week: 'Minggu',
+                    day: 'Hari',
+                    list: 'Agenda'
+                },
+                noEventsContent: 'Tidak ada kegiatan yang ditampilkan',
+    
+                events: @json($agenda)
+            });
+    
+            calendar.render();
+        });
+    </script>
+    
 @endsection

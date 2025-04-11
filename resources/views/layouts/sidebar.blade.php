@@ -34,7 +34,7 @@
             <ul class="vertical-nav-menu">
                 <li class="app-sidebar__heading">Menu Utama</li>
                 <li>
-                    <a href="{{route('dashboard')}}" class="{{(request()->is('dashboard')) ? 'mm-active' : ''}}">
+                    <a href="{{route('dashboard.index')}}" class="{{(request()->is('dashboard')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-home"></i>
                             Beranda
                     </a>
@@ -74,12 +74,12 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*','agenda*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-rocket"></i>
                            Data Master
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*','agenda*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('tahun-ajaran.index')}}" class="{{(request()->is('tahun-ajaran*')) ? 'mm-active' : ''}}">
                                 Tahun Ajaran
@@ -103,6 +103,11 @@
                         <li>
                             <a href="{{route('ekstrakurikuler.index')}}" class="{{(request()->is('ekstrakurikuler*')) ? 'mm-active' : ''}}">
                                 Ekstrakurikuler
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('agenda.index')}}" class="{{(request()->is('agenda*')) ? 'mm-active' : ''}}">
+                                Agenda
                             </a>
                         </li>
                     </ul>

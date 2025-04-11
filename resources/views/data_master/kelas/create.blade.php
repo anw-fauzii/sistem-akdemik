@@ -29,6 +29,21 @@
             <form  method="post" action="{{route('kelas.store')}}" id="createForm">
                 @csrf
                 <div class="form-row">
+                    <div class="col-md-4">
+                        <div class="position-relative form-group">
+                            <label for="jenjang" class="">Jenjang</label>
+                            <select name="jenjang" id="jenjang"  class="multiselect-dropdown form-control @error('jenjang') is-invalid @enderror">
+                                <option value="" selected disabled>-- Pilih Jenjang --</option>
+                                <option value="SD">SD GIS Prima Insani</option>
+                                <option value="PG TK">PG TK Islam Plus Prima Insani</option>
+                            </select>
+                            @error('jenjang')
+                                <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                    {{ strtolower($message) }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
                     <div class="col-md-2">
                         <div class="position-relative form-group">
                             <label for="tingkatan_kelas" class="">Tingkat Kelas</label>
@@ -40,7 +55,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-3">
                         <div class="position-relative form-group">
                             <label for="nama_kelas" class="">Nama Kelas</label>
                             <input name="nama_kelas" id="nama_kelas" placeholder="Masukkan nama kelas" type="text" class="form-control @error('nama_kelas') is-invalid @enderror" value="{{ old('nama_kelas') }}">
@@ -51,7 +66,7 @@
                             @enderror
                         </div>
                     </div>
-                    <div class="col-md-5">
+                    <div class="col-md-3">
                         <div class="position-relative form-group">
                             <label for="romawi" class="">Romawi</label>
                             <input name="romawi" id="romawi" placeholder="Masukkan dalam format romawi" type="text" class="form-control @error('romawi') is-invalid @enderror" value="{{ old('romawi') }}">
