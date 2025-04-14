@@ -13,6 +13,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PenghasilanController;
+use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\PresensiEkstrakurikulerController;
 use App\Http\Controllers\PresensiKelasController;
 use App\Http\Controllers\ProfileController;
@@ -58,7 +59,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/anggota-kelas', AnggotaKelasController::class);
     Route::resource('/anggota-ekstrakurikuler', AnggotaEkstrakurikulerController::class);
     Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
-    Route::resource('agenda', AgendaController::class);
+    Route::resource('/agenda', AgendaController::class);
+    Route::resource('/pengumuman', PengumumanController::class);
 });
 
 require __DIR__.'/auth.php';

@@ -11,12 +11,12 @@ class AgendaController extends Controller
     public function index()
     {
         $agenda = Agenda::all();
-        return view('data_master.agenda.index', compact('agenda'));
+        return view('informasi.agenda.index', compact('agenda'));
     }
 
     public function create()
     {
-        return view('data_master.agenda.create');
+        return view('informasi.agenda.create');
     }
 
     public function store(Request $request)
@@ -46,7 +46,7 @@ class AgendaController extends Controller
     public function edit($id)
     {
         $agenda = Agenda::findOrFail($id);
-        return view('data_master.agenda.edit', compact('agenda'));
+        return view('informasi.agenda.edit', compact('agenda'));
     }
 
     public function update(Request $request, $id)

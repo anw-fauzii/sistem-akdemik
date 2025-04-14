@@ -74,12 +74,32 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*','agenda*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('agenda*','pengumuman*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-info"></i>
+                           Data Keuangan
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                    </a>
+                    <ul class="{{(request()->is('agenda*','pengumuman*')) ? 'mm-show' : ''}}">
+                        <li>
+                            <a href="{{route('agenda.index')}}" class="{{(request()->is('agenda*')) ? 'mm-active' : ''}}">
+                                Agenda
+                            </a>
+                        </li>
+                        
+                        <li>
+                            <a href="{{route('pengumuman.index')}}" class="{{(request()->is('pengumuman*')) ? 'mm-active' : ''}}">
+                                Pengumuman
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a href="#" class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-rocket"></i>
                            Data Master
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*','agenda*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('tahun-ajaran*','guru*','siswa*','kelas*','ekstrakurikuler*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('tahun-ajaran.index')}}" class="{{(request()->is('tahun-ajaran*')) ? 'mm-active' : ''}}">
                                 Tahun Ajaran
@@ -105,15 +125,11 @@
                                 Ekstrakurikuler
                             </a>
                         </li>
-                        <li>
-                            <a href="{{route('agenda.index')}}" class="{{(request()->is('agenda*')) ? 'mm-active' : ''}}">
-                                Agenda
-                            </a>
-                        </li>
                     </ul>
                 </li>
+
                 <li>
-                    <a href="#" class="{{(request()->is('bulan-spp*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('bulan-spp*','pembayaran-spp*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-cash"></i>
                            Data Keuangan
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>

@@ -25,10 +25,10 @@
     {{-- Ringkasan Data --}}
     <div class="row">
         <div class="col-md-3 col-lg-3">
-            <div class="card mb-3 widget-chart text-left">
+            <div class="card mb-3 widget-chart text-left" style="border-bottom: 4px solid var(--orange);">
                 <div class="icon-wrapper rounded-circle">
-                    <div class="icon-wrapper-bg bg-info"></div>
-                    <i class="pe-7s-users text-info"></i>
+                    <div class="icon-wrapper-bg bg-warning"></div>
+                    <i class="pe-7s-users text-warning"></i>
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Siswa TK</div>
@@ -38,10 +38,10 @@
         </div>
 
         <div class="col-md-3 col-lg-3">
-            <div class="card mb-3 widget-chart text-left">
+            <div class="card mb-3 widget-chart text-left" style="border-bottom: 4px solid var(--blue);">
                 <div class="icon-wrapper rounded-circle">
-                    <div class="icon-wrapper-bg bg-success"></div>
-                    <i class="pe-7s-users text-success"></i>
+                    <div class="icon-wrapper-bg bg-info"></div>
+                    <i class="pe-7s-users text-info"></i>
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Siswa SD</div>
@@ -51,10 +51,10 @@
         </div>
 
         <div class="col-md-3 col-lg-3">
-            <div class="card mb-3 widget-chart text-left">
+            <div class="card mb-3 widget-chart text-left" style="border-bottom: 4px solid var(--green);">
                 <div class="icon-wrapper rounded-circle">
-                    <div class="icon-wrapper-bg bg-warning"></div>
-                    <i class="pe-7s-id text-warning"></i>
+                    <div class="icon-wrapper-bg bg-success"></div>
+                    <i class="pe-7s-id text-success"></i>
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Guru</div>
@@ -64,7 +64,7 @@
         </div>
 
         <div class="col-md-3 col-lg-3">
-            <div class="card mb-3 widget-chart text-left">
+            <div class="card mb-3 widget-chart text-left" style="border-bottom: 4px solid var(--red);">
                 <div class="icon-wrapper rounded-circle">
                     <div class="icon-wrapper-bg bg-danger"></div>
                     <i class="pe-7s-door-lock text-danger"></i>
@@ -76,11 +76,7 @@
             </div>
         </div>
     </div>
-
-    {{-- Agenda dan Kalender --}}
     <div class="row">
-
-        {{-- Kalender Kegiatan --}}
         <div class="col-md-12">
             <div class="card mb-3">
                 <div class="card-header bg-primary text-white">
