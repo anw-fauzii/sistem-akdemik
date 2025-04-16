@@ -23,7 +23,9 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('siswa.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('siswa.create')}}" class="btn btn-primary mr-2">Tambah Baru</a>
+            <button type="button" class="btn btn-success" onclick="showCreateModal()">IMPORT EXCEL</button>
+            @include('data_master.siswa.import')
         </div>
         <div class="card-body">
             <div class="table-responsive">

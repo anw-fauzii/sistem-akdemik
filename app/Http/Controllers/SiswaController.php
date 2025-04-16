@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\SiswaImport;
 use App\Models\BerkebutuhanKhusus;
 use App\Models\JenjangPendidikan;
 use App\Models\Kelas;
@@ -14,6 +15,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Response;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaController extends Controller
 {
@@ -257,4 +260,26 @@ class SiswaController extends Controller
         return redirect()->route('siswa.index')->with('success', 'Siswa dan akun User terkait berhasil dihapus');
     }
 
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file_import' => 'required|mimes:xlsx,csv,xls',
+        ]);
+
+        try {
+            Excel::import(new SiswaImport, $request->file('file_import'));
+            return back()->with('success', 'Peserta didik berhasil diimport');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi error: ' . $e->getMessage());
+        }
+    }
+
+    public function format()
+    {
+        $file = public_path() . "/format_excel/format_import_siswa.xlsx";
+        $headers = array(
+            'Content-Type: application/xlsx',
+        );
+        return Response::download($file, 'format_import_siswa ' . date('Y-m-d H_i_s') . '.xlsx', $headers);
+    }
 }

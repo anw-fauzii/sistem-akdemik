@@ -29,8 +29,6 @@
             <form method="post" action="{{ route('pengumuman.update', $pengumuman->id) }}" id="editForm">
                 @csrf
                 @method('PUT')
-
-                {{-- JUDUL --}}
                 <div class="position-relative form-group">
                     <label for="judul">Judul</label>
                     <input type="text" name="judul" id="judul" class="form-control @error('judul') is-invalid @enderror" value="{{ $pengumuman->judul ?? old('judul') }}">
@@ -38,17 +36,13 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
-                {{-- ISI (TinyMCE) --}}
                 <div class="position-relative form-group">
                     <label for="isi">Isi Pengumuman</label>
-                    <textarea name="isi" id="isi" rows="10" class="form-control @error('isi') is-invalid @enderror">{{ $pengumuman->judul ?? old('isi') }}</textarea>
+                    <textarea name="isi" id="isi" rows="10" class="form-control @error('isi') is-invalid @enderror">{!! $pengumuman->isi ?? old('isi') !!}</textarea>
                     @error('isi')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
-                {{-- TANGGAL --}}
                 <div class="position-relative form-group">
                     <label for="tanggal">Tanggal</label>
                     <input type="date" name="tanggal" id="tanggal" class="form-control @error('tanggal') is-invalid @enderror" value="{{ $pengumuman->tanggal ?? old('tanggal') }}">
@@ -56,8 +50,6 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
-                {{-- BUTTON --}}
                 <div class="form-group mt-3">
                     <button type="submit" class="btn btn-primary" id="submitBtn">Simpan</button>
                 </div>
@@ -66,7 +58,6 @@
     </div>
 </div>
 
-{{-- Spinner saat submit --}}
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const form = document.getElementById("editForm");

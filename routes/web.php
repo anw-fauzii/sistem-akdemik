@@ -48,6 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('/tahun-ajaran', TahunAjaranController::class);
     Route::resource('/guru', GuruController::class);
     Route::resource('/siswa', SiswaController::class);
+    Route::post('/siswa-import', [SiswaController::class, 'import'])->name('siswa.import');
+    Route::get('/format-siswa-import', [SiswaController::class, 'format'])->name('format.siswa.import');
     Route::resource('/kelas', KelasController::class);
     Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class);
     Route::resource('/bulan-spp', BulanSppController::class);
