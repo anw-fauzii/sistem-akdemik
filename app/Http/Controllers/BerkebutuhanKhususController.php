@@ -9,53 +9,72 @@ class BerkebutuhanKhususController extends Controller
 {
     public function index()
     {
-        $kategori = BerkebutuhanKhusus::all();
-        return view('pelengkap.berkebutuhan_khusus.index', compact('kategori'));
+        if (user()?->hasRole('admin')) {
+            $kategori = BerkebutuhanKhusus::all();
+            return view('pelengkap.berkebutuhan_khusus.index', compact('kategori'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function create()
     {
-        return view('pelengkap.berkebutuhan_khusus.create');
+        if (user()?->hasRole('admin')) {
+            return view('pelengkap.berkebutuhan_khusus.create');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_berkebutuhan_khusus' => 'required',
-        ], [
-            'nama_berkebutuhan_khusus.required' => 'Nama kebutuhan khusus wajib diisi.',
-        ]);
-        BerkebutuhanKhusus::create($validated);
-        return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil disimpan');        
-    }
-
-    public function show($id)
-    {
-        //
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_berkebutuhan_khusus' => 'required',
+            ], [
+                'nama_berkebutuhan_khusus.required' => 'Nama kebutuhan khusus wajib diisi.',
+            ]);
+            BerkebutuhanKhusus::create($validated);
+            return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil disimpan');        
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function edit($id)
     {
-        $kategori = BerkebutuhanKhusus::findOrFail($id);
-        return view('pelengkap.berkebutuhan_khusus.edit', compact('kategori'));
+        if (user()?->hasRole('admin')) {
+            $kategori = BerkebutuhanKhusus::findOrFail($id);
+            return view('pelengkap.berkebutuhan_khusus.edit', compact('kategori'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'nama_berkebutuhan_khusus' => 'required',
-        ], [
-            'nama_berkebutuhan_khusus.required' => 'Nama kebutuhan khusus wajib diisi.',
-        ]);
-        $kategori = BerkebutuhanKhusus::findOrFail($id);
-        $kategori->update($validated);
-        return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil diupdate');
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_berkebutuhan_khusus' => 'required',
+            ], [
+                'nama_berkebutuhan_khusus.required' => 'Nama kebutuhan khusus wajib diisi.',
+            ]);
+            $kategori = BerkebutuhanKhusus::findOrFail($id);
+            $kategori->update($validated);
+            return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil diupdate');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function destroy($id)
     {
-        $kategori = BerkebutuhanKhusus::findOrFail($id);
-        $kategori->delete();
-        return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil dihapus');
+        if (user()?->hasRole('admin')) {
+            $kategori = BerkebutuhanKhusus::findOrFail($id);
+            $kategori->delete();
+            return redirect()->route('kategori-kebutuhan.index')->with('success', 'Berkebutuhan khusus berhasil dihapus');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 }

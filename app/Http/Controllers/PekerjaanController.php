@@ -9,53 +9,72 @@ class PekerjaanController extends Controller
 {
     public function index()
     {
-        $pekerjaan = Pekerjaan::all();
-        return view('pelengkap.pekerjaan.index', compact('pekerjaan'));
+        if (user()?->hasRole('admin')) {
+            $pekerjaan = Pekerjaan::all();
+            return view('pelengkap.pekerjaan.index', compact('pekerjaan'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function create()
     {
-        return view('pelengkap.pekerjaan.create');
+        if (user()?->hasRole('admin')) {
+            return view('pelengkap.pekerjaan.create');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nama_pekerjaan' => 'required',
-        ], [
-            'nama_pekerjaan.required' => 'Nama Pekerjaan wajib diisi.',
-        ]);
-        Pekerjaan::create($validated);
-        return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil disimpan');        
-    }
-
-    public function show($id)
-    {
-        //
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_pekerjaan' => 'required',
+            ], [
+                'nama_pekerjaan.required' => 'Nama Pekerjaan wajib diisi.',
+            ]);
+            Pekerjaan::create($validated);
+            return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil disimpan');        
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function edit($id)
     {
-        $pekerjaan = Pekerjaan::findOrFail($id);
-        return view('pelengkap.pekerjaan.edit', compact('pekerjaan'));
+        if (user()?->hasRole('admin')) {
+            $pekerjaan = Pekerjaan::findOrFail($id);
+            return view('pelengkap.pekerjaan.edit', compact('pekerjaan'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function update(Request $request, $id)
     {
-        $validated = $request->validate([
-            'nama_pekerjaan' => 'required',
-        ], [
-            'nama_pekerjaan.required' => 'Nama Pekerjaan wajib diisi.',
-        ]);
-        $pekerjaan = Pekerjaan::findOrFail($id);
-        $pekerjaan->update($validated);
-        return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil diupdate');
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_pekerjaan' => 'required',
+            ], [
+                'nama_pekerjaan.required' => 'Nama Pekerjaan wajib diisi.',
+            ]);
+            $pekerjaan = Pekerjaan::findOrFail($id);
+            $pekerjaan->update($validated);
+            return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil diupdate');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
     public function destroy($id)
     {
-        $pekerjaan = Pekerjaan::findOrFail($id);
-        $pekerjaan->delete();
-        return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil dihapus');
+        if (user()?->hasRole('admin')) {
+            $pekerjaan = Pekerjaan::findOrFail($id);
+            $pekerjaan->delete();
+            return redirect()->route('pekerjaan.index')->with('success', 'Pekerjaan berhasil dihapus');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 }
