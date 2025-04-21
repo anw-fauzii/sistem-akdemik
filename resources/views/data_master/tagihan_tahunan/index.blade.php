@@ -1,7 +1,7 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Transportasi</title>
+    <title>Tagihan Tahunan</title>
 @endsection
 
 @section('content')
@@ -10,11 +10,11 @@
         <div class="page-title-wrapper">
             <div class="page-title-heading">
                 <div class="page-title-icon">
-                    <i class="pe-7s-plugin icon-gradient bg-mean-fruit"></i>
+                    <i class="pe-7s-cash icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Transportasi
+                <div>Tagihan Tahunan
                     <div class="page-title-subheading">
-                        Merupakan kategori untuk jenis transportasi
+                        Merupakan Bulan yang dilakukan pembayaran
                     </div>
                 </div>
             </div>  
@@ -23,7 +23,7 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('transportasi.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('tagihan-tahunan.create')}}" class="btn btn-primary">Tambah Baru</a>
         </div>
         <div class="card-body">
             <div class="table-responsive">
@@ -31,7 +31,9 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Tahun Ajaran</th>
+                            <th>Jenjang</th>
+                            <th>Jenis Pembayaran</th>
+                            <th>Jumlah</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -39,14 +41,16 @@
                         @php
                             $no = 1;
                         @endphp
-                        @forelse ($transportasi as $item)
+                        @forelse ($tagihan_tahunan as $item)
                             <tr>
                                 <td>{{$no++}}</td>
-                                <td>{{$item->nama_transportasi}}</td>
+                                <td>{{$item->jenjang}}</td>
+                                <td>{{$item->jenis}}</td>
+                                <td>Rp. {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('transportasi.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
+                                    <a href="{{ route('tagihan-tahunan.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 1rem;"></i></a>
                                 
-                                    <form action="{{ route('transportasi.destroy', $item->id) }}" method="POST" class="delete-form">
+                                    <form action="{{ route('tagihan-tahunan.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-sm btn-warning delete-button mx-1"><i class="pe-7s-trash" style="font-size: 1rem;"></i></a></button>
@@ -55,7 +59,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <th colspan="4" class="text-center"> Belum Ada Data</th>
+                                <th colspan="5" class="text-center"> Belum Ada Data</th>
                             </tr>
                         @endforelse 
                     </tbody>

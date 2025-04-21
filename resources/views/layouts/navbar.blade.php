@@ -1,6 +1,6 @@
 <div class="app-header header-shadow bg-primary header-text-light">
     <div class="app-header__logo">
-        <div class="logo-src mb-4"><img src="https://sip.primainsanigarut.sch.id/storage/logo.png" width="150px"></div>
+        <div class="logo-src mb-4"><img src="{{ asset('storage/logo/samping.png') }}" width="150px"></div>
             <div class="header__pane ml-auto">
                 <div>
                     <button type="button" class="hamburger close-sidebar-btn hamburger--elastic" data-class="closed-sidebar">

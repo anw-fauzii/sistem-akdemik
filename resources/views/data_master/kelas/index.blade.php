@@ -79,10 +79,13 @@
                 text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
+                buttonsStyling: false, // Mematikan styling default
+                customClass: {
+                    confirmButton: 'btn-swal-confirm',
+                    cancelButton: 'btn-swal-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

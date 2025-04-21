@@ -18,7 +18,7 @@
         <div class="min-h-screen flex flex-col justify-center items-center bg-gray-100 ">
             <!-- Logo Section -->
             <a href="/">
-                <img src="assets/img/samping.png" alt="Logo" class="mx-auto w-3/4 sm:w-1/2 md:w-1/4 lg:w-1/8 xl:w-1/2" />
+                <img src="{{ asset('storage/logo/samping.png') }}" alt="Logo" class="mx-auto w-3/4 sm:w-1/2 md:w-1/4 lg:w-1/8 xl:w-1/2" />
             </a>
 
             <!-- Form Content Section -->

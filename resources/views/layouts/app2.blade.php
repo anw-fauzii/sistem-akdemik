@@ -123,5 +123,24 @@
         </script>
     @endif
     @yield('js')
+    <style>
+        .btn-swal-confirm,
+        .btn-swal-cancel {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .btn-swal-confirm {
+            background-color: #3085d6;
+            color: white;
+        }
+        .btn-swal-cancel {
+            background-color: #d33;
+            color: white;
+        }
+    </style>
 </body>
 </html>

@@ -11,7 +11,8 @@ class BulanSppController extends Controller
     public function index()
     {
         if (user()?->hasRole('admin')) {
-            $bulan_spp = BulanSpp::all();
+            $tahun = TahunAjaran::latest()->first();
+            $bulan_spp = BulanSpp::whereTahunAjaranId($tahun->id)->get();
             return view('data_master.bulan_spp.index', compact('bulan_spp'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);

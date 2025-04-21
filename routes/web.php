@@ -12,12 +12,14 @@ use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PembayaranSppController;
+use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\PresensiEkstrakurikulerController;
 use App\Http\Controllers\PresensiKelasController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SiswaController;
+use App\Http\Controllers\TagihanTahunanController;
 use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\TransportasiController;
 use Illuminate\Support\Facades\Route;
@@ -63,6 +65,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
     Route::resource('/agenda', AgendaController::class)->except(['show']);
     Route::resource('/pengumuman', PengumumanController::class)->except(['show']);
+    Route::resource('/tagihan-tahunan', TagihanTahunanController::class);
+    Route::resource('/pembayaran-tagihan-tahunan', PembayaranTagihanTahunanController::class);
 });
 
 require __DIR__.'/auth.php';

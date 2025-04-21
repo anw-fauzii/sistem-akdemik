@@ -160,7 +160,7 @@
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
+                cancelButtonColor: "#dd3333",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
             }).then((result) => {
@@ -175,13 +175,16 @@
             e.preventDefault();
             Swal.fire({
                 title: 'Konfirmasi',
-                text: 'Apakah yakin akan untuk diretur?',
+                text: 'Apakah yakin akan dihapus?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
+                buttonsStyling: false, // Mematikan styling default
+                customClass: {
+                    confirmButton: 'btn-swal-confirm',
+                    cancelButton: 'btn-swal-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

@@ -76,7 +76,7 @@
                 <li>
                     <a href="#" class="{{(request()->is('agenda*','pengumuman*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-info"></i>
-                           Data Keuangan
+                           Informasi
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
                     <ul class="{{(request()->is('agenda*','pengumuman*')) ? 'mm-show' : ''}}">
@@ -129,15 +129,20 @@
                 </li>
 
                 <li>
-                    <a href="#" class="{{(request()->is('bulan-spp*','pembayaran-spp*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('bulan-spp*','pembayaran-spp*','tagihan-tahunan*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-cash"></i>
                            Data Keuangan
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('bulan-spp*','pembayaran-spp*')) ? 'mm-show' : ''}}">
+                    <ul class="{{(request()->is('bulan-spp*','pembayaran-spp*','tagihan-tahunan*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('bulan-spp.index')}}" class="{{(request()->is('bulan-spp*')) ? 'mm-active' : ''}}">
                                 Bulan SPP
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('tagihan-tahunan.index')}}" class="{{(request()->is('tagihan-tahunan*')) ? 'mm-active' : ''}}">
+                                Biaya Tahunan
                             </a>
                         </li>
                         <li>
