@@ -12,7 +12,7 @@ class PembayaranTagihanTahunan extends Model
     protected $fillable = [
         'anggota_kelas_id',
         'tagihan_tahunan_id',
-        'jumlah_pembayaran',
+        'jumlah_bayar',
     ];
 
     public function anggotaKelas()

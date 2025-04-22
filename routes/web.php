@@ -10,6 +10,7 @@ use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
+use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
@@ -65,8 +66,10 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
     Route::resource('/agenda', AgendaController::class)->except(['show']);
     Route::resource('/pengumuman', PengumumanController::class)->except(['show']);
-    Route::resource('/tagihan-tahunan', TagihanTahunanController::class);
-    Route::resource('/pembayaran-tagihan-tahunan', PembayaranTagihanTahunanController::class);
+    Route::resource('/tagihan-tahunan', TagihanTahunanController::class)->except(['show']);
+    Route::resource('/pembayaran-tagihan-tahunan', PembayaranTagihanTahunanController::class)->only(['index','store']);
+    Route::post('/pembayaran-tagihan-tahunan/cari', [PembayaranTagihanTahunanController::class, 'cari'])->name('pembayaran-tagihan-tahunan.cari');
+    Route::get('/laporan-tagihan-tahunan',[LaporanKeuanganController::class,'indexTagihanTahunan'])->name('laporan-tagihan-tahunan.index');
 });
 
 require __DIR__.'/auth.php';

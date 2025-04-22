@@ -220,7 +220,7 @@ class PembayaranSppController extends Controller
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
         
             $tahun_ajaran = TahunAjaran::all();
-            $siswa_list = Siswa::all();
+            $siswa_list = Siswa::where('kelas_id','!=',NULL)->get();
         
             return view('pembayaran_spp.index', compact(
                 'tahun_ajaran',
