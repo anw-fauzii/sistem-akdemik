@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-display1 icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Laporan Tagihan Tahunan
+                <div>Laporan Tagihan Tahunan Kelas {{ $kelas->nama_kelas }}
                     <div class="page-title-subheading">
                         Merupakan Pembayaran yang dilakukan pembayaran
                     </div>
@@ -29,7 +29,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Tagihan</div>
-                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_tagihan_semua, 0, ',', '.') }}</div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_tagihan, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Dibayar</div>
-                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_dibayar_semua, 0, ',', '.') }}</div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_dibayar, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Sisa Tagihan</div>
-                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_sisa_semua, 0, ',', '.') }}</div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_sisa, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -80,12 +80,10 @@
         </div>
         <div class="card-body">
             <table class="table table-hover table-striped" id="myTable2">
-                <thead class="table-light">
+                <thead>
                     <tr>
-                        <th>No</th>
                         <th>NIS</th>
                         <th>Nama</th>
-                        <th>Kelas</th>
                         <th>Total Tagihan</th>
                         <th>Total Dibayar</th>
                         <th>Sisa Tagihan</th>
@@ -93,17 +91,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($hasil as $index => $item)
+                    @foreach ($hasil as $item)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
                             <td>{{ $item['nis'] }}</td>
                             <td>{{ $item['nama'] }}</td>
-                            <td>{{ $item['kelas'] }}</td>
                             <td>Rp {{ number_format($item['total_tagihan'], 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item['total_dibayar'], 0, ',', '.') }}</td>
                             <td>Rp {{ number_format($item['sisa_tagihan'], 0, ',', '.') }}</td>
                             <td>
-                                <span class="badge {{ $item['status'] == 'Lunas' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                <span class="badge {{ $item['status'] == 'Lunas' ? 'badge-success' : 'badge-danger' }}">
                                     {{ $item['status'] }}
                                 </span>
                             </td>
@@ -112,10 +108,10 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th colspan="4" class="text-end">TOTAL</th>
-                        <th>Rp {{ number_format($total_tagihan_semua, 0, ',', '.') }}</th>
-                        <th>Rp {{ number_format($total_dibayar_semua, 0, ',', '.') }}</th>
-                        <th>Rp {{ number_format($total_sisa_semua, 0, ',', '.') }}</th>
+                        <th colspan="2" class="text-end">TOTAL</th>
+                        <th>Rp {{ number_format($total_tagihan, 0, ',', '.') }}</th>
+                        <th>Rp {{ number_format($total_dibayar, 0, ',', '.') }}</th>
+                        <th>Rp {{ number_format($total_sisa, 0, ',', '.') }}</th>
                         <th>{{ $jumlah_siswa_belum_lunas }} siswa belum lunas</th>
                     </tr>
                 </tfoot>

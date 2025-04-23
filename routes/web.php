@@ -70,6 +70,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/pembayaran-tagihan-tahunan', PembayaranTagihanTahunanController::class)->only(['index','store']);
     Route::post('/pembayaran-tagihan-tahunan/cari', [PembayaranTagihanTahunanController::class, 'cari'])->name('pembayaran-tagihan-tahunan.cari');
     Route::get('/laporan-tagihan-tahunan',[LaporanKeuanganController::class,'indexTagihanTahunan'])->name('laporan-tagihan-tahunan.index');
+    Route::get('/laporan-tagihan-tahunan/{kelas_id}',[LaporanKeuanganController::class,'showTagihanTahunan'])->name('laporan-tagihan-tahunan.show');
 });
 
 require __DIR__.'/auth.php';

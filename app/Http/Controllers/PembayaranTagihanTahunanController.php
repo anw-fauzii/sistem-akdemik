@@ -105,11 +105,8 @@ class PembayaranTagihanTahunanController extends Controller
                     'status' => ($tagihan->jumlah <= $total_dibayar) ? 'Lunas' : 'Belum Lunas',
                 ];
             });
-        
-            // Tahun ajaran untuk dropdown
             $tahun_ajaran = TahunAjaran::where('semester', '1')->get();
         
-            // Daftar siswa yg sudah punya kelas
             $siswa_list = Siswa::whereNotNull('kelas_id')->get();
         
             return view('pembayaran_tagihan_tahunan.index', compact(
