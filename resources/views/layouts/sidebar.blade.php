@@ -177,16 +177,20 @@
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="{{(request()->is('laporan-tagihan-tahunan*')) ? 'mm-active' : ''}}">
+                    <a href="#" class="{{(request()->is('laporan-tagihan-tahunan*','laporan-tagihan-spp*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-display1"></i>
                            Laporan
                         <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                    <ul class="{{(request()->is('laporan-tagihan-tahunan*')) ? 'mm-show' : ''}}">
-
+                    <ul class="{{(request()->is('laporan-tagihan-tahunan*','laporan-tagihan-spp*')) ? 'mm-show' : ''}}">
                         <li>
                             <a href="{{route('laporan-tagihan-tahunan.index')}}" class="{{(request()->is('laporan-tagihan-tahunan*')) ? 'mm-active' : ''}}">
                                 Biaya Tahunan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('laporan-tagihan-spp.index')}}" class="{{(request()->is('laporan-tagihan-spp*')) ? 'mm-active' : ''}}">
+                                SPP
                             </a>
                         </li>
                     </ul>

@@ -71,6 +71,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::post('/pembayaran-tagihan-tahunan/cari', [PembayaranTagihanTahunanController::class, 'cari'])->name('pembayaran-tagihan-tahunan.cari');
     Route::get('/laporan-tagihan-tahunan',[LaporanKeuanganController::class,'indexTagihanTahunan'])->name('laporan-tagihan-tahunan.index');
     Route::get('/laporan-tagihan-tahunan/{kelas_id}',[LaporanKeuanganController::class,'showTagihanTahunan'])->name('laporan-tagihan-tahunan.show');
+    Route::get('/laporan-tagihan-spp',[LaporanKeuanganController::class,'indexTagihanSpp'])->name('laporan-tagihan-spp.index');
+    Route::get('/laporan-tagihan-spp/{kelas_id}',[LaporanKeuanganController::class,'showTagihanSpp'])->name('laporan-tagihan-spp.show');
 });
 
 require __DIR__.'/auth.php';
