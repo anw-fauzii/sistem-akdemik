@@ -151,11 +151,17 @@ class LaporanKeuanganController extends Controller
         $tahun_ajaran = TahunAjaran::latest()->first();
         $kelasList = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
 
-        $laporan = $kelasList->map(function ($kelas) {
+        $total_rekap_tagihan = 0;
+        $total_rekap_bayar = 0;
+        $total_rekap_belum_bayar = 0;
+        $jumlah_siswa_belum_lunas = 0;
+
+        $laporan = $kelasList->map(function ($kelas) use (&$total_rekap_tagihan, &$total_rekap_bayar, &$total_rekap_belum_bayar, &$jumlah_siswa_belum_lunas) {
             $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
 
             $totalTagihanKelas = 0;
             $totalBayarKelas = 0;
+            $siswaBelumLunasKelas = 0;
 
             foreach ($anggotaKelas as $anggota) {
                 $bulanSpp = BulanSpp::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)->get();
@@ -164,7 +170,6 @@ class LaporanKeuanganController extends Controller
                     $tambahan = $bulan->tambahan ?? 0;
                     $bulanAngka = date('m', strtotime($bulan->bulan_angka));
 
-                    // === POTONGAN MAKAN KARENA SAKIT ===
                     $absenSakit = Presensi::where('anggota_kelas_id', $anggota->id)
                         ->where('status', 'sakit')
                         ->whereMonth('tanggal', $bulanAngka)
@@ -191,7 +196,6 @@ class LaporanKeuanganController extends Controller
 
                     $biayaMakanFinal = $kelas->biaya_makan - $potongan;
 
-                    // === BIAYA EKSKUL ===
                     $biayaEkskul = $anggota->ekstrakurikuler->sum(function ($item) use ($bulanAngka) {
                         $hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                             ->where('status', 'hadir')
@@ -201,10 +205,8 @@ class LaporanKeuanganController extends Controller
                         return $hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
                     });
 
-                    // === HITUNG TOTAL TAGIHAN BULAN INI ===
                     $tagihan = $kelas->spp + $biayaMakanFinal + $tambahan + $biayaEkskul;
 
-                    // === CARI PEMBAYARAN BULAN INI ===
                     $pembayaran = PembayaranSpp::where('anggota_kelas_id', $anggota->id)
                         ->where('bulan_spp_id', $bulan->id)
                         ->first();
@@ -215,9 +217,18 @@ class LaporanKeuanganController extends Controller
 
                     $totalTagihanKelas += $tagihan;
                 }
-            }
 
+                $totalBelumBayar = $totalTagihanKelas - $totalBayarKelas;
+                if ($totalBelumBayar > 0) {
+                    $siswaBelumLunasKelas++; 
+                }
+            }
             $totalBelumBayarKelas = $totalTagihanKelas - $totalBayarKelas;
+
+            $total_rekap_tagihan += $totalTagihanKelas;
+            $total_rekap_bayar += $totalBayarKelas;
+            $total_rekap_belum_bayar += $totalBelumBayarKelas;
+            $jumlah_siswa_belum_lunas += $siswaBelumLunasKelas;
 
             return [
                 'id' => $kelas->id,
@@ -228,15 +239,28 @@ class LaporanKeuanganController extends Controller
             ];
         });
 
-        return view('laporan.spp.index', compact('laporan'));
+        return view('laporan.spp.index', compact(
+            'laporan', 
+            'total_rekap_tagihan', 
+            'total_rekap_bayar', 
+            'total_rekap_belum_bayar', 
+            'jumlah_siswa_belum_lunas'
+        ));
     }
+
+
 
     public function showTagihanSpp($id)
     {
         $kelas = Kelas::find($id);
         $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
 
-        $laporan_per_siswa = $anggotaKelas->map(function ($anggota) use ($kelas) {
+        $total_rekap_tagihan = 0;
+        $total_rekap_bayar = 0;
+        $total_rekap_belum_bayar = 0;
+        $jumlah_siswa_belum_lunas = 0;
+        
+        $laporan_per_siswa = $anggotaKelas->map(function ($anggota) use ($kelas, &$total_rekap_tagihan, &$total_rekap_bayar, &$total_rekap_belum_bayar, &$jumlah_siswa_belum_lunas) {
             $bulanSpp = BulanSpp::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)->get();
 
             $totalTagihan = 0;
@@ -246,7 +270,6 @@ class LaporanKeuanganController extends Controller
                 $bulanAngka = date('m', strtotime($bulan->bulan_angka));
                 $tambahan = $bulan->tambahan ?? 0;
 
-                // Presensi sakit
                 $absen_sakit = Presensi::where('anggota_kelas_id', $anggota->id)
                     ->where('status', 'sakit')
                     ->whereMonth('tanggal', $bulanAngka)
@@ -274,7 +297,6 @@ class LaporanKeuanganController extends Controller
 
                 $total_biaya_makan = $kelas->biaya_makan - $potongan;
 
-                // Biaya ekstrakurikuler
                 $biaya_ekskul = $anggota->ekstrakurikuler->sum(function ($item) use ($bulanAngka) {
                     $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                         ->where('status', 'hadir')
@@ -295,10 +317,18 @@ class LaporanKeuanganController extends Controller
                 }
 
                 $totalTagihan += $tagihan;
+                
             }
 
             $totalBelumBayar = $totalTagihan - $totalBayar;
 
+            $total_rekap_tagihan += $totalTagihan;
+            $total_rekap_bayar += $totalBayar;
+            $total_rekap_belum_bayar += $totalBelumBayar;
+            if ($totalBelumBayar > 0) {
+                $jumlah_siswa_belum_lunas++;
+            }
+            
             return [
                 'siswa' => $anggota->siswa_nis,
                 'total_tagihan' => $totalTagihan,
@@ -306,8 +336,7 @@ class LaporanKeuanganController extends Controller
                 'total_belum_bayar' => $totalBelumBayar
             ];
         });
-
-        return view('laporan.spp.show', compact('kelas','laporan_per_siswa'));
+        return view('laporan.spp.show', compact('kelas','laporan_per_siswa','total_rekap_tagihan','total_rekap_bayar','total_rekap_belum_bayar','jumlah_siswa_belum_lunas'));
     }
 
 }

@@ -29,7 +29,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Tagihan</div>
-                    <div class="h5 font-weight-bold mb-0">Rp </div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_rekap_tagihan, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -42,7 +42,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Dibayar</div>
-                    <div class="h5 font-weight-bold mb-0">Rp </div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_rekap_bayar, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Total Sisa Tagihan</div>
-                    <div class="h5 font-weight-bold mb-0">Rp </div>
+                    <div class="h5 font-weight-bold mb-0">Rp {{ number_format($total_rekap_belum_bayar, 0, ',', '.') }}</div>
                 </div>
             </div>
         </div>
@@ -68,7 +68,7 @@
                 </div>
                 <div class="widget-chart-content">
                     <div class="widget-subheading">Siswa Belum Lunas</div>
-                    <div class="h5 font-weight-bold mb-0"> siswa</div>
+                    <div class="h5 font-weight-bold mb-0">{{$jumlah_siswa_belum_lunas}} siswa</div>
                 </div>
             </div>
         </div>
