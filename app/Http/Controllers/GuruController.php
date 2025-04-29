@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Imports\GuruImport;
 use App\Models\Guru;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Response;
 
 class GuruController extends Controller
 {
@@ -58,7 +61,7 @@ class GuruController extends Controller
                 'alamat.required' => 'Alamat wajib diisi.',
             ]);
 
-            DB::beginTransaction(); // Memulai transaksi
+            DB::beginTransaction();
 
             try {
                 $user = User::create([
@@ -124,10 +127,9 @@ class GuruController extends Controller
                 'alamat.required' => 'Alamat wajib diisi.',
             ]);
 
-            DB::beginTransaction(); // Memulai transaksi
+            DB::beginTransaction();
 
             try {
-                // Update data di tabel User
                 $user = User::where('email', $id)->first();
                 if (!$user) {
                     throw new \Exception("User dengan email NIPY $id tidak ditemukan.");
@@ -138,7 +140,6 @@ class GuruController extends Controller
                     'email' => $validated['nipy'],
                 ]);
         
-                // Update data di tabel Guru
                 $guru = Guru::where('nipy', $user->email)->first();
                 if (!$guru) {
                     throw new \Exception("Guru dengan NIPY $id tidak ditemukan.");
@@ -146,7 +147,7 @@ class GuruController extends Controller
         
                 $guru->update($validated);
         
-                DB::commit(); // Commit transaksi jika berhasil
+                DB::commit();
         
                 return redirect()->route('guru.index')->with('success', 'Data guru berhasil diupdate.');
         
@@ -170,8 +171,38 @@ class GuruController extends Controller
         
             return redirect()->route('guru.index')->with('success', 'Guru dan akun User terkait berhasil dihapus');
         } else {
-                return response()->view('errors.403', [abort(403)], 403);
-            }
+            return response()->view('errors.403', [abort(403)], 403);
         }
+    }
 
+    public function import(Request $request)
+    {
+        if (user()?->hasRole('admin')) {
+            $request->validate([
+                'file_import' => 'required|mimes:xlsx,csv,xls',
+            ]);
+
+            try {
+                Excel::import(new GuruImport, $request->file('file_import'));
+                return back()->with('success', 'Peserta didik berhasil diimport');
+            } catch (\Exception $e) {
+                return back()->with('error', 'Terjadi error: ' . $e->getMessage());
+            }
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
+    }
+
+    public function format()
+    {
+        if (user()?->hasRole('admin')) {
+            $file = public_path() . "/format_excel/format_import_guru.xlsx";
+            $headers = array(
+                'Content-Type: application/xlsx',
+            );
+            return Response::download($file, 'format_import_guru ' . date('Y-m-d H_i_s') . '.xlsx', $headers);
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
+    }
 }

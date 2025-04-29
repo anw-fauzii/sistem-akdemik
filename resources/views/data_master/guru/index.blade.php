@@ -23,7 +23,9 @@
 
     <div class="main-card card">
         <div class="card-header">
-            <a href="{{route('guru.create')}}" class="btn btn-primary">Tambah Baru</a>
+            <a href="{{route('guru.create')}}" class="btn btn-primary mr-2">Tambah Baru</a>
+            <button type="button" class="btn btn-success" onclick="showCreateModal()">IMPORT EXCEL</button>
+            @include('data_master.guru.import')
         </div>
         <div class="card-body">
             <div class="table-responsive">

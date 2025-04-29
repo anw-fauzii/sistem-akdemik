@@ -50,6 +50,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/penghasilan',PenghasilanController::class)->except(['show']);
     Route::resource('/tahun-ajaran', TahunAjaranController::class)->except(['show']);
     Route::resource('/guru', GuruController::class)->except(['show']);
+    Route::post('/guru-import', [GuruController::class, 'import'])->name('guru.import');
+    Route::get('/format-guru-import', [GuruController::class, 'format'])->name('format.guru.import');
     Route::resource('/siswa', SiswaController::class);
     Route::post('/siswa-import', [SiswaController::class, 'import'])->name('siswa.import');
     Route::get('/format-siswa-import', [SiswaController::class, 'format'])->name('format.siswa.import');
