@@ -3,15 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\Agenda;
+use App\Models\AnggotaKelas;
 use App\Models\Guru;
 use App\Models\Kelas;
+use App\Models\Pengumuman;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
 {
     public function index()
     {
+        if (user()?->roles->isEmpty()) {
+            auth()->logout(); 
+            return redirect()->route('login')->with('error', 'Anda belum memiliki role akses!');
+        }
         if (user()?->hasRole('admin')) {
             $agenda = Agenda::all()->map(function ($agenda) {
                 $color = $agenda->unit === 'SD' ? '#007bff' : '#f39c12';
@@ -32,7 +39,20 @@ class DashboardController extends Controller
             })->whereStatus('1')->count();
             $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->count();
             $guru = Guru::whereStatus('1')->count();
-            return view('dashboard', compact('siswa_sd','siswa_tk','kelas','guru', 'agenda'));
+            return view('dashboard.admin', compact('siswa_sd','siswa_tk','kelas','guru', 'agenda'));
+        } 
+        elseif (user()?->hasRole('siswa')) {
+            $pengumuman = Pengumuman::orderBy('id', 'desc')->take(3)->get();
+            $kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)->firstOrFail();
+            $agenda = Agenda::whereUnit($kelas->kelas->jenjang)->get()->map(function ($agenda) {
+                $color = $agenda->unit === 'SD' ? '#007bff' : '#f39c12';
+                return [
+                    'title' => $agenda->unit . ': ' . $agenda->kegiatan,
+                    'start' => $agenda->tanggal,
+                    'color' => $color,
+                ];
+            });
+            return view('dashboard.siswa', compact('agenda','pengumuman'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }

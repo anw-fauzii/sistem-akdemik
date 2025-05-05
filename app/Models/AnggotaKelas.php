@@ -12,7 +12,7 @@ class AnggotaKelas extends Model
     protected $fillable = [
         'siswa_nis',
         'kelas_id',
-        'tapel_id',
+        'tahun_ajaran',
         'pendaftaran',
     ];
 
@@ -39,5 +39,10 @@ class AnggotaKelas extends Model
     public function pembayaranTagihanTahunan()
     {
         return $this->hasMany(PembayaranTagihanTahunan::class, 'anggota_kelas_id');
+    }
+
+    public function tahun_ajaran()
+    {
+        return $this->belongsTo(TahunAjaran::class);
     }
 }

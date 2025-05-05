@@ -16,6 +16,8 @@ use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\PesertaDidik\KeuanganController;
+use App\Http\Controllers\PesertaDidik\PresensiController;
 use App\Http\Controllers\PresensiEkstrakurikulerController;
 use App\Http\Controllers\PresensiKelasController;
 use App\Http\Controllers\ProfileController;
@@ -75,6 +77,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/laporan-tagihan-tahunan/{kelas_id}',[LaporanKeuanganController::class,'showTagihanTahunan'])->name('laporan-tagihan-tahunan.show');
     Route::get('/laporan-tagihan-spp',[LaporanKeuanganController::class,'indexTagihanSpp'])->name('laporan-tagihan-spp.index');
     Route::get('/laporan-tagihan-spp/{kelas_id}',[LaporanKeuanganController::class,'showTagihanSpp'])->name('laporan-tagihan-spp.show');
+    Route::resource('/presensi', PresensiController::class);
+    Route::resource('/keuangan', KeuanganController::class);
 });
 
 require __DIR__.'/auth.php';

@@ -10,7 +10,9 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
@@ -26,5 +28,14 @@
                 {{ $slot }}
             </div>
         </div>
+        <script>
+            @if (Session::has('success'))
+                toastr.success('{{ Session::get('success') }}');
+            @elseif(Session::has('error'))
+                toastr.error('{{ Session::get('error') }}');
+            @elseif(Session::has('warning'))
+                toastr.warning('{{ Session::get('warning') }}');
+            @endif
+        </script>
     </body>
 </html>

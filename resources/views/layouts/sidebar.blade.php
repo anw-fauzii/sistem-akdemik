@@ -39,6 +39,7 @@
                             Beranda
                     </a>
                 </li>
+                @role('admin')
                 <li>
                     <a href="#" class="{{(request()->is('kategori-kebutuhan*','pekerjaan*','penghasilan*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-plugin"></i>
@@ -127,7 +128,6 @@
                         </li>
                     </ul>
                 </li>
-
                 <li>
                     <a href="#" class="{{(request()->is('bulan-spp*','pembayaran-spp*','tagihan-tahunan*','pembayaran-tagihan-tahunan*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-cash"></i>
@@ -195,6 +195,21 @@
                         </li>
                     </ul>
                 </li>
+                @endrole
+                @role('siswa')
+                <li>
+                    <a href="{{route('presensi.index')}}" class="{{(request()->is('presensi*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-clock"></i>
+                            Presensi
+                    </a>
+                </li>
+                <li>
+                    <a href="{{route('keuangan.index')}}" class="{{(request()->is('keuangan*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-cash"></i>
+                            Keuangan
+                    </a>
+                </li>   
+                @endrole
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();
                         document.getElementById('logout-form').submit();"><i class="metismenu-icon pe-7s-power"></i>Keluar</a>

@@ -105,28 +105,4 @@ class PresensiEkstrakurikulerController extends Controller
             return response()->view('errors.403', [abort(403)], 403);
         } 
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(PresensiEkstrakurikuler $presensiEkstrakurikuler)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, PresensiEkstrakurikuler $presensiEkstrakurikuler)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(PresensiEkstrakurikuler $presensiEkstrakurikuler)
-    {
-        //
-    }
 }

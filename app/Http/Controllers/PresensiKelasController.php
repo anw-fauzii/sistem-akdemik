@@ -104,19 +104,4 @@ class PresensiKelasController extends Controller
             return response()->view('errors.403', [abort(403)], 403);
         }
     }
-
-    public function edit(Presensi $presensi)
-    {
-        //
-    }
-
-    public function update(Request $request, Presensi $presensi)
-    {
-        //
-    }
-
-    public function destroy(Presensi $presensi)
-    {
-        //
-    }
 }
