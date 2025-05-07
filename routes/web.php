@@ -11,6 +11,7 @@ use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanKeuanganController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
@@ -77,8 +78,11 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/laporan-tagihan-tahunan/{kelas_id}',[LaporanKeuanganController::class,'showTagihanTahunan'])->name('laporan-tagihan-tahunan.show');
     Route::get('/laporan-tagihan-spp',[LaporanKeuanganController::class,'indexTagihanSpp'])->name('laporan-tagihan-spp.index');
     Route::get('/laporan-tagihan-spp/{kelas_id}',[LaporanKeuanganController::class,'showTagihanSpp'])->name('laporan-tagihan-spp.show');
-    Route::resource('/presensi', PresensiController::class);
-    Route::resource('/keuangan', KeuanganController::class);
+    Route::resource('/presensi', PresensiController::class)->only(['index','show']);
+    Route::resource('/keuangan', KeuanganController::class)->only(['index','show']);
+    Route::get('/keuangan-spp/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
+    Route::post('/payment', [PaymentController::class, 'getSnapToken']);
+    Route::post('/payment/notification', [PaymentController::class, 'paymentNotification']);
 });
 
 require __DIR__.'/auth.php';

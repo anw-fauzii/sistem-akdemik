@@ -100,7 +100,7 @@
                                     {{ $row['status'] }}
                                 </span>
                             </td>
-                            <td><a href="{{route('laporan-tagihan-tahunan.show', $row['id'])}}" class="btn btn-sm btn-primary"><i class="pe-7s-info" style="font-size: 1rem;"></i></a></td>
+                            <td><a href="{{route('laporan-tagihan-tahunan.show', $row['id'])}}" class="btn btn-sm btn-primary"><i class="pe-7s-info" style="font-size: 0.85rem;"></i></a></td>
                         </tr>
                         @endforeach
                     </tbody>
