@@ -31,7 +31,7 @@
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
                             @foreach($tahun_selama_belajar as $item)
                             <li>
-                                <a href="{{ route('keuangan.show', $item->tahun_ajaran_id) }}" class="dropdown-item">
+                                <a href="{{ route('keuangan-spp.show', $item->tahun_ajaran_id) }}" class="dropdown-item">
                                     {{ $item->tahun_ajaran->nama_tahun_ajaran }}-{{$item->tahun_ajaran->semester}}
                                 </a>
                             </li>
@@ -124,7 +124,7 @@
     });
 </script>
 
-<script src="https://app.sandbox.midtrans.com/snap/snap.js"
+    <script src="https://app.sandbox.midtrans.com/snap/snap.js"
         data-client-key="{{ config('services.midtrans.client_key') }}">
     </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> 

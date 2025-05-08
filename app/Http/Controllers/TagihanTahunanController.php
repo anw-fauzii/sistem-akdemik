@@ -46,6 +46,7 @@ class TagihanTahunanController extends Controller
             
             $tagihan_tahunan = new TagihanTahunan($validated);
             $tagihan_tahunan->tahun_ajaran_id = $tahun->id;
+            $tagihan_tahunan->kelas = $request->kelas;
             $tagihan_tahunan->save();
             return redirect()->route('tagihan-tahunan.index')->with('success', 'Biaya tahunan berhasil disimpan'); 
         } else {
@@ -77,6 +78,7 @@ class TagihanTahunanController extends Controller
                 'jumlah.numeric' => 'Jumlah harus berupa angka.', 
             ]);
             $tagihan_tahunan = TagihanTahunan::findOrFail($id);
+            $tagihan_tahunan->kelas = $request->kelas;
             $tagihan_tahunan->update($validated);
             return redirect()->route('tagihan-tahunan.index')->with('success', 'Biaya tahunan berhasil diupdate');
         } else {

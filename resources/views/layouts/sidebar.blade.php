@@ -204,11 +204,24 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{route('keuangan.index')}}" class="{{(request()->is('keuangan*')) ? 'mm-active' : ''}}">
-                        <i class="metismenu-icon pe-7s-cash"></i>
-                            Keuangan
+                    <a href="#" class="{{(request()->is('keuangan-spp*','keuangan-tahunan*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-display1"></i>
+                           Keuangan
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                     </a>
-                </li>   
+                    <ul class="{{(request()->is('keuangan-spp*','keuangan-tahunan*')) ? 'mm-show' : ''}}">
+                        <li>
+                            <a href="{{route('keuangan-tahunan.index')}}" class="{{(request()->is('keuangan-tahunan*')) ? 'mm-active' : ''}}">
+                                Biaya Tahunan
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('keuangan-spp.index')}}" class="{{(request()->is('keuangan-spp*')) ? 'mm-active' : ''}}">
+                                SPP
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 @endrole
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();

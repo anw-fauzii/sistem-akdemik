@@ -13,6 +13,7 @@ class TagihanTahunan extends Model
         'tahun_ajaran_id',
         'jenis',
         'jumlah',
+        'kelas',
         'jenjang',
     ];
 

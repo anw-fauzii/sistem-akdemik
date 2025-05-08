@@ -57,6 +57,17 @@
                     </div>
                     <div class="col-md-12">
                         <div class="position-relative form-group">
+                            <label for="kelas" class="">Kelas</label>
+                            <input name="kelas" id="kelas" placeholder="Untuk Kelas" type="number" class="form-control @error('kelas') is-invalid @enderror" value="{{ old('kelas') }}">
+                            @error('kelas')
+                                <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                    {{ strtolower($message) }}
+                                </div>
+                            @enderror
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="position-relative form-group">
                             <label for="jumlah" class="">Total Biaya</label>
                             <input name="jumlah" id="jumlah" placeholder="Masukan total biaya" type="text" class="form-control @error('jumlah') is-invalid @enderror" value="{{ old('jumlah') }}">
                             @error('jumlah')

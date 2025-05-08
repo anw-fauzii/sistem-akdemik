@@ -14,7 +14,6 @@ use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log as FacadesLog;
 use Midtrans\Snap;
 use Midtrans\Config;
 
@@ -101,7 +100,7 @@ class KeuanganController extends Controller
         
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
             $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
-            return view('pesertaDidik.keuangan.index', compact(
+            return view('pesertaDidik.keuangan_spp.index', compact(
                 'tahunAjaran',
                 'siswa',
                 'tagihan_spp',
@@ -190,7 +189,7 @@ class KeuanganController extends Controller
         
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
             $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
-            return view('pesertaDidik.keuangan.index', compact(
+            return view('pesertaDidik.keuangan_spp.index', compact(
                 'tahunAjaran',
                 'siswa',
                 'tagihan_spp',

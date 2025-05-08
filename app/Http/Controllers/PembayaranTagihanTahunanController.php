@@ -75,25 +75,27 @@ class PembayaranTagihanTahunanController extends Controller
             $tahun_ajaran_id = $request->tahun_ajaran_id;
             $siswa_nis = $request->siswa_nis;
         
-            // Cari anggota_kelas berdasarkan tahun ajaran & nis
             $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahun_ajaran_id) {
-                $query->where('tahun_ajaran_id', $tahun_ajaran_id);
-            })->where('siswa_nis', $siswa_nis)->first();
-        
+                $query->whereTahunAjaranId($tahun_ajaran_id);
+            })->whereSiswaNis($siswa_nis)->first();
             if (!$anggota_kelas) {
                 return redirect()->route('pembayaran-tagihan-tahunan.index')->with('error', 'Data tidak ditemukan!');
             }
         
-            // Ambil data siswa
             $siswa = Siswa::where('nis', $siswa_nis)->first();
         
-            // Ambil semua tagihan tahunan di tahun ajaran tersebut
-            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahun_ajaran_id)->get();
+            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahun_ajaran_id)
+                ->where('jenjang', $anggota_kelas->kelas->jenjang)
+                ->where(function ($query) use ($anggota_kelas) {
+                    $query->where('kelas', $anggota_kelas->kelas->tingkatan_kelas)
+                        ->orWhereNull('kelas');
+                })
+                ->get();
+
         
-            // Hitung total dibayar dan status per tagihan
             $hasil_tagihan = $tagihan_list->map(function ($tagihan) use ($anggota_kelas) {
-                $total_dibayar = PembayaranTagihanTahunan::where('anggota_kelas_id', $anggota_kelas->id)
-                    ->where('tagihan_tahunan_id', $tagihan->id)
+                $total_dibayar = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)
+                    ->whereTagihanTahunanId($tagihan->id)
                     ->sum('jumlah_bayar');
         
                 return [

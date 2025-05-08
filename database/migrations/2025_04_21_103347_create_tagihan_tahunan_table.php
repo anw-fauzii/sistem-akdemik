@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('tahun_ajaran_id');
             $table->string('jenis');
             $table->integer('jumlah');
+            $table->string('kelas');
             $table->string('jenjang');
             $table->timestamps();
             $table->foreign('tahun_ajaran_id')->references('id')->on('tahun_ajaran')->onDelete('cascade')->onUpdate('cascade');

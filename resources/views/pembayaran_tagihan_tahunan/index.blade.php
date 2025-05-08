@@ -98,6 +98,7 @@
                                     <th>Total Dibayar</th>
                                     <th>Sisa Tagihan</th>
                                     <th>Status</th>
+                                    <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>

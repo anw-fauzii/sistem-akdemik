@@ -45,7 +45,11 @@
                             <tr>
                                 <td>{{$no++}}</td>
                                 <td>{{$item->jenjang}}</td>
-                                <td>{{$item->jenis}}</td>
+                                <td>{{$item->jenis}} 
+                                    @if ($item->kelas)
+                                        Kelas ({{$item->kelas}})
+                                    @endif
+                                </td>
                                 <td>Rp. {{ number_format($item->jumlah, 0, ',', '.') }}</td>
                                 <td class="d-flex">
                                     <a href="{{ route('tagihan-tahunan.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 0.85rem;"></i></a>

@@ -90,60 +90,62 @@
                     Tagihan SPP
                 </div>
                 <div class="card-body">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Bulan</th>
-                                <th>Nominal SPP</th>
-                                <th>Biaya Makan</th>
-                                <th>Ekstrakurikuler</th>
-                                <th>Total Pembayaran</th>
-                                <th>Keterangan</th>
-                                <th>Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($tagihan_spp as $tagihan)
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped" id="myTable2">
+                            <thead>
                                 <tr>
-                                    <td>{{ $tagihan->nama_bulan }}</td>
-
-                                    <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
-
-                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
-                                    <td>Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</td>
-
-                                    <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
-
-                                    <td>
-                                        @if($tagihan->keterangan === 'Lunas')
-                                            <div class="badge badge-pill badge-warning">Lunas</div>
-                                        @else
-                                            <div class="badge badge-pill badge-danger">Belum Lunas</div>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        @if($tagihan->keterangan === 'Lunas' && isset($tagihan->pembayaran_id))
-                                            <!-- Tombol Hapus -->
-                                            <form action="{{ route('pembayaran-spp.destroy', $tagihan->pembayaran_id) }}" method="POST">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm delete-button">Hapus</button>
-                                            </form>
-                                        @else
-                                            <!-- Tombol Bayar -->
-                                            <form action="{{ route('pembayaran-spp.store') }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="siswa_nis" value="{{ $siswa_nis }}">
-                                                <input type="hidden" name="tahun_ajaran_id" value="{{ $tahun_ajaran_id }}">
-                                                <input type="hidden" name="bulan_spp_id" value="{{ $tagihan->id }}">
-                                                <button type="submit" class="btn btn-success btn-sm submit-button">Bayar</button>
-                                            </form>
-                                        @endif
-                                    </td>
+                                    <th>Bulan</th>
+                                    <th>Nominal SPP</th>
+                                    <th>Biaya Makan</th>
+                                    <th>Ekstrakurikuler</th>
+                                    <th>Total Pembayaran</th>
+                                    <th>Keterangan</th>
+                                    <th>Aksi</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                @foreach ($tagihan_spp as $tagihan)
+                                    <tr>
+                                        <td>{{ $tagihan->nama_bulan }}</td>
+
+                                        <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
+
+                                        <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</td>
+
+                                        <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+
+                                        <td>
+                                            @if($tagihan->keterangan === 'Lunas')
+                                                <div class="badge badge-pill badge-warning">Lunas</div>
+                                            @else
+                                                <div class="badge badge-pill badge-danger">Belum Lunas</div>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($tagihan->keterangan === 'Lunas' && isset($tagihan->pembayaran_id))
+                                                <!-- Tombol Hapus -->
+                                                <form action="{{ route('pembayaran-spp.destroy', $tagihan->pembayaran_id) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-danger btn-sm delete-button">Hapus</button>
+                                                </form>
+                                            @else
+                                                <!-- Tombol Bayar -->
+                                                <form action="{{ route('pembayaran-spp.store') }}" method="POST">
+                                                    @csrf
+                                                    <input type="hidden" name="siswa_nis" value="{{ $siswa_nis }}">
+                                                    <input type="hidden" name="tahun_ajaran_id" value="{{ $tahun_ajaran_id }}">
+                                                    <input type="hidden" name="bulan_spp_id" value="{{ $tagihan->id }}">
+                                                    <button type="submit" class="btn btn-success btn-sm submit-button">Bayar</button>
+                                                </form>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
