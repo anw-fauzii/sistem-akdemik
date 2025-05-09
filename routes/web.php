@@ -82,10 +82,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/presensi', PresensiController::class)->only(['index','show']);
     Route::resource('/keuangan-spp', KeuanganController::class)->only(['index','show']);
     Route::get('/keuangan-spp/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
-    Route::resource('/keuangan-tahunan', KeuanganTahunanController::class)->only(['index','show']);
-    Route::get('/keuangan-tahunan/{id}', [KeuanganTahunanController::class,'bayarTahunan'])->name('keuangan-tahunan.bayar');
-    Route::post('/payment', [PaymentController::class, 'getSnapToken']);
-    Route::post('/payment/notification', [PaymentController::class, 'paymentNotification']);
+    Route::resource('/keuangan-tahunan', KeuanganTahunanController::class)->only(['index','show','store']);
 });
 
 require __DIR__.'/auth.php';
