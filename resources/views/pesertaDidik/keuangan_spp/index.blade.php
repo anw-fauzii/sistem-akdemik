@@ -39,8 +39,9 @@
                         </ul> 
                 </div>
                 <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="mb-0 table table-hover table-striped" id="myTable2">
+                    <!-- Tabel untuk desktop -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-hover table-striped mb-0" id="myTable2">
                             <thead>
                                 <tr>
                                     <th>No</th>
@@ -52,13 +53,11 @@
                                     <th>Keterangan</th>
                                 </tr>
                             </thead>
-                            @php
-                                $no = 1;
-                            @endphp
                             <tbody>
+                                @php $no = 1; @endphp
                                 @foreach ($tagihan_spp as $tagihan)
                                     <tr>
-                                        <td>{{$no++}}</td>
+                                        <td>{{ $no++ }}</td>
                                         <td>{{ $tagihan->nama_bulan }}</td>
                                         <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
@@ -66,11 +65,11 @@
                                         <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
                                         <td>
                                             @if($tagihan->keterangan !== 'Lunas')
-                                                <button class="btn btn-sm btn-primary pay-button" data-tagihan-id="{{ $tagihan->id }}" style="font-size: 0.75rem; padding: 2px 6px;">
-                                                    <i class="pe-7s-cash" style="font-size: 0.85rem;"></i> Bayar
+                                                <button class="btn btn-sm btn-primary pay-button" style="font-size: 0.75rem; padding: 2px 6px;" data-tagihan-id="{{ $tagihan->id }}">
+                                                    <i class="pe-7s-cash"></i> Bayar
                                                 </button>
                                             @else
-                                                <div class="badge badge-pill badge-warning">Lunas</div>
+                                                <span class="badge badge-pill badge-success text-white">Lunas</span>
                                             @endif
                                         </td>
                                     </tr>
@@ -78,16 +77,63 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Tampilan list/card untuk mobile -->
+                    <div class="d-block d-md-none" >
+                        @php $no = 1; @endphp
+                        @foreach ($tagihan_spp as $tagihan)
+                            @php
+                                $total = $tagihan->total_biaya_makan + $tagihan->tambahan + $tagihan->biaya_ekskul + $spp;
+                            @endphp
+                            <div class="card shadow-sm mb-3 border-0" style="border-left: 4px solid {{ $tagihan->keterangan === 'Lunas' ? '#28a745' : '#ffc107' }}; background: aliceblue">
+                                <div class="card-body py-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">
+                                            <i class="bi bi-calendar-check-fill text-primary me-1"></i>
+                                            <strong>{{ $tagihan->nama_bulan }}</strong>
+                                        </h6>
+                                        <span class="badge badge-pill {{ $tagihan->keterangan === 'Lunas' ? 'bg-success text-white' : 'bg-warning text-dark' }}">
+                                            {{ $tagihan->keterangan === 'Lunas' ? "Lunas" : "Belum Lunas"}} 
+                                        </span>
+                                    </div>
+
+                                    <div class="row text-muted small">
+                                        <div class="col-6">SPP</div>
+                                        <div class="col-6 text-end">Rp {{ number_format($spp, 0, ',', '.') }}</div>
+                                        <div class="col-6">Biaya Makan</div>
+                                        <div class="col-6 text-end">Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</div>
+                                        <div class="col-6">Ekstrakurikuler</div>
+                                        <div class="col-6 text-end">Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</div>
+                                        <div class="col-6 fw-bold">Total</div>
+                                        <div class="col-6 text-end fw-bold text-dark">Rp {{ number_format($total, 0, ',', '.') }}</div>
+                                    </div>
+
+                                    @if($tagihan->keterangan !== 'Lunas')
+                                        <div class="mt-3 text-end">
+                                            <button class="btn btn-sm btn-primary px-3 pay-button" data-tagihan-id="{{ $tagihan->id }}">
+                                                <i class="pe-7s-cash"></i> Bayar Sekarang
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script src="https://app.sandbox.midtrans.com/snap/snap.js"
+    data-client-key="{{ config('services.midtrans.client_key') }}">
+</script>
 <script type="text/javascript">
     document.querySelectorAll('.pay-button').forEach(function(button) {
         button.addEventListener('click', function() {
             var tagihanId = this.getAttribute('data-tagihan-id');
-            fetch('/keuangan-spp/' + tagihanId)
+            fetch('/keuangan-spp/bayar/' + tagihanId)
                 .then(response => response.json())
                 .then(data => {
                     const snapToken = data.snap_token;
@@ -96,19 +142,19 @@
                             onSuccess: function(result) {
                                 toastr.success("Pembayaran berhasil!");
                                 setTimeout(function() {
-                                    window.location.href = "/keuangan";
+                                    window.location.href = "/keuangan-spp";
                                 }, 1500); 
                             },
                             onPending: function(result) {
                                 toastr.info("Pembayaran menunggu konfirmasi.");
                                 setTimeout(function() {
-                                    window.location.href = "/keuangan";
+                                    window.location.href = "/keuangan-spp";
                                 }, 1500); 
                             },
                             onError: function(result) {
                                 toastr.error("Pembayaran gagal!");
                                 setTimeout(function() {
-                                    window.location.href = "/keuangan";
+                                    window.location.href = "/keuangan-spp";
                                 }, 1500); 
                             }
                         });
@@ -117,15 +163,11 @@
                     }
                 })
                 .catch(error => {
-                    console.error("Error fetching Snap Token:", error);
+                    console.log(response.json());
                     alert("Terjadi kesalahan.");
                 });
         });
     });
 </script>
-
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js"
-        data-client-key="{{ config('services.midtrans.client_key') }}">
-    </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> 
 @endsection

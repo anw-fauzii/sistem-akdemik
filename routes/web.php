@@ -23,6 +23,7 @@ use App\Http\Controllers\PesertaDidik\PresensiController;
 use App\Http\Controllers\PresensiEkstrakurikulerController;
 use App\Http\Controllers\PresensiKelasController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanTahunanController;
 use App\Http\Controllers\TahunAjaranController;
@@ -81,8 +82,9 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/laporan-tagihan-spp/{kelas_id}',[LaporanKeuanganController::class,'showTagihanSpp'])->name('laporan-tagihan-spp.show');
     Route::resource('/presensi', PresensiController::class)->only(['index','show']);
     Route::resource('/keuangan-spp', KeuanganController::class)->only(['index','show']);
-    Route::get('/keuangan-spp/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
+    Route::get('/keuangan-spp/bayar/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
     Route::resource('/keuangan-tahunan', KeuanganTahunanController::class)->only(['index','show','store']);
+    Route::get('/QR-Code', [QRCodeController::class,'index'])->name('qr-code.index');
 });
 
 require __DIR__.'/auth.php';

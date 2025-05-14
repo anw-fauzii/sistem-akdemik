@@ -222,6 +222,12 @@
                         </li>
                     </ul>
                 </li>
+                <li>
+                    <a href="{{route('qr-code.index')}}" class="{{(request()->is('QR-Code*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-keypad"></i>
+                            QR Code
+                    </a>
+                </li>
                 @endrole
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();

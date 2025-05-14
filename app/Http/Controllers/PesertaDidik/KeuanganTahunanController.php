@@ -126,7 +126,6 @@ class KeuanganTahunanController extends Controller
 
     public function store(Request $request)
     {
-        $id=2;
         $tahunAjaran = TahunAjaran::latest()->first();
             $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahunAjaran) {
                 $query->where('tahun_ajaran_id', $tahunAjaran->id);
@@ -136,7 +135,7 @@ class KeuanganTahunanController extends Controller
             return redirect()->route('pembayaran-tagihan-tahunan.index')->with('error', 'Anggota kelas tidak ditemukan.');
         }
 
-        $tagihan = TagihanTahunan::findOrFail($id);
+        $tagihan = TagihanTahunan::findOrFail($request->tagihan_id);
 
         $total_dibayar = PembayaranTagihanTahunan::where('anggota_kelas_id', $anggota_kelas->id)
             ->where('tagihan_tahunan_id', $tagihan->id)
@@ -146,18 +145,23 @@ class KeuanganTahunanController extends Controller
 
         if ($request->jumlah_bayar > $sisa_tagihan) {
             return redirect()->route('pembayaran-tagihan-tahunan.index')->with('error', 'Jumlah pembayaran melebihi sisa tagihan (' . number_format($sisa_tagihan, 0, ',', '.') . ').');
-        }        
+        }
+        if($request->metode === "lunas"){
+            $jumlah_bayar = $sisa_tagihan;
+        }else {
+            $jumlah_bayar = $request->nominal;
+        }
         $order_id = 'ORDER-' . time();
         $params = [
             'transaction_details' => [
                 'order_id' => $order_id,
-                'gross_amount' => $request->jumlah_bayar,
+                'gross_amount' => $jumlah_bayar,
             ],
             'item_details' => [
                 [
-                    'id' => 'Tagihan-' . $id,
+                    'id' => 'Tagihan-' . $request->tagihan_id,
                     'name' => 'Biaya ' . $tagihan->jenis,
-                    'price' => $request->jumlah_bayar,
+                    'price' => $jumlah_bayar,
                     'quantity' => 1,
                 ],
             ],
@@ -173,7 +177,7 @@ class KeuanganTahunanController extends Controller
             PembayaranTagihanTahunan::create([
                 'anggota_kelas_id' => $anggota_kelas->id,
                 'tagihan_tahunan_id' => $tagihan->id,
-                'jumlah_bayar' => $request->jumlah_bayar,
+                'jumlah_bayar' => $jumlah_bayar,
                 'tanggal' => now(),
             ]);
 

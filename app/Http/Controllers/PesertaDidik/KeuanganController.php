@@ -299,7 +299,7 @@ class KeuanganController extends Controller
                         'quantity' => 1,
                     ],
                     [
-                        'id' => 'BIAYA_MAKAN',
+                        'id' => 'BIAYA_EKSTRAKURIKULER',
                         'name' => 'Biaya Ekstrakurikuler',
                         'price' => $total_ekskul,
                         'quantity' => 1,
@@ -313,7 +313,7 @@ class KeuanganController extends Controller
 
             try {
                 $snap_token = Snap::getSnapToken($params);
-
+                
                 PembayaranSpp::create([
                     'anggota_kelas_id' => $anggota_kelas->id,
                     'bulan_spp_id' => $id,
@@ -331,7 +331,7 @@ class KeuanganController extends Controller
                 return response()->json(['snap_token' => $snap_token]);
 
             } catch (\Exception $e) {
-                return redirect()->route('keuangan.index')->with('error', 'Terjadi kesalahan saat membuat pembayaran.');
+                return redirect()->route('keuangan-spp.index')->with('error', 'Terjadi kesalahan saat membuat pembayaran.');
             }
 
         } else {
