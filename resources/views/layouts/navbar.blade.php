@@ -34,7 +34,7 @@
                                         @if(Auth::user()->foto)
                                         <img width="42" class="rounded-circle" src="{{asset('storage/'. Auth::user()->foto)}}" alt="">
                                         @else
-                                        <img width="42" class="rounded-circle" src="{{asset('storage/user.png')}}" alt="">
+                                        <img width="42" class="rounded-circle" src="{{asset('storage/logo/user.png')}}" alt="">
                                         @endif
                                     </div>
                                 </div>

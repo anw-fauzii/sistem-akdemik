@@ -41,6 +41,8 @@ class KeuanganController extends Controller
             $kelas = Kelas::find($anggotaKelas->kelas_id);
             $spp = $kelas ? $kelas->spp : 0;
             $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
+
+            $riwayat_pembayaran = PembayaranSpp::whereAnggotaKelasId($anggotaKelas->id)->get();
         
             $tagihan_spp = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggotaKelas) {
                 $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
@@ -107,7 +109,8 @@ class KeuanganController extends Controller
                 'spp',
                 'biaya_makan',
                 'total_ekskul',
-                'tahun_selama_belajar'
+                'tahun_selama_belajar',
+                'riwayat_pembayaran'
             ));
         } else {
             return response()->view('errors.403', [abort(403)], 403);

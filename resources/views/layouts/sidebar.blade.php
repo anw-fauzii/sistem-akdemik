@@ -223,6 +223,25 @@
                     </ul>
                 </li>
                 <li>
+                    <a href="#" class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-user"></i>
+                           Data Siswa
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                    </a>
+                    <ul class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-show' : ''}}">
+                        <li>
+                            <a href="{{route('profil-siswa')}}" class="{{(request()->is('profil-siswa*')) ? 'mm-active' : ''}}">
+                                Profil
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{route('update-password')}}" class="{{(request()->is('update-password*')) ? 'mm-active' : ''}}">
+                                Update Password
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
                     <a href="{{route('qr-code.index')}}" class="{{(request()->is('QR-Code*')) ? 'mm-active' : ''}}">
                         <i class="metismenu-icon pe-7s-keypad"></i>
                             QR Code

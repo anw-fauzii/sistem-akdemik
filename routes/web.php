@@ -28,6 +28,7 @@ use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanTahunanController;
 use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\TransportasiController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -85,6 +86,9 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/keuangan-spp/bayar/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
     Route::resource('/keuangan-tahunan', KeuanganTahunanController::class)->only(['index','show','store']);
     Route::get('/QR-Code', [QRCodeController::class,'index'])->name('qr-code.index');
+    Route::get('/profil-siswa', [UserController::class, 'profil'])->name('profil-siswa');
+    Route::get('/update-password', [UserController::class, 'password'])->name('update-password');
+    Route::put('/update-password/update', [UserController::class, 'update'])->name('update-password.update');
 });
 
 require __DIR__.'/auth.php';
