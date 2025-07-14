@@ -15,7 +15,7 @@ class PembayaranTagihanTahunanController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::whereSemester('1')->get();
-            $siswa_list = Siswa::where('kelas_id','!=',NULL)->get();
+            $siswa_list = Siswa::whereStatus(TRUE)->get();
             return view('pembayaran_tagihan_tahunan.index', compact('tahun_ajaran', 'siswa_list'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -56,8 +56,10 @@ class PembayaranTagihanTahunanController extends Controller
 
         PembayaranTagihanTahunan::create([
             'anggota_kelas_id' => $anggota_kelas->id,
+            'order_id' => 'TAHUNAN-' . time(),
             'tagihan_tahunan_id' => $tagihan->id,
             'jumlah_bayar' => $request->jumlah_bayar,
+            'keterangan' => "LUNAS",
             'tanggal' => now(),
         ]);
 
@@ -109,7 +111,7 @@ class PembayaranTagihanTahunanController extends Controller
             });
             $tahun_ajaran = TahunAjaran::where('semester', '1')->get();
         
-            $siswa_list = Siswa::whereNotNull('kelas_id')->get();
+            $siswa_list = Siswa::whereStatus(TRUE)->get();
         
             return view('pembayaran_tagihan_tahunan.index', compact(
                 'tahun_ajaran',

@@ -59,7 +59,7 @@
         </div>
     </div>
 
-    @if(isset($hasil_tagihan) && count($hasil_tagihan))
+    @if(isset($siswa))
         <div class="row mt-4">
             <div class="col-md-4">
                 <div class="main-card card">
@@ -102,39 +102,37 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach ($hasil_tagihan as $item)
-                                    <tr>
-                                        <td>{{ $item['jenis'] }}</td>
-                                        <td>Rp {{ number_format($item['total_tagihan'], 0, ',', '.') }}</td>
-                                        <td>Rp {{ number_format($item['total_dibayar'], 0, ',', '.') }}</td>
-                                        <td>Rp {{ number_format($item['sisa_tagihan'], 0, ',', '.') }}</td>
-                                        <td>
-                                            <span class="badge {{ $item['status'] == 'Lunas' ? 'bg-success' : 'bg-warning' }}">
-                                                {{ $item['status'] }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            @if ($item['status'] != 'Lunas')
-                                                <!-- Tombol buka modal -->
-                                                <button type="button" onclick="showCreateModal('modalBayar{{ $loop->index }}')" class="btn btn-sm btn-primary">
-                                                    Bayar
-                                                </button>
-                                                @include('pembayaran_tagihan_tahunan.modal')
-                                            @else
-                                                <span class="text-muted">Selesai</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
+                                @if(isset($hasil_tagihan) && count($hasil_tagihan))
+                                    @foreach ($hasil_tagihan as $item)
+                                        <tr>
+                                            <td>{{ $item['jenis'] }}</td>
+                                            <td>Rp {{ number_format($item['total_tagihan'], 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($item['total_dibayar'], 0, ',', '.') }}</td>
+                                            <td>Rp {{ number_format($item['sisa_tagihan'], 0, ',', '.') }}</td>
+                                            <td>
+                                                <span class="badge {{ $item['status'] == 'Lunas' ? 'bg-success' : 'bg-warning' }}">
+                                                    {{ $item['status'] }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if ($item['status'] != 'Lunas')
+                                                    <!-- Tombol buka modal -->
+                                                    <button type="button" onclick="showCreateModal('modalBayar{{ $loop->index }}')" class="btn btn-sm btn-primary">
+                                                        Bayar
+                                                    </button>
+                                                    @include('pembayaran_tagihan_tahunan.modal')
+                                                @else
+                                                    <span class="text-muted">Selesai</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @endif
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-        </div>
-    @elseif(isset($siswa))
-        <div class="alert alert-info mt-3">
-            Tidak ada data tagihan tahunan untuk siswa ini.
         </div>
     @endif
 </div>

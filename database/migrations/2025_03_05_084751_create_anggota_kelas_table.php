@@ -15,13 +15,11 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('siswa_nis');
             $table->unsignedBigInteger('kelas_id');
-            $table->unsignedBigInteger('tahun_ajaran_id');
             $table->enum('pendaftaran', ['1', '2', '3', '4', '5']);
             $table->timestamps();
 
             $table->foreign('siswa_nis')->references('nis')->on('siswa')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('kelas_id')->references('id')->on('kelas')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreign('tahun_ajaran_id')->references('id')->on('tahun_ajaran')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('kelas_id')->references('id')->on('kelas')->onDelete('restrict');
         });
     }
 

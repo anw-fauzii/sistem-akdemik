@@ -10,6 +10,7 @@ use App\Models\Pekerjaan;
 use App\Models\Penghasilan;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use App\Models\TarifSpp;
 use App\Models\Transportasi;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -39,8 +40,9 @@ class SiswaController extends Controller
             $berkebutuhan_khusus = BerkebutuhanKhusus::all();
             $tahun_ajaran = TahunAjaran::latest()->first();
             $pendidikan = JenjangPendidikan::all();
+            $tarif_spp = TarifSpp::all();
             $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
-            return view('data_master.siswa.create', compact('kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
+            return view('data_master.siswa.create', compact('tarif_spp','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }
@@ -57,7 +59,6 @@ class SiswaController extends Controller
                 'jenis_kelamin' => 'required',
                 'nisn' => 'nullable|unique:siswa,nisn', 
                 'nik' => 'nullable|unique:siswa,nik', 
-                'no_kk' => 'unique:siswa,no_kk', 
                 'tempat_lahir' => 'required',
                 'tanggal_lahir' => 'required',
                 'akta_lahir' => 'nullable|unique:siswa,akta_lahir', 
@@ -101,6 +102,7 @@ class SiswaController extends Controller
                 'berat_badan' => 'required',
                 'jarak' => 'required',
                 'waktu_tempuh' => 'required',
+                'tarif_spp_id' => 'required',
             ], [
                 'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
                 'gelar.required' => 'Gelar wajib diisi.',
@@ -160,7 +162,8 @@ class SiswaController extends Controller
             $pendidikan = JenjangPendidikan::all();
             $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
             $siswa = Siswa::findOrFail($id);
-            return view('data_master.siswa.edit', compact('siswa','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
+            $tarif_spp = TarifSpp::all();
+            return view('data_master.siswa.edit', compact('tarif_spp','siswa','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }
@@ -177,7 +180,6 @@ class SiswaController extends Controller
                 'jenis_kelamin' => 'required',
                 'nisn' => 'nullable|unique:siswa,nisn,' . $id . ',nis',
                 'nik' => 'nullable|unique:siswa,nik,' . $id . ',nis',
-                'no_kk' => 'unique:siswa,no_kk,' . $id . ',nis',
                 'tempat_lahir' => 'required',
                 'tanggal_lahir' => 'required',
                 'akta_lahir' => 'nullable|unique:siswa,akta_lahir,' . $id . ',nis',
@@ -221,6 +223,7 @@ class SiswaController extends Controller
                 'berat_badan' => 'required',
                 'jarak' => 'required',
                 'waktu_tempuh' => 'required',
+                'tarif_spp_id' => 'required',
             ], [
                 'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
                 'gelar.required' => 'Gelar wajib diisi.',

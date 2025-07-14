@@ -78,6 +78,7 @@ return new class extends Migration
             $table->integer('waktu_tempuh')->nullable();
             $table->integer('lingkar_kepala')->nullable();
 
+            $table->unsignedBigInteger('tarif_spp_id')->nullable();
             $table->string('avatar')->nullable();
             $table->enum('status', ['1', '2', '3'])->default('1');
             $table->timestamps();
@@ -103,6 +104,7 @@ return new class extends Migration
             $table->foreign('pekerjaan_wali_id')->references('id')->on('pekerjaan')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('penghasilan_wali_id')->references('id')->on('penghasilan')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('berkebutuhan_khusus_wali_id')->references('id')->on('berkebutuhan_khusus')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('tarif_spp_id')->references('id')->on('tarif_spp')->onDelete('cascade')->onUpdate('cascade');
 
         });
     }

@@ -17,6 +17,7 @@ class Siswa extends Model
         'kelas_id',
         'guru_nipy',
         'ekstrakurikuler_id',
+        'jemputan_id',
         'jenis_pendaftaran',
         'nama_lengkap',
         'jenis_kelamin',
@@ -78,8 +79,8 @@ class Siswa extends Model
         'jarak',
         'lingkar_kepala',
         'waktu_tempuh',
-        'lingkar',
 
+        'tarif_spp_id',
         'avatar',
         'status',
     ];
@@ -96,14 +97,18 @@ class Siswa extends Model
         return $this->belongsTo(Kelas::class);
     }
     
-    public function siswa()
-    {
-        return $this->belongsTo(Siswa::class, 'siswa_nis', 'nis');
-    }
-
     public function ekstrakurikuler()
     {
         return $this->belongsTo(Ekstrakurikuler::class);
     }
-    
+
+    public function guru()
+    {
+        return $this->belongsTo(Guru::class);
+    }
+
+    public function jemputan()
+    {
+        return $this->belongsTo(Jemputan::class);
+    }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;
 
@@ -37,6 +38,12 @@ class TahunAjaranController extends Controller
                 'semester.required' => 'Semester wajib diisi.',
             ]);
             TahunAjaran::create($validated);
+            Siswa::whereStatus(TRUE)
+                ->update([
+                    'kelas_id' => null,
+                    'guru_nipy' => null,
+                    'ekstrakurikuler_id' => null
+                ]);
             return redirect()->route('tahun-ajaran.index')->with('success', 'Tahun ajaran berhasil disimpan');     
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -75,7 +82,16 @@ class TahunAjaranController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::findOrFail($id);
+            if ($tahun_ajaran->kelas->count() > 0) {
+                return redirect()->route('tahun-ajaran.index')->with('error', 'Tahun ajaran tidak bisa dihapus karena masih memiliki kelas.');
+            }
             $tahun_ajaran->delete();
+            Siswa::whereStatus(TRUE)
+                ->update([
+                    'kelas_id' => null,
+                    'guru_nipy' => null,
+                    'ekstrakurikuler_id' => null
+                ]);
             return redirect()->route('tahun-ajaran.index')->with('success', 'Tahun ajaran berhasil dihapus');
         } else {
             return response()->view('errors.403', [abort(403)], 403);

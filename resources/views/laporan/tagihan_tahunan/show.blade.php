@@ -106,15 +106,6 @@
                         </tr>
                     @endforeach
                 </tbody>
-                <tfoot class="table-light">
-                    <tr>
-                        <th colspan="2" class="text-end">TOTAL</th>
-                        <th>Rp {{ number_format($total_tagihan, 0, ',', '.') }}</th>
-                        <th>Rp {{ number_format($total_dibayar, 0, ',', '.') }}</th>
-                        <th>Rp {{ number_format($total_sisa, 0, ',', '.') }}</th>
-                        <th>{{ $jumlah_siswa_belum_lunas }} siswa belum lunas</th>
-                    </tr>
-                </tfoot>
             </table>
         </div>
     </div>

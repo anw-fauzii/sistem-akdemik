@@ -42,9 +42,8 @@ class PengumumanController extends Controller
                 'tanggal.required' => 'Jumlah unit harus berupa angka.', 
             ]);
             
-            $pengumuman = new pengumuman($validated);
-            $pengumuman->tahun_ajaran_id = $tahun->id;
-            $pengumuman->save();
+            $validated['tahun_ajaran_id'] = $tahun->id;
+            Pengumuman::create($validated);
             return redirect()->route('pengumuman.index')->with('success', 'pengumuman berhasil disimpan');  
         } else {
             return response()->view('errors.403', [abort(403)], 403);

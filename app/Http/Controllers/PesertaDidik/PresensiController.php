@@ -17,9 +17,11 @@ class PresensiController extends Controller
     {
         if (user()?->hasRole('siswa')) {
             $tahunAjaran = TahunAjaran::latest()->first();
-            $anggotaKelas = AnggotaKelas::whereTahunAjaranId($tahunAjaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                        })
+                        ->first();
             if (!$anggotaKelas) {
                 return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
             }
@@ -44,9 +46,11 @@ class PresensiController extends Controller
             $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             $bulan = BulanSpp::findOrFail($id);
             $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-            $anggotaKelas = AnggotaKelas::whereTahunAjaranId($tahunAjaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                        })
+                        ->first();
 
             if (!$anggotaKelas) {
                 return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');

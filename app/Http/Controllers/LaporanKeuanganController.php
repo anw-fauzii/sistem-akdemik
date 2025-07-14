@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnggotaJemputan;
 use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Kelas;
+use App\Models\PembayaranJemputan;
 use App\Models\PembayaranSpp;
 use App\Models\PembayaranTagihanTahunan;
 use App\Models\Presensi;
@@ -12,7 +14,6 @@ use App\Models\PresensiEkstrakurikuler;
 use App\Models\TagihanTahunan;
 use App\Models\TahunAjaran;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 
 class LaporanKeuanganController extends Controller
 {
@@ -22,20 +23,25 @@ class LaporanKeuanganController extends Controller
         $tahun_ajaran_sekarang = TahunAjaran::latest()->first();
         $kelas_list = Kelas::whereTahunAjaranId($tahun_ajaran_sekarang->id)->get();
     
-        // Ringkasan total keseluruhan
         $total_tagihan_semua = 0;
         $total_dibayar_semua = 0;
         $total_sisa_semua = 0;
         $jumlah_siswa_belum_lunas = 0;
     
-        $hasil = []; // untuk rekap per kelas
+        $hasil = [];
     
         foreach ($kelas_list as $kelas) {
             $total_tagihan_kelas = 0;
             $total_dibayar_kelas = 0;
             $total_sisa_kelas = 0;
     
-            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)->get();
+            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)
+                ->where('jenjang', $kelas->jenjang)
+                ->where(function ($query) use ($kelas) {
+                    $query->where('kelas', $kelas->tingkatan_kelas)
+                        ->orWhereNull('kelas');
+                })
+                ->get();
     
             foreach ($kelas->anggotaKelas as $anggota) {
                 $siswa_belum_lunas = false;
@@ -61,7 +67,6 @@ class LaporanKeuanganController extends Controller
                 }
             }            
     
-            // Tambahkan ke rekap per kelas
             $hasil[] = [
                 'id' => $kelas->id,
                 'nama_kelas' => $kelas->nama_kelas,
@@ -71,7 +76,6 @@ class LaporanKeuanganController extends Controller
                 'status' => $total_sisa_kelas == 0 ? 'Lunas' : 'Belum Lunas'
             ];
     
-            // Tambahkan ke total keseluruhan
             $total_tagihan_semua += $total_tagihan_kelas;
             $total_dibayar_semua += $total_dibayar_kelas;
             $total_sisa_semua += $total_sisa_kelas;
@@ -91,7 +95,14 @@ class LaporanKeuanganController extends Controller
     public function showTagihanTahunan($kelas_id)
     {
         $kelas = Kelas::with(['anggotaKelas.siswa'])->findOrFail($kelas_id);
-        $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)->get();
+        $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $kelas->tahun_ajaran_id)
+                ->where('jenjang', $kelas->jenjang)
+                ->where(function ($query) use ($kelas) {
+                    $query->where('kelas', $kelas->tingkatan_kelas)
+                        ->orWhereNull('kelas');
+                })
+                ->get();
+    
 
         $hasil = [];
         $total_tagihan = 0;
@@ -204,11 +215,28 @@ class LaporanKeuanganController extends Controller
 
                         return $hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
                     });
+                    $pembayaranJemputan = 0;
 
-                    $tagihan = $kelas->spp + $biayaMakanFinal + $tambahan + $biayaEkskul;
+                    $anggotaJemputan = AnggotaJemputan::where('anggota_kelas_id', $anggota->id)
+                        ->whereHas('jemputan', function ($q) use ($kelas) {
+                            $q->where('tahun_ajaran_id', $kelas->tahun_ajaran_id);
+                        })
+                        ->first();
 
-                    $pembayaran = PembayaranSpp::where('anggota_kelas_id', $anggota->id)
-                        ->where('bulan_spp_id', $bulan->id)
+                    if ($anggotaJemputan) {
+                        $bayarJemputan = PembayaranJemputan::where('anggota_jemputan_id', $anggotaJemputan->id)
+                            ->where('bulan_spp_id', $bulan->id)
+                            ->first();
+
+                        if ($bayarJemputan) {
+                            $pembayaranJemputan = $bayarJemputan->jumlah_bayar;
+                        }
+                    }
+
+                    $tagihan = $kelas->spp + $biayaMakanFinal + $tambahan + $biayaEkskul + $pembayaranJemputan;
+
+                    $pembayaran = PembayaranSpp::whereAnggotaKelasId($anggota->id)
+                        ->whereBulanSppId($bulan->id)->whereKeterangan('LUNAS')
                         ->first();
 
                     if ($pembayaran) {
@@ -298,19 +326,35 @@ class LaporanKeuanganController extends Controller
                 $total_biaya_makan = $kelas->biaya_makan - $potongan;
 
                 $biaya_ekskul = $anggota->ekstrakurikuler->sum(function ($item) use ($bulanAngka) {
-                    $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                    $pernah_hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                         ->where('status', 'hadir')
                         ->whereMonth('tanggal', $bulanAngka)
                         ->exists();
 
                     return $pernah_hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
                 });
+                $pembayaranJemputan = 0;
 
-                $tagihan = $kelas->spp + $total_biaya_makan + $biaya_ekskul + $tambahan;
-
-                $pembayaran = PembayaranSpp::where('anggota_kelas_id', $anggota->id)
-                    ->where('bulan_spp_id', $bulan->id)
+                $anggotaJemputan = AnggotaJemputan::where('anggota_kelas_id', $anggota->id)
+                    ->whereHas('jemputan', function ($q) use ($kelas) {
+                        $q->where('tahun_ajaran_id', $kelas->tahun_ajaran_id);
+                    })
                     ->first();
+
+                if ($anggotaJemputan) {
+                    $bayarJemputan = PembayaranJemputan::where('anggota_jemputan_id', $anggotaJemputan->id)
+                        ->where('bulan_spp_id', $bulan->id)
+                        ->first();
+
+                    if ($bayarJemputan) {
+                        $pembayaranJemputan = $bayarJemputan->jumlah_bayar;
+                    }
+                }
+                $tagihan = $kelas->spp + $total_biaya_makan + $biaya_ekskul + $tambahan + $pembayaranJemputan;
+
+                $pembayaran = PembayaranSpp::whereAnggotaKelasId($anggota->id)
+                        ->whereBulanSppId($bulan->id)->whereKeterangan('LUNAS')
+                        ->first();
 
                 if ($pembayaran) {
                     $totalBayar += $pembayaran->total_pembayaran;

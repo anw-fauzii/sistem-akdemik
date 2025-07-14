@@ -13,6 +13,11 @@ class PembayaranTagihanTahunan extends Model
         'anggota_kelas_id',
         'tagihan_tahunan_id',
         'jumlah_bayar',
+        'keterangan',
+        'order_id',
+        'payment_type',
+        'va_number',
+        'pdf_url',    
     ];
 
     public function anggotaKelas()

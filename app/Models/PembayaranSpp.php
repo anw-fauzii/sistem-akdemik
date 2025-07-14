@@ -17,14 +17,12 @@ class PembayaranSpp extends Model
         'total_pembayaran',
         'keterangan',
         'ekstrakurikuler',
-    
-        // Midtrans-related fields
+        'jemputan',
+
         'order_id',
         'payment_type',
-        'transaction_status',
-        'transaction_time',
-        'va_number',        // jika pakai VA
-        'pdf_url',          // URL bukti pembayaran
+        'va_number',
+        'pdf_url',
     ];
 
     public function anggotaKelas()
@@ -32,7 +30,7 @@ class PembayaranSpp extends Model
         return $this->belongsTo(AnggotaKelas::class);
     }
 
-    public function bulanSPP()
+    public function bulanSpp()
     {
         return $this->belongsTo(BulanSpp::class);
     }

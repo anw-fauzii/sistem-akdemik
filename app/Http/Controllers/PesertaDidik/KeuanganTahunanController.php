@@ -8,6 +8,7 @@ use App\Models\PembayaranTagihanTahunan;
 use App\Models\Siswa;
 use App\Models\TagihanTahunan;
 use App\Models\TahunAjaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -26,15 +27,18 @@ class KeuanganTahunanController extends Controller
     {
         if (user()?->hasRole('siswa')) {        
             $tahun_ajaran = TahunAjaran::latest()->first();
-            $anggota_kelas = AnggotaKelas::whereTahunAjaranId($tahun_ajaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $anggota_kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                        ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
+                            $query->where('tahun_ajaran_id', $tahun_ajaran->id);
+                        })
+                        ->first();
 
             if (!$anggota_kelas) {
                 return redirect()->route('keuangan-tahunan.index')->with('error', 'Data tidak ditemukan!');
             }
 
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
+            $riwayat_pembayaran = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)->get();
         
             $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahun_ajaran->id)
                 ->where('jenjang', $anggota_kelas->kelas->jenjang)
@@ -47,7 +51,7 @@ class KeuanganTahunanController extends Controller
         
             $hasil_tagihan = $tagihan_list->map(function ($tagihan) use ($anggota_kelas) {
                 $total_dibayar = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)
-                    ->whereTagihanTahunanId($tagihan->id)
+                    ->whereTagihanTahunanId($tagihan->id)->whereKeterangan('LUNAS')
                     ->sum('jumlah_bayar');
         
                 return [
@@ -59,14 +63,17 @@ class KeuanganTahunanController extends Controller
                     'status' => ($tagihan->jumlah <= $total_dibayar) ? 'Lunas' : 'Belum Lunas',
                 ];
             });
-            $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
+            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
+                ->whereSiswaNis(Auth::user()->email)
+                ->get();
         
             return view('pesertaDidik.keuangan_tahunan.index', compact(
                 'tahun_selama_belajar',
                 'tahun_ajaran',
                 'siswa',
                 'hasil_tagihan',
-                'tagihan_list'
+                'tagihan_list',
+                'riwayat_pembayaran'
             ));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -76,18 +83,21 @@ class KeuanganTahunanController extends Controller
     public function show($id)
     {
         if (user()?->hasRole('siswa')) {        
-            $tahun_ajaran = TahunAjaran::find($id);
-            $anggota_kelas = AnggotaKelas::whereTahunAjaranId($tahun_ajaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $tahunAjaran = TahunAjaran::latest()->first();
+            $anggota_kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                        })
+                        ->first();
 
             if (!$anggota_kelas) {
                 return redirect()->route('keuangan-tahunan.index')->with('error', 'Data tidak ditemukan!');
             }
 
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
+            $riwayat_pembayaran = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)->get();
         
-            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahun_ajaran->id)
+            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahunAjaran->id)
                 ->where('jenjang', $anggota_kelas->kelas->jenjang)
                 ->where(function ($query) use ($anggota_kelas) {
                     $query->where('kelas', $anggota_kelas->kelas->tingkatan_kelas)
@@ -95,10 +105,9 @@ class KeuanganTahunanController extends Controller
                 })
                 ->get();
 
-        
             $hasil_tagihan = $tagihan_list->map(function ($tagihan) use ($anggota_kelas) {
                 $total_dibayar = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)
-                    ->whereTagihanTahunanId($tagihan->id)
+                    ->whereTagihanTahunanId($tagihan->id)->whereKeterangan('LUNAS')
                     ->sum('jumlah_bayar');
         
                 return [
@@ -110,14 +119,17 @@ class KeuanganTahunanController extends Controller
                     'status' => ($tagihan->jumlah <= $total_dibayar) ? 'Lunas' : 'Belum Lunas',
                 ];
             });
-            $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
+            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
+                ->whereSiswaNis(Auth::user()->email)
+                ->get();
         
             return view('pesertaDidik.keuangan_tahunan.index', compact(
                 'tahun_selama_belajar',
                 'tahun_ajaran',
                 'siswa',
                 'hasil_tagihan',
-                'tagihan_list'
+                'tagihan_list',
+                'riwayat_pembayaran'
             ));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -127,9 +139,9 @@ class KeuanganTahunanController extends Controller
     public function store(Request $request)
     {
         $tahunAjaran = TahunAjaran::latest()->first();
-            $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahunAjaran) {
-                $query->where('tahun_ajaran_id', $tahunAjaran->id);
-            })->where('siswa_nis', Auth::user()->email)->first();
+        $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahunAjaran) {
+            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+        })->where('siswa_nis', Auth::user()->email)->first();
 
         if (!$anggota_kelas) {
             return redirect()->route('pembayaran-tagihan-tahunan.index')->with('error', 'Anggota kelas tidak ditemukan.');
@@ -138,20 +150,32 @@ class KeuanganTahunanController extends Controller
         $tagihan = TagihanTahunan::findOrFail($request->tagihan_id);
 
         $total_dibayar = PembayaranTagihanTahunan::where('anggota_kelas_id', $anggota_kelas->id)
-            ->where('tagihan_tahunan_id', $tagihan->id)
+            ->where('tagihan_tahunan_id', $tagihan->id)->whereKeterangan('LUNAS')
             ->sum('jumlah_bayar');
+
+        $cek = PembayaranTagihanTahunan::where('anggota_kelas_id', $anggota_kelas->id)
+            ->where('tagihan_tahunan_id', $tagihan->id)
+            ->latest()->first();
+
+        if ($cek && $cek->keterangan == "PENDING") {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Selesaikan dulu pembayaran sebelumnya!',
+            ], 422); 
+        }
 
         $sisa_tagihan = $tagihan->jumlah - $total_dibayar;
 
         if ($request->jumlah_bayar > $sisa_tagihan) {
-            return redirect()->route('pembayaran-tagihan-tahunan.index')->with('error', 'Jumlah pembayaran melebihi sisa tagihan (' . number_format($sisa_tagihan, 0, ',', '.') . ').');
+            return redirect()->route('keuangan-tahunan.index')->with('error', 'Jumlah pembayaran melebihi sisa tagihan (' . number_format($sisa_tagihan, 0, ',', '.') . ').');
         }
+
         if($request->metode === "lunas"){
             $jumlah_bayar = $sisa_tagihan;
         }else {
             $jumlah_bayar = $request->nominal;
         }
-        $order_id = 'ORDER-' . time();
+        $order_id = 'TAHUNAN-' . time();
         $params = [
             'transaction_details' => [
                 'order_id' => $order_id,
@@ -173,19 +197,33 @@ class KeuanganTahunanController extends Controller
 
         try {
             $snap_token = Snap::getSnapToken($params);
-            
             PembayaranTagihanTahunan::create([
+                'order_id' => $order_id,
                 'anggota_kelas_id' => $anggota_kelas->id,
                 'tagihan_tahunan_id' => $tagihan->id,
                 'jumlah_bayar' => $jumlah_bayar,
                 'tanggal' => now(),
+                'keterangan' => 'PENDING',
+                'payment_type' => $snap_token,
             ]);
-
             return response()->json(['snap_token' => $snap_token]);
 
         } catch (\Exception $e) {
             Log::error('Error bayarTahunan: ' . $e->getMessage());
             return redirect()->route('keuangan-tahunan.index')->with('error', 'Terjadi kesalahan saat membuat pembayaran.');
         }
+    }
+
+    public function lanjut($id)
+    {
+        $data = PembayaranTagihanTahunan::find($id);
+        return response()->json(['snap_token' => $data->payment_type]);
+    }
+
+    public function cetakInvoice($id)
+    {
+        $tagihan_tahunan = PembayaranTagihanTahunan::whereOrderId($id)->firstOrFail();
+        $pdf = Pdf::loadView('pesertaDidik.keuangan_tahunan.invoice', compact('tagihan_tahunan'));
+        return $pdf->stream($id. '.pdf');
     }
 }

@@ -17,8 +17,6 @@ class Kelas extends Model
         'nama_kelas',
         'jenjang',
         'romawi',
-        'spp',
-        'biaya_makan',
     ];
 
     public function tahun_ajaran()

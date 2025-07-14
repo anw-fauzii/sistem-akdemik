@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggotaKelas;
+use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AnggotaKelasController extends Controller
@@ -21,13 +23,11 @@ class AnggotaKelasController extends Controller
                 return back()->with('warning', 'Tidak ada siswa yang dipilih');
             } else {
                 $siswa_nis = $request->input('siswa_nis');
-                $tapel = TahunAjaran::latest()->first();
                 for ($count = 0; $count < count($siswa_nis); $count++) {
                     $data = array(
                         'siswa_nis' => $siswa_nis[$count],
                         'kelas_id'  => $request->kelas_id,
                         'pendaftaran'  => $request->pendaftaran,
-                        'tahun_ajaran_id' => $tapel->id,
                         'created_at'  => Carbon::now(),
                         'updated_at'  => Carbon::now(),
                     );
@@ -61,6 +61,21 @@ class AnggotaKelasController extends Controller
             }
         } else {
             return response()->view('errors.403', [abort(403)], 403);
+        }
+    }
+
+    public function index(){
+        if(user()->hasRole('guru')){
+            $tahunAjaran = TahunAjaran::latest()->first();
+            $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+                ->where(function ($query) {
+                    $query->where('guru_nipy', Auth::user()->email)
+                        ->orWhere('pendamping_nipy', Auth::user()->email);
+                })->firstOrFail();
+            if($kelas){
+                $anggotaKelas = AnggotaKelas::whereKelasId($kelas->id)->get();
+                return view('anggota_kelas.index', compact('kelas','anggotaKelas'));
+            }
         }
     }
 }

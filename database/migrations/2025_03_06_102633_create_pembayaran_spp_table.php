@@ -18,10 +18,12 @@ return new class extends Migration
             $table->integer('nominal_spp');
             $table->integer('biaya_makan');
             $table->integer('ekstrakurikuler');
+            $table->integer('jemputan');
             $table->integer('total_pembayaran');
             $table->string('keterangan');
             $table->timestamps();
             $table->foreign('anggota_kelas_id')->references('id')->on('anggota_kelas')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreign('bulan_spp_id')->references('id')->on('bulan_spp')->onDelete('cascade')->onUpdate('cascade');
         });
     }
 

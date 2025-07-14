@@ -26,15 +26,15 @@
             Update Data
         </div>
         <div class="card-body">
-            <form  method="post" action="{{route('bulan-spp.update', $bulan_spp->id)}}" id="editForm">
+            <form  method="post" action="{{route('ekstrakurikuler.update', $ekstrakurikuler->id)}}" id="editForm">
                 @csrf
                 @method('PUT')
                 <div class="form-row">
                     <div class="col-md-12">
                         <div class="position-relative form-group">
-                            <label for="nama_bulan" class="">Nama Bulan</label>
-                            <input name="nama_bulan" id="nama_bulan" placeholder="nama_bulan" type="text" class="form-control @error('nama_bulan') is-invalid @enderror" value="{{ $bulan_spp->nama_bulan ?? old('nama_bulan') }}">
-                            @error('nama_bulan')
+                            <label for="nama_ekstrakurikuler" class="">Nama Ekstrakurikuler</label>
+                            <input name="nama_ekstrakurikuler" id="nama_ekstrakurikuler" placeholder="Masukan nama ekstrakurikuler" type="text" class="form-control @error('nama_ekstrakurikuler') is-invalid @enderror" value="{{ $ekstrakurikuler->nama_ekstrakurikuler ?? old('nama_ekstrakurikuler') }}">
+                            @error('nama_ekstrakurikuler')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                     {{ strtolower($message) }}
                                 </div>
@@ -43,9 +43,14 @@
                     </div>
                     <div class="col-md-12">
                         <div class="position-relative form-group">
-                            <label for="bulan_angka" class="">bulan_angka</label>
-                            <input name="bulan_angka" id="bulan_angka" placeholder="" type="date" class="form-control @error('bulan_angka') is-invalid @enderror" value="{{ $bulan_spp->bulan_angka ?? old('bulan_angka') }}">
-                            @error('bulan_angka')
+                            <label for="guru_nipy">Guru Pendamping</label>
+                            <select name="guru_nipy" id="guru_nipy"  class="multiselect-dropdown form-control @error('guru_nipy') is-invalid @enderror">
+                                <option value="" selected disabled>-- Pilih Guru Pendamping --</option>
+                                @foreach ($guru as $item)
+                                    <option value="{{$item->nipy}}" {{ old('guru_nipy') == $item->nipy || $ekstrakurikuler->guru_nipy == $item->nipy ? 'selected' : '' }}>{{$item->nama_lengkap}}, {{$item->gelar}}.</option>
+                                @endforeach
+                            </select>
+                            @error('guru_nipy')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                     {{ strtolower($message) }}
                                 </div>
@@ -54,9 +59,9 @@
                     </div>
                     <div class="col-md-12">
                         <div class="position-relative form-group">
-                            <label for="tambahan" class="">Biaya Tambahan</label>
-                            <input name="tambahan" id="tambahan" placeholder="tambahan" type="text" class="form-control @error('tambahan') is-invalid @enderror" value="{{ $bulan_spp->tambahan ??  old('tambahan') }}">
-                            @error('tambahan')
+                            <label for="biaya" class="">Biaya Per Bulan</label>
+                            <input name="biaya" id="biaya" placeholder="Masukan biaya" type="text" class="form-control @error('biaya') is-invalid @enderror" value="{{ $ekstrakurikuler->biaya ?? old('biaya') }}">
+                            @error('biaya')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                     {{ strtolower($message) }}
                                 </div>

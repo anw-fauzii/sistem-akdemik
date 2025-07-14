@@ -22,7 +22,7 @@ class PresensiEkstrakurikulerController extends Controller
                         ->first();
 
             if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
             }
             $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->get();
             $bulan = $request->bulan ?? now()->format('Y-m'); 
@@ -47,7 +47,7 @@ class PresensiEkstrakurikulerController extends Controller
                         ->first();
 
             if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak memiliki kelas yang diampu.');
+                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
             }
             $siswaList = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->with('anggotaKelas')->get();
             return view('presensi_ekstrakurikuler.create', compact('siswaList', 'ekstrakurikuler'));
@@ -92,7 +92,7 @@ class PresensiEkstrakurikulerController extends Controller
                         ->first();
 
             if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
             }
             $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
             $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->get();

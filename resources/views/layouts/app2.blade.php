@@ -62,14 +62,13 @@
         $('#myTable').dataTable({ 
             "ordering": false,
             "processing": true,
-            "serverSide": true,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],
             [ '25', '50', '100', '1000', 'All' ]
         ],
         });
         $('#myTable2').dataTable({ 
-            "ordering": true,
+            "ordering": false,
             "processing": true,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],
@@ -79,7 +78,6 @@
         $('#myTable3').dataTable({ 
             "ordering": true,
             "processing": true,
-            "serverSide": true,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],
             [ '25', '50', '100', '1000', 'All' ]
@@ -88,14 +86,13 @@
         $('#myTable4').dataTable({ 
             "ordering": false,
             "processing": true,
-            "serverSide": true,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],
             [ '25', '50', '100', '1000', 'All' ]
         ],
         });
         $('#myTable5').dataTable({ 
-            "ordering": false,
+            "ordering": true,
             "processing": true,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],

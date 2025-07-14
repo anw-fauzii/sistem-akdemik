@@ -2,17 +2,20 @@
 
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AnggotaEkstrakurikulerController;
+use App\Http\Controllers\AnggotaJemputanController;
 use App\Http\Controllers\AnggotaKelasController;
+use App\Http\Controllers\AnggotaT2QController;
 use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\BulanSppController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\GuruController;
+use App\Http\Controllers\JemputanController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanKeuanganController;
-use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\PembayaranJemputanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
@@ -27,8 +30,10 @@ use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanTahunanController;
 use App\Http\Controllers\TahunAjaranController;
+use App\Http\Controllers\TarifSppController;
 use App\Http\Controllers\TransportasiController;
 use App\Http\Controllers\UserController;
+use App\Models\PembayaranJemputan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -69,8 +74,9 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/pembayaran-spp', PembayaranSppController::class)->only(['index','store','destroy']);
     Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
     Route::resource('/ekstrakurikuler', EkstrakurikulerController::class);
-    Route::resource('/anggota-kelas', AnggotaKelasController::class)->only(['store', 'destroy']);
+    Route::resource('/anggota-kelas', AnggotaKelasController::class)->only(['index','store', 'destroy']);
     Route::resource('/anggota-ekstrakurikuler', AnggotaEkstrakurikulerController::class)->only(['store', 'destroy']);
+    Route::resource('/anggota-t2q', AnggotaT2QController::class)->only(['index','store', 'destroy','show']);
     Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
     Route::resource('/agenda', AgendaController::class)->except(['show']);
     Route::resource('/pengumuman', PengumumanController::class)->except(['show']);
@@ -84,11 +90,22 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/presensi', PresensiController::class)->only(['index','show']);
     Route::resource('/keuangan-spp', KeuanganController::class)->only(['index','show']);
     Route::get('/keuangan-spp/bayar/{id}', [KeuanganController::class,'bayarSpp'])->name('keuangan-spp.bayar');
+    Route::get('/lanjut-pembayaran-spp/{id}', [KeuanganController::class, 'lanjut'])->name('keuangan-spp.lanjut');
+    Route::get('/cetak-invoice-spp/{id}', [KeuanganController::class, 'cetakInvoice'])->name('keuangan-spp.invoice');
     Route::resource('/keuangan-tahunan', KeuanganTahunanController::class)->only(['index','show','store']);
+    Route::get('/lanjut-pembayaran-tahunan/{id}', [KeuanganTahunanController::class, 'lanjut'])->name('keuangan-tahunan.lanjut');
+    Route::get('/cetak-invoice-tahunan/{id}', [KeuanganTahunanController::class, 'cetakInvoice'])->name('keuangan-tahunan.invoice');
     Route::get('/QR-Code', [QRCodeController::class,'index'])->name('qr-code.index');
     Route::get('/profil-siswa', [UserController::class, 'profil'])->name('profil-siswa');
     Route::get('/update-password', [UserController::class, 'password'])->name('update-password');
     Route::put('/update-password/update', [UserController::class, 'update'])->name('update-password.update');
+    Route::resource('/jemputan', JemputanController::class);
+    Route::resource('/anggota-jemputan', AnggotaJemputanController::class)->only(['store', 'destroy']);
+    Route::resource('/pembayaran-jemputan', PembayaranJemputanController::class);
+    Route::post('/pembayaran-jemputan/cari', [PembayaranJemputanController::class, 'cari'])->name('pembayaran-jemputan.cari');
+    Route::resource('tarif-spp', TarifSppController::class);
 });
-
+Route::fallback(function () {
+    return response()->view('errors.404', [], 404);
+});
 require __DIR__.'/auth.php';

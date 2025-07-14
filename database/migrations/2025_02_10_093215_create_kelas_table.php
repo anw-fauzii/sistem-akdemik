@@ -20,8 +20,6 @@ return new class extends Migration
             $table->string('nama_kelas', 30);
             $table->string('jenjang', 30);
             $table->string('romawi', 30);
-            $table->integer('spp');
-            $table->integer('biaya_makan');
             $table->timestamps();
 
             $table->foreign('tahun_ajaran_id')->references('id')->on('tahun_ajaran')->onDelete('cascade')->onUpdate('cascade');

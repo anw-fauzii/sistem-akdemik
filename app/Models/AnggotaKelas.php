@@ -12,7 +12,6 @@ class AnggotaKelas extends Model
     protected $fillable = [
         'siswa_nis',
         'kelas_id',
-        'tahun_ajaran',
         'pendaftaran',
     ];
 
@@ -36,13 +35,28 @@ class AnggotaKelas extends Model
         return $this->hasMany(AnggotaEkstrakurikuler::class)->with('ekstrakurikuler');
     }
 
+    public function anggota_ekstrakurikuler()
+    {
+        return $this->hasOne(AnggotaEkstrakurikuler::class);
+    }
+
+    public function anggota_jemputan()
+    {
+        return $this->hasOne(AnggotaJemputan::class);
+    }
+
     public function pembayaranTagihanTahunan()
     {
         return $this->hasMany(PembayaranTagihanTahunan::class, 'anggota_kelas_id');
     }
 
-    public function tahun_ajaran()
+    public function anggotaT2Q()
     {
-        return $this->belongsTo(TahunAjaran::class);
+        return $this->hasOne(AnggotaT2Q::class);
+    }
+
+    public function jemputan()
+    {
+        return $this->hasOne(AnggotaJemputan::class);
     }
 }

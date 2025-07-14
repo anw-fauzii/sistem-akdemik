@@ -53,7 +53,19 @@ class DashboardController extends Controller
                 ];
             });
             return view('dashboard.siswa', compact('agenda','pengumuman'));
-        } else {
+        }elseif (user()?->hasRole('guru')) {
+            $pengumuman = Pengumuman::orderBy('id', 'desc')->take(3)->get();
+            $guru = Guru::findOrFail(Auth::user()->email);
+            $agenda = Agenda::whereUnit($guru->unit)->get()->map(function ($agenda) {
+                $color = $agenda->unit === 'SD' ? '#007bff' : '#f39c12';
+                return [
+                    'title' => $agenda->unit . ': ' . $agenda->kegiatan,
+                    'start' => $agenda->tanggal,
+                    'color' => $color,
+                ];
+            });
+            return view('dashboard.siswa', compact('agenda','pengumuman'));
+        }  else {
             return response()->view('errors.403', [abort(403)], 403);
         }
     }

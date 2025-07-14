@@ -4,8 +4,10 @@
           @csrf
           <div class="modal-content">
               <div class="modal-header">
-                  <h5 class="modal-title">Pembayaran SPP</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title">Pembayaran SPP</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Tutup">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
               </div>
               <div class="modal-body">
                   <input type="hidden" name="tagihan_id" id="tagihan_id">
@@ -24,11 +26,10 @@
                   <div id="sisaTagihanText" class="text-muted"></div>
               </div>
               <div class="modal-footer">
-                  <button type="submit" class="btn btn-primary">Bayar</button>
+                  <button type="submit" class="btn btn-primary" id="btnBayar">Bayar</button>
                   <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
               </div>
           </div>
       </form>
     </div>
-  </div>
-  
+</div>

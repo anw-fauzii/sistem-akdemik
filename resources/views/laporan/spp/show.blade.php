@@ -75,6 +75,9 @@
     </div>
 
     <div class="main-card card">
+        <div class="card-header">
+            Data Pembayaran
+        </div>
         <div class="card-body">
             <div class="table-responsive">
                 <table class="table table-hover table-striped" id="myTable2">

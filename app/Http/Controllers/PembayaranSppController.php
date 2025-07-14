@@ -2,16 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AnggotaJemputan;
 use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Kelas;
+use App\Models\PembayaranJemputan;
 use App\Models\PembayaranSpp;
 use App\Models\Presensi;
 use App\Models\PresensiEkstrakurikuler;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use App\Models\TarifSpp;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PembayaranSppController extends Controller
 {
@@ -19,7 +23,7 @@ class PembayaranSppController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::all();
-            $siswa_list = Siswa::where('kelas_id','!=',NULL)->get();
+            $siswa_list = Siswa::whereStatus(TRUE)->get();
             return view('pembayaran_spp.index', compact('tahun_ajaran', 'siswa_list'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -44,7 +48,7 @@ class PembayaranSppController extends Controller
             }
         
             if (PembayaranSpp::where('anggota_kelas_id', $anggota_kelas->id)
-                ->where('bulan_spp_id', $request->bulan_spp_id)
+                ->where('bulan_spp_id', $request->bulan_spp_id)->whereKeterangan('!=','LUNAS')
                 ->exists()) {
                 return redirect()->route('pembayaran-spp.index')->with('error', 'Tagihan ini sudah dibayar!');
             }
@@ -104,18 +108,37 @@ class PembayaranSppController extends Controller
                     $total_ekskul += $ekskul_item->ekstrakurikuler->biaya ?? 0;
                 }
             }
+
+            $pembayaranJemputan = 0;
+            $anggotaJemputan = AnggotaJemputan::where('anggota_kelas_id', $anggota_kelas->id)
+                ->whereHas('jemputan', function ($q) use ($kelas) {
+                    $q->where('tahun_ajaran_id', $kelas->tahun_ajaran_id);
+                })
+                ->first();
+
+            if ($anggotaJemputan) {
+                $bayarJemputan = PembayaranJemputan::where('anggota_jemputan_id', $anggotaJemputan->id)
+                    ->where('bulan_spp_id', $request->bulan_spp_id)
+                    ->first();
+
+                if ($bayarJemputan) {
+                    $pembayaranJemputan = $bayarJemputan->jumlah_bayar;
+                }
+            }
         
-            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul;
-        
+            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul + $pembayaranJemputan;
+            $order_id = 'SPP-' . time();
             PembayaranSpp::create([
+                'order_id' => $order_id,
                 'anggota_kelas_id' => $anggota_kelas->id,
                 'bulan_spp_id' => $request->bulan_spp_id,
                 'nominal_spp' => $nominal_spp,
                 'biaya_makan' => $biaya_makan_potongan + $tambahan,
                 'tambahan' => $tambahan,
                 'ekstrakurikuler' => $total_ekskul,
+                'jemputan' => $pembayaranJemputan,
                 'total_pembayaran' => $total_pembayaran,
-                'keterangan' => 'Lunas'
+                'keterangan' => 'LUNAS'
             ]);
             return redirect()->route('pembayaran-spp.index')->with('success', 'Pembayaran berhasil disimpan.');
         } else {
@@ -157,21 +180,33 @@ class PembayaranSppController extends Controller
             }
         
             $siswa = Siswa::where('nis', $siswa_nis)->first();
-            $kelas = Kelas::find($anggota_kelas->kelas_id);
-            $spp = $kelas ? $kelas->spp : 0;
-            $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
+            $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+            $spp = $nominal_biaya ? $nominal_biaya->spp : 0;
+            $biaya_makan = $nominal_biaya ? $nominal_biaya->biaya_makan : 0;
+            $snack = $nominal_biaya ? $nominal_biaya->snack : 0;
         
             $tagihan_spp = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggota_kelas) {
                 $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
-                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggota_kelas->id);
+                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggota_kelas->id)
+                    ->where('pembayaran_spp.keterangan', '=', 'LUNAS');
             })
+            ->leftJoin('anggota_jemputan', function ($join) use ($anggota_kelas) {
+                $join->on('anggota_jemputan.anggota_kelas_id', '=', DB::raw($anggota_kelas->id));
+            })
+            ->leftJoin('pembayaran_jemputan', function ($join) {
+                $join->on('pembayaran_jemputan.anggota_jemputan_id', '=', 'anggota_jemputan.id')
+                    ->on('pembayaran_jemputan.bulan_spp_id', '=', 'bulan_spp.id');
+            })
+            ->whereTahunAjaranId($tahun_ajaran_id)
             ->select(
                 'bulan_spp.*',
                 'pembayaran_spp.keterangan',
-                'pembayaran_spp.id as pembayaran_id'
+                'pembayaran_spp.id as pembayaran_id',
+                'pembayaran_spp.created_at as tanggal_pembayaran',
+                'pembayaran_jemputan.jumlah_bayar as jemputan_bayar'
             )
             ->get()
-            ->map(function ($tagihan) use ($anggota_kelas, $biaya_makan) {
+            ->map(function ($tagihan) use ($anggota_kelas, $biaya_makan, $snack) {
                 $bulan = date('m', strtotime($tagihan->bulan_angka));
                 $absen_sakit = Presensi::where('anggota_kelas_id', $anggota_kelas->id)
                     ->where('status', 'sakit')
@@ -179,7 +214,7 @@ class PembayaranSppController extends Controller
                     ->orderBy('tanggal', 'asc')
                     ->pluck('tanggal')
                     ->map(fn($tanggal) => \Carbon\Carbon::parse($tanggal));
-        
+
                 $potongan = 0;
                 if ($absen_sakit->count() >= 7) {
                     $sorted = $absen_sakit->sort()->values();
@@ -197,33 +232,121 @@ class PembayaranSppController extends Controller
                         }
                     }
                 }
-        
+                
+
                 $total_biaya_makan = $biaya_makan - $potongan;
-        
+
                 $biaya_ekskul_bulan_ini = $anggota_kelas->ekstrakurikuler->sum(function ($item) use ($bulan) {
-                    $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                    $pernah_hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                         ->where('status', 'hadir')
                         ->whereMonth('tanggal', $bulan)
                         ->exists();
-        
+
                     return $pernah_hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
                 });
-        
+
                 $tagihan->jumlah_absen = $absen_sakit->count();
                 $tagihan->potongan_makan = $potongan;
                 $tagihan->total_biaya_makan = $total_biaya_makan;
                 $tagihan->biaya_ekskul = $biaya_ekskul_bulan_ini;
-        
+                $tagihan->total_snack = $snack;
+                $tagihan->biaya_jemputan = $tagihan->jemputan_bayar ?? 0; 
+
                 return $tagihan;
             });
-        
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
-        
+
+            $tunggakan = collect();
+            $anggota_kelas_list = AnggotaKelas::whereSiswaNis($siswa_nis)->get();
+            foreach ($anggota_kelas_list as $anggota_kelas) {
+                $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+                $spp_tunggakan = $nominal_biaya ? $nominal_biaya->spp : 0;
+                $snack_tunggakan = $nominal_biaya ? $nominal_biaya->snack : 0;
+                $biaya_makan_tunggakan = $nominal_biaya ? $nominal_biaya->biaya_makan : 0;
+                $data_tunggakan = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggota_kelas) {
+                    $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
+                        ->where('pembayaran_spp.anggota_kelas_id', '=', $anggota_kelas->id)
+                        ->where('pembayaran_spp.keterangan', '=', 'LUNAS');
+                })
+                ->leftJoin('anggota_jemputan', function ($join) use ($anggota_kelas) {
+                    $join->on('anggota_jemputan.anggota_kelas_id', '=', DB::raw($anggota_kelas->id));
+                })
+                ->leftJoin('pembayaran_jemputan', function ($join) {
+                    $join->on('pembayaran_jemputan.anggota_jemputan_id', '=', 'anggota_jemputan.id')
+                        ->on('pembayaran_jemputan.bulan_spp_id', '=', 'bulan_spp.id');
+                })
+                ->select(
+                    'bulan_spp.*',
+                    'pembayaran_spp.keterangan',
+                    'pembayaran_spp.id as pembayaran_id',
+                    'pembayaran_jemputan.jumlah_bayar as jemputan_bayar'
+                )
+                ->get()
+                ->filter(function ($bulan) use ($anggota_kelas) {
+                    $pembayaran = PembayaranSpp::where('bulan_spp_id', $bulan->id)
+                        ->where('anggota_kelas_id', $anggota_kelas->id)
+                        ->latest()
+                        ->first();
+
+                    return !$pembayaran || !in_array($pembayaran->keterangan, ['LUNAS']);
+                })
+                ->map(function ($tagihan) use ($anggota_kelas, $biaya_makan_tunggakan, $spp_tunggakan, $snack_tunggakan) {
+                    $bulan = date('m', strtotime($tagihan->bulan_angka));
+                    $absen_sakit_tunggakan = Presensi::where('anggota_kelas_id', $anggota_kelas->id)
+                        ->where('status', 'sakit')
+                        ->whereMonth('tanggal', $bulan)
+                        ->orderBy('tanggal', 'asc')
+                        ->pluck('tanggal')
+                        ->map(fn($tanggal) => \Carbon\Carbon::parse($tanggal));
+
+                    $potongan_tunggakan = 0;
+                    if ($absen_sakit_tunggakan->count() >= 7) {
+                        $sorted = $absen_sakit_tunggakan->sort()->values();
+                        $streak = 1;
+                        for ($i = 1; $i < $sorted->count(); $i++) {
+                            $diff = $sorted[$i]->diffInDays($sorted[$i - 1]);
+                            if ($diff == 1) {
+                                $streak++;
+                                if ($streak >= 7) {
+                                    $potongan_tunggakan = 0.25 * $biaya_makan_tunggakan;
+                                    break;
+                                }
+                            } else {
+                                $streak = 1;
+                            }
+                        }
+                    }
+
+                    $total_biaya_makan_tunggakan = $biaya_makan_tunggakan - $potongan_tunggakan;
+
+                    $biaya_ekskul_bulan_total = $anggota_kelas->ekstrakurikuler->sum(function ($item) use ($bulan) {
+                        $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                            ->where('status', 'hadir')
+                            ->whereMonth('tanggal', $bulan)
+                            ->exists();
+
+                        return $pernah_hadir ? ($item->ekstrakurikuler->biaya ?? 0) : 0;
+                    });
+                    $tagihan->total_biaya_makan_tunggakan = $total_biaya_makan_tunggakan;
+                    $tagihan->biaya_ekskul_tunggakan = $biaya_ekskul_bulan_total;
+                    $tagihan->spp_tunggakan = $spp_tunggakan;
+                    $tagihan->snack_tunggakan = $snack_tunggakan;
+                    $tagihan->biaya_jemputan = $tagihan->jemputan_bayar; 
+
+                    return $tagihan;
+                });
+                $tunggakan = $tunggakan->merge($data_tunggakan);
+            }
+            $tunggakan = $tunggakan->unique('id')->values();
+            $total_tunggakan = $tunggakan->sum(function($item) {
+                return $item->total_biaya_makan_tunggakan + $item->biaya_ekskul_tunggakan + $item->tambahan + $item->snack_tunggakan +($item->spp_tunggakan ?? 0) + ($item->biaya_jemputan ?? 0);
+            });
             $tahun_ajaran = TahunAjaran::all();
-            $siswa_list = Siswa::where('kelas_id','!=',NULL)->get();
+            $siswa_list = Siswa::whereStatus(TRUE)->get();
         
             return view('pembayaran_spp.index', compact(
                 'tahun_ajaran',
+                'total_tunggakan',
                 'siswa',
                 'siswa_list',
                 'tagihan_spp',

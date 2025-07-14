@@ -87,6 +87,29 @@
         <div class="col-md-8">
             <div class="main-card card">
                 <div class="card-header">
+                    Informasi Keuangan
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Tunggakan</strong></td>
+                            <td>Rp {{ number_format($total_tunggakan, 0, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nama</strong></td>
+                            <td>{{ $siswa->nama_lengkap }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Kelas</strong></td>
+                            <td>{{ $siswa->kelas->nama_kelas ?? '-' }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-12 mt-4">
+            <div class="main-card card">
+                <div class="card-header">
                     Tagihan SPP
                 </div>
                 <div class="card-body">
@@ -97,7 +120,9 @@
                                     <th>Bulan</th>
                                     <th>Nominal SPP</th>
                                     <th>Biaya Makan</th>
+                                    <th>Snack</th>
                                     <th>Ekstrakurikuler</th>
+                                    <th>Jemputan</th>
                                     <th>Total Pembayaran</th>
                                     <th>Keterangan</th>
                                     <th>Aksi</th>
@@ -111,20 +136,20 @@
                                         <td>Rp {{ number_format($spp, 0, ',', '.') }}</td>
 
                                         <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($tagihan->total_snack, 0, ',', '.') }}</td>
                                         <td>Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</td>
-
-                                        <td>Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($tagihan->biaya_jemputan, 0, ',', '.') }}</td>
+                                        <td>Rp {{ number_format($tagihan->biaya_jemputan + $tagihan->total_snack + $tagihan->total_biaya_makan + $tagihan->biaya_ekskul + $tagihan->tambahan + $spp, 0, ',', '.') }}</td>
 
                                         <td>
-                                            @if($tagihan->keterangan === 'Lunas')
+                                            @if($tagihan->keterangan === 'LUNAS')
                                                 <div class="badge badge-pill badge-warning">Lunas</div>
                                             @else
                                                 <div class="badge badge-pill badge-danger">Belum Lunas</div>
                                             @endif
                                         </td>
                                         <td>
-                                            @if($tagihan->keterangan === 'Lunas' && isset($tagihan->pembayaran_id))
-                                                <!-- Tombol Hapus -->
+                                            @if($tagihan->keterangan === 'LUNAS' && isset($tagihan->pembayaran_id))
                                                 <form action="{{ route('pembayaran-spp.destroy', $tagihan->pembayaran_id) }}" method="POST">
                                                     @csrf
                                                     @method('DELETE')
@@ -161,10 +186,13 @@
                 text: 'Apakah yakin akan untuk dilunasi?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#dd3333",
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
+                buttonsStyling: false, // Mematikan styling default
+                customClass: {
+                    confirmButton: 'btn-swal-confirm',
+                    cancelButton: 'btn-swal-cancel'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     this.closest('form').submit();

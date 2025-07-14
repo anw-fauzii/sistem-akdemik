@@ -41,11 +41,8 @@ class BulanSppController extends Controller
                 'bulan_angka.required' => 'Tanggal bulan wajib diisi.',
                 'tambahan.numeric' => 'Jumlah tambahan harus berupa angka.', 
             ]);
-            
-            
-            $spp = new BulanSpp($validated);
-            $spp->tahun_ajaran_id = $tahun->id;
-            $spp->save();
+            $validated['tahun_ajaran_id'] = $tahun->id;
+            BulanSpp::create($validated);
             return redirect()->route('bulan-spp.index')->with('success', 'bulan_spp berhasil disimpan'); 
         } else {
             return response()->view('errors.403', [abort(403)], 403);

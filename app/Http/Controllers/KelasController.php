@@ -17,6 +17,10 @@ class KelasController extends Controller
             $tahun_ajaran = TahunAjaran::latest()->first();
             if($tahun_ajaran){
                 $data_kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)->orderBy('id', 'ASC')->get();
+                foreach ($data_kelas as $kelas) {
+                    $jumlah_anggota = AnggotaKelas::whereKelasId($kelas->id)->count();
+                    $kelas->jumlah_anggota = $jumlah_anggota;
+                }
                 return view('data_master.kelas.index', compact('data_kelas', 'tahun_ajaran'));
             }else{
                 return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
@@ -47,8 +51,6 @@ class KelasController extends Controller
                 'nama_kelas' => 'required',
                 'romawi' => 'required',
                 'jenjang' => 'required',
-                'spp' => 'required|numeric',
-                'biaya_makan' => 'required|numeric',
             ], [
                 'guru_nipy.required' => 'Jenjang sekolah wajib diisi.',
                 'jenjang.required' => 'Wali kelas wajib diisi.',
@@ -56,10 +58,6 @@ class KelasController extends Controller
                 'tingkatan_kelas.required' => 'Tingkatan kelas wajib diisi.',
                 'nama_kelas.required' => 'Nama kelas wajib diisi.',
                 'romawi.required' => 'Romawi wajib diisi.',
-                'spp.required' => 'SPP wajib diisi.',
-                'spp.numeric' => 'SPP harus berupa angka.',
-                'biaya_makan.required' => 'Biaya Makan wajib diisi.',
-                'biaya_makan.numeric' => 'Biaya Makan harus berupa angka.',
             ]);
             if (!$tahun_ajaran) {
                 return back()->withErrors(['tahun_ajaran_id' => 'Tahun ajaran tidak ditemukan.']);
@@ -79,7 +77,7 @@ class KelasController extends Controller
             $anggota_kelas = AnggotaKelas::whereKelasId($id)->get();
             $siswa_belum_masuk_kelas = Siswa::whereKelasId(NULL)->get();
             foreach ($siswa_belum_masuk_kelas as $belum_masuk_kelas) {
-                $kelas_sebelumnya = AnggotaKelas::where('siswa_nis', $belum_masuk_kelas->id)->orderBy('id', 'DESC')->first();
+                $kelas_sebelumnya = AnggotaKelas::whereSiswaNis($belum_masuk_kelas->nis)->orderBy('id', 'DESC')->first();
                 if (is_null($kelas_sebelumnya)) {
                     $belum_masuk_kelas->kelas_sebelumnya = null;
                 } else {
@@ -113,8 +111,6 @@ class KelasController extends Controller
                 'nama_kelas' => 'required',
                 'romawi' => 'required',
                 'jenjang' => 'required',
-                'spp' => 'required|numeric',
-                'biaya_makan' => 'required|numeric',
             ], [
                 'guru_nipy.required' => 'Wali kelas wajib diisi.',
                 'jenjang.required' => 'Wali kelas wajib diisi.',
@@ -122,10 +118,6 @@ class KelasController extends Controller
                 'tingkatan_kelas.required' => 'Tingkatan kelas wajib diisi.',
                 'nama_kelas.required' => 'Nama kelas wajib diisi.',
                 'romawi.required' => 'Romawi wajib diisi.',
-                'spp.required' => 'SPP wajib diisi.',
-                'spp.numeric' => 'SPP harus berupa angka.',
-                'biaya_makan.required' => 'Biaya Makan wajib diisi.',
-                'biaya_makan.numeric' => 'Biaya Makan harus berupa angka.',
             ]);
             $kelas = Kelas::findOrFail($id);
             $kelas->update($validated); 

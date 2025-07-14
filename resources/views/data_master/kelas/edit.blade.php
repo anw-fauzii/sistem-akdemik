@@ -100,28 +100,6 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="position-relative form-group">
-                            <label for="spp" class="">SPP</label>
-                            <input name="spp" id="spp" placeholder="Masukkan spp" type="number" class="form-control @error('spp') is-invalid @enderror" value="{{ $kelas->spp ?? old('spp') }}">
-                            @error('spp')
-                                <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
-                                    {{ strtolower($message) }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="position-relative form-group">
-                            <label for="biaya_makan" class="">Biaya Makan</label>
-                            <input name="biaya_makan" id="biaya_makan" placeholder="Masukkan biaya makan" type="number" class="form-control @error('biaya_makan') is-invalid @enderror" value="{{ $kelas->biaya_makan ?? old('biaya_makan') }}">
-                            @error('biaya_makan')
-                                <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
-                                    {{ strtolower($message) }}
-                                </div>
-                            @enderror
-                        </div>
-                    </div>
                 </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary" name="signup" value="Simpan" id="submitBtn">Simpan</button>

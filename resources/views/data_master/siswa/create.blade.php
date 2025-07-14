@@ -390,6 +390,22 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-4">
+                                    <div class="position-relative form-group">
+                                        <label for="tarif_spp_id">27. Tarif SPP</label>
+                                        <select name="tarif_spp_id" id="tarif_spp_id"  class="multiselect-dropdown form-control @error('tarif_spp_id') is-invalid @enderror">
+                                            <option value="" selected disabled>-- Pilih Angkatan --</option>
+                                            @foreach ($tarif_spp as $item)
+                                                <option value="{{$item->id}}" {{ old('tarif_spp_id') == $item->id ? 'selected' : '' }}>{{$item->unit}} ({{$item->tahun_masuk}})</option>
+                                            @endforeach
+                                        </select>
+                                        @error('tarif_spp_id')
+                                            <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                                {{ strtolower($message) }}
+                                            </div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div id="step-22">

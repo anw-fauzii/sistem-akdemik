@@ -45,7 +45,7 @@
                             <tr>
                                 <td>{{$no++}}</td>
                                 <td>{{$item->anggotaKelas->siswa->nama_lengkap}}</td>
-                                <td>{{$item->anggotaKelas->siswa->kelas->nama_kelas}}</td>
+                                <td>{{$item->anggotaKelas->kelas->nama_kelas}}</td>
                                 <td class="d-flex">
                                     <form action="{{ route('anggota-ekstrakurikuler.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf

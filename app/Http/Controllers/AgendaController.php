@@ -41,9 +41,8 @@ class AgendaController extends Controller
                 'unit.required' => 'Jumlah unit harus berupa angka.', 
             ]);
             
-            $agenda = new Agenda($validated);
-            $agenda->tahun_ajaran_id = $tahun->id;
-            $agenda->save();
+            $validated['tahun_ajaran_id'] = $tahun->id;
+            Agenda::create($validated);
             return redirect()->route('agenda.index')->with('success', 'agenda berhasil disimpan');   
         } else {
             return response()->view('errors.403', [abort(403)], 403);

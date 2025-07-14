@@ -3,17 +3,23 @@
 namespace App\Http\Controllers\PesertaDidik;
 
 use App\Http\Controllers\Controller;
+use App\Models\AnggotaJemputan;
 use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Kelas;
+use App\Models\PembayaranJemputan;
 use App\Models\PembayaranSpp;
+use App\Models\PembayaranTagihanTahunan;
 use App\Models\Presensi;
 use App\Models\PresensiEkstrakurikuler;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Midtrans\Snap;
 use Midtrans\Config;
 
@@ -29,9 +35,11 @@ class KeuanganController extends Controller
     {
         if (user()?->hasRole('siswa')) {
             $tahunAjaran = TahunAjaran::latest()->first();
-            $anggotaKelas = AnggotaKelas::whereTahunAjaranId($tahunAjaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                        })
+                        ->first();
 
             if (!$anggotaKelas) {
                 return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
@@ -41,20 +49,29 @@ class KeuanganController extends Controller
             $kelas = Kelas::find($anggotaKelas->kelas_id);
             $spp = $kelas ? $kelas->spp : 0;
             $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
+            $snack = $kelas ? $kelas->snack : 0;
 
             $riwayat_pembayaran = PembayaranSpp::whereAnggotaKelasId($anggotaKelas->id)->get();
         
             $tagihan_spp = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggotaKelas) {
                 $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
-                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggotaKelas->id);
+                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggotaKelas->id)
+                    ->where('pembayaran_spp.keterangan', 'LUNAS');
+            })->leftJoin('anggota_jemputan', function ($join) use ($anggotaKelas) {
+                $join->on('anggota_jemputan.anggota_kelas_id', '=', DB::raw($anggotaKelas->id));
             })
+            ->leftJoin('pembayaran_jemputan', function ($join) {
+                $join->on('pembayaran_jemputan.anggota_jemputan_id', '=', 'anggota_jemputan.id')
+                    ->on('pembayaran_jemputan.bulan_spp_id', '=', 'bulan_spp.id');
+            })->whereTahunAjaranId($tahunAjaran->id)
             ->select(
                 'bulan_spp.*',
                 'pembayaran_spp.keterangan',
-                'pembayaran_spp.id as pembayaran_id'
+                'pembayaran_spp.id as pembayaran_id',
+                'pembayaran_jemputan.jumlah_bayar as jemputan_bayar'
             )
-            ->get()
-            ->map(function ($tagihan) use ($anggotaKelas, $biaya_makan) {
+            ->get()->where('keterangan', '!=', 'EXPIRED')
+            ->map(function ($tagihan) use ($anggotaKelas, $biaya_makan, $snack) {
                 $bulan = date('m', strtotime($tagihan->bulan_angka));
                 $absen_sakit = Presensi::where('anggota_kelas_id', $anggotaKelas->id)
                     ->where('status', 'sakit')
@@ -63,7 +80,8 @@ class KeuanganController extends Controller
                     ->pluck('tanggal')
                     ->map(fn($tanggal) => \Carbon\Carbon::parse($tanggal));
         
-                $potongan = 0;
+                $potongan_makan = 0;
+                $potongan_snack = 0;
                 if ($absen_sakit->count() >= 7) {
                     $sorted = $absen_sakit->sort()->values();
                     $streak = 1;
@@ -72,7 +90,8 @@ class KeuanganController extends Controller
                         if ($diff == 1) {
                             $streak++;
                             if ($streak >= 7) {
-                                $potongan = 0.25 * $biaya_makan;
+                                $potongan_makan = 0.25 * $biaya_makan;
+                                $potongan_snack = 0.25 * $snack;
                                 break;
                             }
                         } else {
@@ -81,10 +100,11 @@ class KeuanganController extends Controller
                     }
                 }
         
-                $total_biaya_makan = $biaya_makan - $potongan;
+                $total_biaya_makan = $biaya_makan - $potongan_makan;
+                $total_snack = $snack - $potongan_snack;
         
                 $biaya_ekskul_bulan_ini = $anggotaKelas->ekstrakurikuler->sum(function ($item) use ($bulan) {
-                    $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                    $pernah_hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                         ->where('status', 'hadir')
                         ->whereMonth('tanggal', $bulan)
                         ->exists();
@@ -93,15 +113,19 @@ class KeuanganController extends Controller
                 });
         
                 $tagihan->jumlah_absen = $absen_sakit->count();
-                $tagihan->potongan_makan = $potongan;
                 $tagihan->total_biaya_makan = $total_biaya_makan;
+                $tagihan->total_snack = $total_snack;
                 $tagihan->biaya_ekskul = $biaya_ekskul_bulan_ini;
+                $tagihan->biaya_jemputan = $tagihan->jemputan_bayar ?? 0; 
         
                 return $tagihan;
             });
-        
+
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
-            $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
+            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
+                ->whereSiswaNis(Auth::user()->email)
+                ->get();
+
             return view('pesertaDidik.keuangan_spp.index', compact(
                 'tahunAjaran',
                 'siswa',
@@ -121,30 +145,41 @@ class KeuanganController extends Controller
     {
         if (user()?->hasRole('siswa')) {
             $tahunAjaran = TahunAjaran::findOrFail($id);
-            $anggotaKelas = AnggotaKelas::whereTahunAjaranId($tahunAjaran->id)
-                        ->whereSiswaNis(Auth::user()->email)
-                        ->firstOrFail();
+            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                    $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                })
+                ->first();
 
             if (!$anggotaKelas) {
                 return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
             }
-        
+            $riwayat_pembayaran = PembayaranSpp::whereAnggotaKelasId($anggotaKelas->id)->get();
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
             $kelas = Kelas::find($anggotaKelas->kelas_id);
             $spp = $kelas ? $kelas->spp : 0;
             $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
+            $snack = $kelas ? $kelas->snack : 0;
         
             $tagihan_spp = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggotaKelas) {
                 $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
-                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggotaKelas->id);
+                    ->where('pembayaran_spp.anggota_kelas_id', '=', $anggotaKelas->id)
+                    ->where('pembayaran_spp.keterangan', 'LUNAS');
+            })->leftJoin('anggota_jemputan', function ($join) use ($anggotaKelas) {
+                $join->on('anggota_jemputan.anggota_kelas_id', '=', DB::raw($anggotaKelas->id));
             })
+            ->leftJoin('pembayaran_jemputan', function ($join) {
+                $join->on('pembayaran_jemputan.anggota_jemputan_id', '=', 'anggota_jemputan.id')
+                    ->on('pembayaran_jemputan.bulan_spp_id', '=', 'bulan_spp.id');
+            })->whereTahunAjaranId($tahunAjaran->id)
             ->select(
                 'bulan_spp.*',
                 'pembayaran_spp.keterangan',
-                'pembayaran_spp.id as pembayaran_id'
+                'pembayaran_spp.id as pembayaran_id',
+                'pembayaran_jemputan.jumlah_bayar as jemputan_bayar'
             )
             ->get()
-            ->map(function ($tagihan) use ($anggotaKelas, $biaya_makan) {
+            ->map(function ($tagihan) use ($anggotaKelas, $biaya_makan, $snack) {
                 $bulan = date('m', strtotime($tagihan->bulan_angka));
                 $absen_sakit = Presensi::where('anggota_kelas_id', $anggotaKelas->id)
                     ->where('status', 'sakit')
@@ -153,7 +188,8 @@ class KeuanganController extends Controller
                     ->pluck('tanggal')
                     ->map(fn($tanggal) => \Carbon\Carbon::parse($tanggal));
         
-                $potongan = 0;
+                $potongan_makan = 0;
+                $potongan_snack = 0;
                 if ($absen_sakit->count() >= 7) {
                     $sorted = $absen_sakit->sort()->values();
                     $streak = 1;
@@ -162,7 +198,8 @@ class KeuanganController extends Controller
                         if ($diff == 1) {
                             $streak++;
                             if ($streak >= 7) {
-                                $potongan = 0.25 * $biaya_makan;
+                                $potongan_makan = 0.25 * $biaya_makan;
+                                $potongan_snack = 0.25 * $snack;
                                 break;
                             }
                         } else {
@@ -171,10 +208,11 @@ class KeuanganController extends Controller
                     }
                 }
         
-                $total_biaya_makan = $biaya_makan - $potongan;
+                $total_biaya_makan = $biaya_makan - $potongan_makan;
+                $total_snack = $snack - $potongan_snack;
         
                 $biaya_ekskul_bulan_ini = $anggotaKelas->ekstrakurikuler->sum(function ($item) use ($bulan) {
-                    $pernah_hadir = \App\Models\PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
+                    $pernah_hadir = PresensiEkstrakurikuler::where('anggota_ekstrakurikuler_id', $item->id)
                         ->where('status', 'hadir')
                         ->whereMonth('tanggal', $bulan)
                         ->exists();
@@ -183,15 +221,18 @@ class KeuanganController extends Controller
                 });
         
                 $tagihan->jumlah_absen = $absen_sakit->count();
-                $tagihan->potongan_makan = $potongan;
                 $tagihan->total_biaya_makan = $total_biaya_makan;
+                $tagihan->total_snack = $total_snack;
                 $tagihan->biaya_ekskul = $biaya_ekskul_bulan_ini;
+                $tagihan->biaya_jemputan = $tagihan->jemputan_bayar ?? 0; 
         
                 return $tagihan;
             });
         
             $total_ekskul = $tagihan_spp->sum('biaya_ekskul');
-            $tahun_selama_belajar = AnggotaKelas::whereSiswaNis(Auth::user()->email)->get();
+            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
+                ->whereSiswaNis(Auth::user()->email)
+                ->get();
             return view('pesertaDidik.keuangan_spp.index', compact(
                 'tahunAjaran',
                 'siswa',
@@ -199,7 +240,8 @@ class KeuanganController extends Controller
                 'spp',
                 'biaya_makan',
                 'total_ekskul',
-                'tahun_selama_belajar'
+                'tahun_selama_belajar',
+                'riwayat_pembayaran'
             ));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -217,16 +259,21 @@ class KeuanganController extends Controller
             if (!$anggota_kelas) {
                 return redirect()->route('keuangan.index')->with('error', 'Data siswa tidak ditemukan!');
             }
-            $cek_pembayaran = PembayaranSpp::where('anggota_kelas_id', $anggota_kelas->id)
+            $cek = PembayaranSpp::where('anggota_kelas_id', $anggota_kelas->id)
             ->where('bulan_spp_id', $id)
-            ->first();
-            if ($cek_pembayaran) {
-                return response()->json(['snap_token' => $cek_pembayaran->payment_type]);
+            ->latest()->first();
+
+            if ($cek && $cek->keterangan == "PENDING") {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Selesaikan dulu pembayaran sebelumnya!',
+                ], 422); 
             }
 
             $kelas = $anggota_kelas->kelas;
             $nominal_spp = $kelas->spp ?? 0;
             $biaya_makan = $kelas->biaya_makan ?? 0;
+            $snack = $kelas->snack ?? 0;
 
             $bulan_spp = BulanSpp::find($id);
             if (!$bulan_spp) {
@@ -262,8 +309,10 @@ class KeuanganController extends Controller
             $max_sakit_beruntun = max($max_sakit_beruntun, $current_streak);
 
             $biaya_makan_potongan = $biaya_makan;
+            $biaya_snack_potongan = $snack;
             if ($max_sakit_beruntun > 7) {
                 $biaya_makan_potongan *= 0.75;
+                $biaya_snack_potongan *= 0.75;
             }
 
             $total_ekskul = 0;
@@ -280,15 +329,37 @@ class KeuanganController extends Controller
                 }
             }
 
-            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul;
+            $pembayaranJemputan = 0;
+            $anggotaJemputan = AnggotaJemputan::where('anggota_kelas_id', $anggota_kelas->id)
+                ->whereHas('jemputan', function ($q) use ($kelas) {
+                    $q->where('tahun_ajaran_id', $kelas->tahun_ajaran_id);
+                })
+                ->first();
 
-            $order_id = 'ORDER-' . time();
+            if ($anggotaJemputan) {
+                $bayarJemputan = PembayaranJemputan::where('anggota_jemputan_id', $anggotaJemputan->id)
+                    ->where('bulan_spp_id', $id)
+                    ->first();
+
+                if ($bayarJemputan) {
+                    $pembayaranJemputan = $bayarJemputan->jumlah_bayar;
+                }
+            }
+            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul + $pembayaranJemputan + $biaya_snack_potongan;
+
+            $order_id = 'SPP-' . time();
             $params = [
                 'transaction_details' => [
                     'order_id' => $order_id,
-                    'gross_amount' => $total_pembayaran,
+                    'gross_amount' => $total_pembayaran + 5000,
                 ],
                 'item_details' => [
+                    [
+                        'id' => 'Admin',
+                        'name' => 'Admin',
+                        'price' => '5000',
+                        'quantity' => 1,
+                    ],
                     [
                         'id' => 'SPP-' . $id,
                         'name' => 'SPP ' . $bulan_spp->nama_bulan,
@@ -302,33 +373,44 @@ class KeuanganController extends Controller
                         'quantity' => 1,
                     ],
                     [
+                        'id' => 'BIAYA_SNACK',
+                        'name' => 'Snack',
+                        'price' => $biaya_snack_potongan,
+                        'quantity' => 1,
+                    ],
+                    [
                         'id' => 'BIAYA_EKSTRAKURIKULER',
                         'name' => 'Biaya Ekstrakurikuler',
                         'price' => $total_ekskul,
                         'quantity' => 1,
                     ],
+                    [
+                        'id' => 'BIAYA_JEMPUTAN',
+                        'name' => 'Biaya Jemputan',
+                        'price' => $pembayaranJemputan,
+                        'quantity' => 1,
+                    ],
                 ],
                 'customer_details' => [
-                    'first_name' => $anggota_kelas->siswa_nis,
-                    'phone' => $anggota_kelas->siswa->telepon ?? '',
+                    'first_name' => $anggota_kelas->siswa->nama_lengkap,
+                    'phone' => $anggota_kelas->siswa_nis ?? '',
                 ],
             ];
 
             try {
                 $snap_token = Snap::getSnapToken($params);
-                
+
                 PembayaranSpp::create([
                     'anggota_kelas_id' => $anggota_kelas->id,
                     'bulan_spp_id' => $id,
                     'nominal_spp' => $nominal_spp,
                     'biaya_makan' => $biaya_makan_potongan + $tambahan,
-                    'tambahan' => $tambahan,
                     'ekstrakurikuler' => $total_ekskul,
+                    'jemputan' => $pembayaranJemputan,
                     'total_pembayaran' => $total_pembayaran,
-                    'keterangan' => 'Pending',
+                    'keterangan' => 'PENDING',
                     'order_id' => $order_id,
                     'payment_type' => $snap_token,
-                    'transaction_status' => 'pending',
                 ]);
 
                 return response()->json(['snap_token' => $snap_token]);
@@ -342,42 +424,68 @@ class KeuanganController extends Controller
         }
     }
 
+    public function lanjut($id)
+    {
+        $data = PembayaranSpp::find($id);
+        return response()->json(['snap_token' => $data->payment_type]);
+    }
+
     public function callback(Request $request)
     {
         $serverKey = config('services.midtrans.server_key');
+        Log::info('Midtrans callback diterima', [
+            'payload' => $request->all()
+        ]);
         $signatureKey = $request->input('signature_key');
         $orderId = $request->input('order_id');
         $statusCode = $request->input('status_code');
         $grossAmount = $request->input('gross_amount');
         $transactionStatus = $request->input('transaction_status');
-        
+
         $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
 
         if ($signatureKey !== $expectedSignature) {
             return response()->json(['message' => 'Invalid signature'], 403);
         }
 
-        // Temukan transaksi berdasarkan order_id
-        $payment = PembayaranSpp::where('order_id', $orderId)->first();
+        $transaksi = null;
 
-        if (!$payment) {
-            return response()->json(['message' => 'Order not found'], 404);
+        if (str_starts_with($orderId, 'SPP-')) {
+            $transaksi = PembayaranSpp::where('order_id', $orderId)->first();
+
+        } elseif (str_starts_with($orderId, 'TAHUNAN-')) {
+            $transaksi = PembayaranTagihanTahunan::where('order_id', $orderId)->first();
+        } else {
+            return response()->json(['message' => 'Order ID tidak dikenali'], 400);
         }
 
-        // Update status sesuai transaksi
-        if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
-            $payment->transaction_status = 'success';
-            $payment->keterangan = 'Lunas';
-        } elseif ($transactionStatus == 'pending') {
-            $payment->transaction_status = 'pending';
-            $payment->keterangan = 'Menunggu Pembayaran';
-        } elseif (in_array($transactionStatus, ['expire', 'cancel', 'deny'])) {
-            $payment->transaction_status = 'failed';
-            $payment->keterangan = 'Gagal';
+        switch ($transactionStatus) {
+            case 'settlement':
+                $transaksi->keterangan = 'LUNAS';
+                break;
+            case 'pending':
+                $transaksi->keterangan = 'PENDING';
+                break;
+            case 'expire':
+                $transaksi->keterangan = 'EXPIRED';
+                break;
+            case 'cancel':
+                $transaksi->keterangan = 'DIBATALKAN';
+                break;
+            default:
+                $transaksi->keterangan = strtoupper($transactionStatus);
+                break;
         }
 
-        $payment->save();
+        $transaksi->save();
 
-        return response()->json(['message' => 'Callback handled']);
+        return response()->json(['message' => 'Callback berhasil diproses']);
+    }
+
+    public function cetakInvoice($id)
+    {
+        $tagihan_spp = PembayaranSpp::whereOrderId($id)->firstOrFail();
+        $pdf = Pdf::loadView('pesertaDidik.keuangan_spp.invoice', compact('tagihan_spp'));
+        return $pdf->stream($id. '.pdf');
     }
 }
