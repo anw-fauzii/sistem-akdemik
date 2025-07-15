@@ -14,6 +14,7 @@ use App\Models\Presensi;
 use App\Models\PresensiEkstrakurikuler;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use App\Models\TarifSpp;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -46,10 +47,10 @@ class KeuanganController extends Controller
             }
         
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
-            $kelas = Kelas::find($anggotaKelas->kelas_id);
-            $spp = $kelas ? $kelas->spp : 0;
-            $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
-            $snack = $kelas ? $kelas->snack : 0;
+            $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+            $spp = $nominal_biaya ? $nominal_biaya->spp : 0;
+            $biaya_makan = $nominal_biaya ? $nominal_biaya->biaya_makan : 0;
+            $snack = $nominal_biaya ? $nominal_biaya->snack : 0;
 
             $riwayat_pembayaran = PembayaranSpp::whereAnggotaKelasId($anggotaKelas->id)->get();
         
@@ -156,10 +157,10 @@ class KeuanganController extends Controller
             }
             $riwayat_pembayaran = PembayaranSpp::whereAnggotaKelasId($anggotaKelas->id)->get();
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
-            $kelas = Kelas::find($anggotaKelas->kelas_id);
-            $spp = $kelas ? $kelas->spp : 0;
-            $biaya_makan = $kelas ? $kelas->biaya_makan : 0;
-            $snack = $kelas ? $kelas->snack : 0;
+            $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+            $spp = $nominal_biaya ? $nominal_biaya->spp : 0;
+            $biaya_makan = $nominal_biaya ? $nominal_biaya->biaya_makan : 0;
+            $snack = $nominal_biaya ? $nominal_biaya->snack : 0;
         
             $tagihan_spp = BulanSpp::leftJoin('pembayaran_spp', function ($join) use ($anggotaKelas) {
                 $join->on('bulan_spp.id', '=', 'pembayaran_spp.bulan_spp_id')
@@ -271,9 +272,11 @@ class KeuanganController extends Controller
             }
 
             $kelas = $anggota_kelas->kelas;
-            $nominal_spp = $kelas->spp ?? 0;
-            $biaya_makan = $kelas->biaya_makan ?? 0;
-            $snack = $kelas->snack ?? 0;
+            $siswa = Siswa::where('nis', Auth::user()->email)->first();
+            $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+            $nominal_spp = $nominal_biaya->spp ?? 0;
+            $biaya_makan = $nominal_biaya->biaya_makan ?? 0;
+            $snack = $nominal_biaya->snack ?? 0;
 
             $bulan_spp = BulanSpp::find($id);
             if (!$bulan_spp) {
@@ -407,6 +410,7 @@ class KeuanganController extends Controller
                     'biaya_makan' => $biaya_makan_potongan + $tambahan,
                     'ekstrakurikuler' => $total_ekskul,
                     'jemputan' => $pembayaranJemputan,
+                    'snack' => $biaya_snack_potongan,
                     'total_pembayaran' => $total_pembayaran,
                     'keterangan' => 'PENDING',
                     'order_id' => $order_id,

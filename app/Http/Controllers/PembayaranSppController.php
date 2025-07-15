@@ -54,8 +54,11 @@ class PembayaranSppController extends Controller
             }
         
             $kelas = $anggota_kelas->kelas;
-            $nominal_spp = $kelas->spp ?? 0;
-            $biaya_makan = $kelas->biaya_makan ?? 0;
+            $siswa = Siswa::where('nis', $request->siswa_nis)->first();
+            $nominal_biaya = TarifSpp::find($siswa->tarif_spp_id);
+            $nominal_spp = $nominal_biaya->spp ?? 0;
+            $biaya_makan = $nominal_biaya->biaya_makan ?? 0;
+            $snack = $nominal_biaya->snack ?? 0;
         
             $bulan_spp = BulanSpp::find($request->bulan_spp_id);
             if (!$bulan_spp) {
@@ -126,7 +129,7 @@ class PembayaranSppController extends Controller
                 }
             }
         
-            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul + $pembayaranJemputan;
+            $total_pembayaran = $nominal_spp + $biaya_makan_potongan + $tambahan + $total_ekskul + $pembayaranJemputan + $snack;
             $order_id = 'SPP-' . time();
             PembayaranSpp::create([
                 'order_id' => $order_id,
@@ -134,6 +137,7 @@ class PembayaranSppController extends Controller
                 'bulan_spp_id' => $request->bulan_spp_id,
                 'nominal_spp' => $nominal_spp,
                 'biaya_makan' => $biaya_makan_potongan + $tambahan,
+                'snack' => $snack,
                 'tambahan' => $tambahan,
                 'ekstrakurikuler' => $total_ekskul,
                 'jemputan' => $pembayaranJemputan,

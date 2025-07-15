@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('biaya_makan');
             $table->integer('ekstrakurikuler');
             $table->integer('jemputan');
+            $table->integer('snack');
             $table->integer('total_pembayaran');
             $table->string('keterangan');
             $table->timestamps();

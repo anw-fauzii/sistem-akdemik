@@ -14,6 +14,7 @@ class PembayaranSpp extends Model
         'bulan_spp_id',
         'nominal_spp',
         'biaya_makan',
+        'snack',
         'total_pembayaran',
         'keterangan',
         'ekstrakurikuler',
