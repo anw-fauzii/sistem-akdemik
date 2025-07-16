@@ -80,6 +80,28 @@ class PresensiKelasController extends Controller
         }
     }
 
+    public function edit($id)
+    {
+        if (user()?->hasRole('guru')) {
+            $tahun_ajaran = TahunAjaran::latest()->first();
+            $kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)
+                        ->where('guru_nipy', Auth::user()->email)
+                        ->first();
+
+            if (!$kelas) {
+                return redirect()->back()->with('error', 'Anda tidak memiliki kelas yang diampu.');
+            }
+            $siswaList = AnggotaKelas::where('kelas_id', $kelas->id)->get();
+            $presensi = Presensi::whereIn('anggota_kelas_id', $siswaList->pluck('id'))
+                                ->where('tanggal', $id)
+                                ->get();
+            $tanggal = $id;
+            return view('presensi_kelas.edit', compact('siswaList', 'kelas', 'presensi','tanggal'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
+    }
+
     public function show($id)
     {
         if (user()?->hasRole('guru')) {

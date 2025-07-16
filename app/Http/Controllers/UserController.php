@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Siswa;
 use App\Models\User;
 use App\Rules\MatchOldPassword;
 use Illuminate\Http\Request;
@@ -12,8 +13,8 @@ class UserController extends Controller
 {
     public function profil()
     {
-        $user = User::findOrFail(Auth::user()->id);
-        return view('user.index', compact('user'));
+        $data = Siswa::findOrFail(Auth::user()->email);
+        return view('user.index', compact('data'));
     }
 
     public function password()

@@ -116,7 +116,7 @@
                                 @php $no = 1; @endphp
                                 @foreach ($tagihan_spp as $tagihan)
                                     @php
-                                        $total = $tagihan->total_biaya_makan + $tagihan->tambahan + $tagihan->biaya_ekskul + $spp;
+                                        $total = $tagihan->total_biaya_makan + $tagihan->tambahan + $tagihan->biaya_ekskul + $spp + $tagihan->total_snack + $tagihan->biaya_jemputan;
                                     @endphp
                                     <div class="card shadow-sm mb-3 border-0" style="border-left: 4px solid {{ $tagihan->keterangan === 'Lunas' ? '#28a745' : '#ffc107' }}; background: aliceblue">
                                         <div class="card-body py-3">
@@ -135,8 +135,12 @@
                                                 <div class="col-6 text-end">Rp {{ number_format($spp, 0, ',', '.') }}</div>
                                                 <div class="col-6">Biaya Makan</div>
                                                 <div class="col-6 text-end">Rp {{ number_format($tagihan->total_biaya_makan + $tagihan->tambahan, 0, ',', '.') }}</div>
+                                                <div class="col-6">Snack</div>
+                                                <div class="col-6 text-end">Rp {{ number_format($tagihan->total_snack, 0, ',', '.') }}</div>
                                                 <div class="col-6">Ekstrakurikuler</div>
                                                 <div class="col-6 text-end">Rp {{ number_format($tagihan->biaya_ekskul, 0, ',', '.') }}</div>
+                                                <div class="col-6">Jemputan</div>
+                                                <div class="col-6 text-end">Rp {{ number_format($tagihan->biaya_jemputan, 0, ',', '.') }}</div>
                                                 <div class="col-6 fw-bold">Total</div>
                                                 <div class="col-6 text-end fw-bold text-dark">Rp {{ number_format($total, 0, ',', '.') }}</div>
                                             </div>

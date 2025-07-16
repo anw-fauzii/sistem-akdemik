@@ -26,7 +26,7 @@ class KeuanganTahunanController extends Controller
     public function index()
     {
         if (user()?->hasRole('siswa')) {        
-            $tahun_ajaran = TahunAjaran::latest()->first();
+            $tahun_ajaran = TahunAjaran::whereSemester(1)->latest()->first();
             $anggota_kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                         ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
                             $query->where('tahun_ajaran_id', $tahun_ajaran->id);
@@ -83,10 +83,10 @@ class KeuanganTahunanController extends Controller
     public function show($id)
     {
         if (user()?->hasRole('siswa')) {        
-            $tahunAjaran = TahunAjaran::latest()->first();
+            $tahun_ajaran = TahunAjaran::findOrFail($id);
             $anggota_kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
-                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
-                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                        ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
+                            $query->where('tahun_ajaran_id', $tahun_ajaran->id);
                         })
                         ->first();
 
@@ -97,7 +97,7 @@ class KeuanganTahunanController extends Controller
             $siswa = Siswa::where('nis', Auth::user()->email)->first();
             $riwayat_pembayaran = PembayaranTagihanTahunan::whereAnggotaKelasId($anggota_kelas->id)->get();
         
-            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahunAjaran->id)
+            $tagihan_list = TagihanTahunan::where('tahun_ajaran_id', $tahun_ajaran->id)
                 ->where('jenjang', $anggota_kelas->kelas->jenjang)
                 ->where(function ($query) use ($anggota_kelas) {
                     $query->where('kelas', $anggota_kelas->kelas->tingkatan_kelas)

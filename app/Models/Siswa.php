@@ -111,4 +111,65 @@ class Siswa extends Model
     {
         return $this->belongsTo(Jemputan::class);
     }
+
+    public function pekerjaan_ayah()
+    {
+        return $this->belongsTo(Pekerjaan::class, 'pekerjaan_ayah_id', 'id');
+    }
+    
+    public function pekerjaan_ibu()
+    {
+        return $this->belongsTo(Pekerjaan::class, 'pekerjaan_ibu_id', 'id');
+    }
+
+    public function pekerjaan_wali()
+    {
+        return $this->belongsTo(Pekerjaan::class, 'pekerjaan_wali_id', 'id');
+    }
+
+    public function penghasilan_ayah()
+    {
+        return $this->belongsTo(Penghasilan::class, 'penghasilan_ayah_id', 'id');
+    }
+    
+    public function penghasilan_ibu()
+    {
+        return $this->belongsTo(Penghasilan::class, 'penghasilan_ibu_id', 'id');
+    }
+
+    public function penghasilan_wali()
+    {
+        return $this->belongsTo(Penghasilan::class, 'penghasilan_wali_id', 'id');
+    }
+
+    public function jenjang_pendidikan_ayah()
+    {
+        return $this->belongsTo(JenjangPendidikan::class, 'jenjang_pendidikan_ayah_id', 'id');
+    }
+    
+    public function jenjang_pendidikan_ibu()
+    {
+        return $this->belongsTo(JenjangPendidikan::class, 'jenjang_pendidikan_ibu_id', 'id');
+    }
+
+    public function jenjang_pendidikan_wali()
+    {
+        return $this->belongsTo(JenjangPendidikan::class, 'jenjang_pendidikan_wali_id', 'id');
+    }
+    
+    public function berkebutuhan_khusus_ayah()
+    {
+        return $this->belongsTo(BerkebutuhanKhusus::class, 'berkebutuhan_khusus_ayah_id', 'id');
+    }
+    
+    public function berkebutuhan_khusus_ibu()
+    {
+        return $this->belongsTo(BerkebutuhanKhusus::class, 'berkebutuhan_khusus_ibu_id', 'id');
+    }
+
+    public function berkebutuhan_khusus_wali()
+    {
+        return $this->belongsTo(BerkebutuhanKhusus::class, 'berkebutuhan_khusus_wali_id', 'id');
+    }
+    
 }

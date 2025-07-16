@@ -85,7 +85,9 @@
                             <th>No</th>
                             <th>Nama</th>
                             @foreach ($tanggal_tercatat as $tanggal)
-                                <th class="text-center">{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</th>
+                                <th class="text-center">
+                                    <a href="{{route('presensi-kelas.edit', $tanggal)}}" class="btn btn-sm border-0 btn-transition btn btn-outline-dark"><strong>{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</strong></a>
+                                </th>
                             @endforeach
                         </tr>
                     </thead>
@@ -112,9 +114,9 @@
                                                 @elseif ($presensiData->status == 'sakit')
                                                 <td class="text-center" style="background-color: yellow;"> S </td>
                                                 @elseif ($presensiData->status == 'izin')
-                                                <td class="text-center" style="background-color: green; color:white">  I </td>
+                                                <td class="text-center" style="background-color: green; color:white"> I </td>
                                                 @elseif ($presensiData->status == 'alpha')
-                                                <td class="text-center" style="background-color: red; color:white">  A </td>
+                                                <td class="text-center" style="background-color: red; color:white"> A </td>
                                                 @else
                                                     {{ $presensiData->status }} 
                                                 @endif

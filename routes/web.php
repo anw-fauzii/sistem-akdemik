@@ -69,7 +69,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/kelas', KelasController::class);
     Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class)->except(['show']);
     Route::resource('/bulan-spp', BulanSppController::class)->except(['show']);
-    Route::resource('/presensi-kelas', PresensiKelasController::class)->except(['edit','update','destroy']);
+    Route::resource('/presensi-kelas', PresensiKelasController::class)->except(['update','destroy']);
     Route::resource('/presensi-ekstrakurikuler', PresensiEkstrakurikulerController::class)->except(['edit','update','destroy']);
     Route::resource('/pembayaran-spp', PembayaranSppController::class)->only(['index','store','destroy']);
     Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
