@@ -172,4 +172,26 @@ class Siswa extends Model
         return $this->belongsTo(BerkebutuhanKhusus::class, 'berkebutuhan_khusus_wali_id', 'id');
     }
     
+    public function tarif_spp()
+    {
+        return $this->belongsTo(TarifSpp::class);
+    }
+
+    public function transportasi()
+    {
+        return $this->belongsTo(Transportasi::class);
+    }
+
+    public function getTempatTinggalLabelAttribute()
+    {
+        $map = [
+            '1' => 'Bersama Orangtua',
+            '2' => 'Wali',
+            '3' => 'Kos',
+            '4' => 'Asrama',
+            '5' => 'Panti Asuhan',
+        ];
+
+        return $map[$this->tempat_tinggal] ?? '-';
+    }
 }

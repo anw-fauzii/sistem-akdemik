@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PesertaDidik\KeuanganController;
+use App\Http\Controllers\PresensiKelasController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,3 +20,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::post('/callback/', [KeuanganController::class, 'callback'])->name('callback');
+Route::post('/webhook-fingerspot', [PresensiKelasController::class, 'handle'])->name('handle');

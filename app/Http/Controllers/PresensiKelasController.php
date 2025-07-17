@@ -10,6 +10,8 @@ use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class PresensiKelasController extends Controller
 {
@@ -125,5 +127,43 @@ class PresensiKelasController extends Controller
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }
+    }
+
+    public function handle(Request $request)
+    {
+        $originalData = $request->getContent();
+        $decoded = json_decode($originalData, true);
+
+        if (!isset($decoded['type'], $decoded['cloud_id'], $decoded['data'])) {
+            return response()->json(['status' => 'invalid data'], 400);
+        }
+
+        $data = $decoded['data'];
+        $pin = $data['pin'];
+        $scanTime = Carbon::parse($data['scan']);
+        $tanggal = $scanTime->format('Y-m-d');
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        $anggota = AnggotaKelas::whereSiswaNis($pin)
+                    ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
+                        $query->where('tahun_ajaran_id', $tahun_ajaran->id);
+                    })
+                    ->first();
+
+        if (!$anggota) {
+            Log::warning("PIN $pin tidak ditemukan di anggota_kelas");
+            return response()->json(['status' => 'pin not found'], 404);
+        }
+
+        $presensi = Presensi::firstOrCreate(
+            [
+                'anggota_kelas_id' => $anggota->id,
+                'tanggal' => $tanggal
+            ],
+            [
+                'status' => 'Hadir'
+            ]
+        );
+
+        return response()->json(['status' => 'success'], 200);
     }
 }

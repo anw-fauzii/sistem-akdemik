@@ -53,24 +53,30 @@
             <div class="text-center">
                 <img class="profile-img" src="{{ $data->foto ? asset('storage/' . $data->foto) : asset('storage/logo/user.png') }}" alt="Foto Siswa">
                 <h4 class="mt-3 mb-0">{{ $data->nama_lengkap }}</h4>
-                <small class="text-muted">NIS: {{ $data->nis }} | Kelas: {{ $data->kelas->nama_kelas }}</small>
+                <small class="text-muted"> NISN: {{ $data->nisn }} | NIS: {{ $data->nis }} |  Kelas: {{ $data->kelas->nama_kelas }}</small>
             </div>
 
             <!-- DATA DIRI -->
-            <div class="section-title">🧑‍🎓 Data Diri</div>
+            
             <div class="row">
                 <div class="col-md-6">
+                    <div class="section-title">🧑‍🎓 Data Diri</div>
                     <table class="table table-borderless table-profile">
+                        <tr><td>No. Kartu Keluarga</td><td>: {{ $data->no_kk }}</td></tr>
                         <tr><td>NIK</td><td>: {{ $data->nik }}</td></tr>
-                        <tr><td>Jenis Kelamin</td><td>: {{ $data->jenis_kelamin }}</td></tr>
+                        <tr><td>Akta Kelahiran</td><td>: {{ $data->akta_lahir ?? '-' }}</td></tr>
+                        <tr><td>Jenis Kelamin</td><td>: {{ $data->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</td></tr>
                         <tr><td>Tempat Lahir</td><td>: {{ $data->tempat_lahir }}</td></tr>
                         <tr><td>Tanggal Lahir</td><td>: {{ \Carbon\Carbon::parse($data->tanggal_lahir)->translatedFormat('d F Y') }}</td></tr>
+                        <tr><td>Tahun Masuk</td><td>: {{ $data->tarif_spp->tahun_masuk }}</td></tr>
+                        <tr><td>Jenis Pendaftaran</td><td>: {{ $data->jenis_pendaftaran == '1' ? 'Siswa Baru' : 'Pindahan' }}</td></tr>
                     </table>
                 </div>
                 <div class="col-md-6">
+                    <div class="section-title">☎️ Kontak</div>
                     <table class="table table-borderless table-profile">
-                        <tr><td>Agama</td><td>: {{ $data->agama }}</td></tr>
-                        <tr><td>No HP</td><td>: {{ $data->no_hp }}</td></tr>
+                        <tr><td>No HP</td><td>: {{ $data->nomor_hp }}</td></tr>
+                        <tr><td>Whatsapp</td><td>: {{ $data->whatsapp }}</td></tr>
                         <tr><td>Email</td><td>: {{ $data->email }}</td></tr>
                     </table>
                 </div>
@@ -121,15 +127,39 @@
             </div>
 
             <!-- ALAMAT -->
-            <div class="section-title">📍 Alamat</div>
+            
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-6">
+                    <div class="section-title">📍 Alamat</div>
                     <table class="table table-borderless table-profile">
-                        <tr><td>Alamat Lengkap</td><td>: {{ $data->alamat }}</td></tr>
+                        <tr><td>Alamat Lengkap</td><td>: {{ $data->alamat }}
+                        @if (!empty($data->rt)) RT {{ $data->rt }} @endif
+                        @if (!empty($data->rw)) RW {{ $data->rw }} @endif
+                        </td></tr>
                         <tr><td>Desa/Kelurahan</td><td>: {{ $data->desa }}</td></tr>
                         <tr><td>Kecamatan</td><td>: {{ $data->kecamatan }}</td></tr>
-                        <tr><td>Kota/Kabupaten</td><td>: {{ $data->kota }}</td></tr>
+                        <tr><td>Kota/Kabupaten</td><td>: {{ $data->kabupaten }}</td></tr>
                         <tr><td>Provinsi</td><td>: {{ $data->provinsi }}</td></tr>
+                        <tr><td>Kode Pos</td><td>: {{ $data->kode_pos }}</td></tr>
+                        <tr><td>Nama Negara</td><td>: {{ $data->nama_negara }}</td></tr>
+                        <tr><td>Kewarganegaraan</td><td>: {{ $data->kewarganegaraan }}</td></tr>
+                        <tr><td>Bujur</td><td>: {{ $data->bujur ?? '-' }}</td></tr>
+                        <tr><td>Lintang</td><td>: {{ $data->lintang ?? '-' }}</td></tr>
+
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <div class="section-title">📊 Data Periodik</div>
+                    <table class="table table-borderless table-profile">
+                        <tr><td>Anak Ke</td><td>: {{ $data->anak_ke ?? '-' }}</td></tr>
+                        <tr><td>Jumlah Saudara</td><td>: {{ $data->jumlah_saudara ?? '-' }}</td></tr>
+                        <tr><td>Tinggi Badan</td><td>: {{ $data->tinggi_badan ?? '-' }} cm</td></tr>
+                        <tr><td>Berat Badan</td><td>: {{ $data->berat_badan ?? '-' }} kg</td></tr>
+                        <tr><td>Lingkar Kepala</td><td>: {{ $data->lingkar_kepala ?? '-' }} </td></tr>
+                        <tr><td>Jarak Kesekolah</td><td>: {{ $data->jarak ?? '-' }} m</td></tr>
+                        <tr><td>Waktu Tempuh</td><td>: {{ $data->waktu_tempuh ?? '-' }} Menit</td></tr>
+                        <tr><td>Jenis Tinggal</td><td>: {{ $data->tempat_tinggal_label }}</td></tr>
+                        <tr><td>Transportasi</td><td>: {{ $data->transportasi?->nama_transportasi ?? '-' }}</td></tr>
                     </table>
                 </div>
             </div>
