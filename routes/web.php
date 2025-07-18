@@ -14,6 +14,7 @@ use App\Http\Controllers\JemputanController;
 use App\Http\Controllers\JenjangPendidikanController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanKeuanganController;
+use App\Http\Controllers\LaporanPresensiController;
 use App\Http\Controllers\PekerjaanController;
 use App\Http\Controllers\PembayaranJemputanController;
 use App\Http\Controllers\PembayaranSppController;
@@ -104,6 +105,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/pembayaran-jemputan', PembayaranJemputanController::class);
     Route::post('/pembayaran-jemputan/cari', [PembayaranJemputanController::class, 'cari'])->name('pembayaran-jemputan.cari');
     Route::resource('tarif-spp', TarifSppController::class);
+    Route::get('/laporan/presensi-hari-ini', [LaporanPresensiController::class, 'presensiHariIni'])->name('laporan.presensi.hari_ini');
+    Route::get('/laporan/presensi', [LaporanPresensiController::class, 'index'])->name('laporan.presensi.index');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

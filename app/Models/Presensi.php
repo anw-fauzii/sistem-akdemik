@@ -13,6 +13,8 @@ class Presensi extends Model
         'anggota_kelas_id',
         'tanggal',
         'status',
+        'terlambat',
+        'menit_terlambat',
     ];
 
     protected $dates = ['tanggal'];

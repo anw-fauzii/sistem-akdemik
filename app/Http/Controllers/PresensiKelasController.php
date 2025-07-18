@@ -31,7 +31,11 @@ class PresensiKelasController extends Controller
                                 ->whereMonth('tanggal', date('m', strtotime($bulan)))
                                 ->whereYear('tanggal', date('Y', strtotime($bulan)))
                                 ->get();
-            $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort()->values();
+            $tanggal_tercatat = $presensi->pluck('tanggal')
+                ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString()) // Ambil hanya tanggal
+                ->unique()
+                ->sort()
+                ->values();
             $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             return view('presensi_kelas.index', compact('anggotaKelas', 'presensi', 'tanggal_tercatat', 'bulan_spp', 'bulan'));
         } else {
@@ -62,20 +66,50 @@ class PresensiKelasController extends Controller
         if (user()?->hasRole('guru')) {
             $request->validate([
                 'tanggal' => 'required|date',
-                'presensi' => 'required|array', 
+                'presensi' => 'required|array',
+                'waktu' => 'array', // jika kamu pakai waktu scan per siswa
             ]);
 
+            $tanggal = Carbon::parse($request->tanggal)->toDateString(); // 'Y-m-d'
+            $jamMasukStandar = Carbon::parse($tanggal . ' 07:30:00');
+
             foreach ($request->presensi as $anggota_kelas_id => $status) {
-                Presensi::updateOrCreate(
-                    [
+                
+                // Ambil waktu scan (jika diinput per siswa), atau pakai waktu sekarang
+                $waktuInput = $request->waktu[$anggota_kelas_id] ?? '07:30';
+                $waktuPresensi = Carbon::parse($tanggal . ' ' . $waktuInput);
+
+                $isLate = false;
+                $lateMinutes = null;
+
+                if ($status === 'Hadir') {
+                    $isLate = $waktuPresensi->gt($jamMasukStandar);
+                    $lateMinutes = $isLate ? $jamMasukStandar->diffInMinutes($waktuPresensi) : 0;
+                }
+
+                // Cari presensi berdasarkan tanggal (tanpa jam)
+                $existing = Presensi::whereDate('tanggal', $tanggal)
+                    ->where('anggota_kelas_id', $anggota_kelas_id)
+                    ->first();
+
+                if ($existing) {
+                    $existing->update([
+                        'tanggal' => $waktuPresensi,
+                        'status' => $status,
+                        'terlambat' => $isLate,
+                        'menit_terlambat' => $lateMinutes,
+                    ]);
+                } else {
+                    Presensi::create([
                         'anggota_kelas_id' => $anggota_kelas_id,
-                        'tanggal' => $request->tanggal,
-                    ],
-                    [
-                        'status' => $status
-                    ]
-                );
+                        'tanggal' => $waktuPresensi,
+                        'status' => $status,
+                        'terlambat' => $isLate,
+                        'menit_terlambat' => $lateMinutes,
+                    ]);
+                }
             }
+
             return redirect()->route('presensi-kelas.index')->with('success', 'Presensi berhasil disimpan.');
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -95,7 +129,7 @@ class PresensiKelasController extends Controller
             }
             $siswaList = AnggotaKelas::where('kelas_id', $kelas->id)->get();
             $presensi = Presensi::whereIn('anggota_kelas_id', $siswaList->pluck('id'))
-                                ->where('tanggal', $id)
+                                ->whereDate('tanggal', $id)
                                 ->get();
             $tanggal = $id;
             return view('presensi_kelas.edit', compact('siswaList', 'kelas', 'presensi','tanggal'));
@@ -140,14 +174,20 @@ class PresensiKelasController extends Controller
 
         $data = $decoded['data'];
         $pin = $data['pin'];
-        $scanTime = Carbon::parse($data['scan']);
+        $scanTime = Carbon::parse($data['scan']); // Format: 2020-07-21 10:11
         $tanggal = $scanTime->format('Y-m-d');
+
+        $jam_masuk = Carbon::parse($tanggal . ' 07:30:00');
+        $isLate = $scanTime->gt($jam_masuk);
+        $lateMinutes = $isLate ? $jam_masuk->diffInMinutes($scanTime) : 0;
+
         $tahun_ajaran = TahunAjaran::latest()->first();
+
         $anggota = AnggotaKelas::whereSiswaNis($pin)
-                    ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
-                        $query->where('tahun_ajaran_id', $tahun_ajaran->id);
-                    })
-                    ->first();
+            ->whereHas('kelas', function ($query) use ($tahun_ajaran) {
+                $query->where('tahun_ajaran_id', $tahun_ajaran->id);
+            })
+            ->first();
 
         if (!$anggota) {
             Log::warning("PIN $pin tidak ditemukan di anggota_kelas");
@@ -160,7 +200,9 @@ class PresensiKelasController extends Controller
                 'tanggal' => $tanggal
             ],
             [
-                'status' => 'Hadir'
+                'status' => 'Hadir',
+                'terlambat' => $isLate,
+                'menit_terlambat' => $lateMinutes
             ]
         );
 

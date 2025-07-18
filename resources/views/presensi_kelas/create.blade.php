@@ -40,6 +40,7 @@
                             <tr>
                                 <th>Nama</th>
                                 <th>Status</th>
+                                <th>Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -53,6 +54,9 @@
                                             <option value="Sakit">Sakit</option>
                                             <option value="Alpha">Alpha</option>
                                         </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control waktu" value="7:15" name="waktu[{{ $siswa->id }}]">
                                     </td>
                                 </tr>
                             @endforeach

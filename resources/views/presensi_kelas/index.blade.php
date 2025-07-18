@@ -86,7 +86,7 @@
                             <th>Nama</th>
                             @foreach ($tanggal_tercatat as $tanggal)
                                 <th class="text-center">
-                                    <a href="{{route('presensi-kelas.edit', $tanggal)}}" class="btn btn-sm border-0 btn-transition btn btn-outline-dark"><strong>{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</strong></a>
+                                    <a href="{{route('presensi-kelas.edit', \Carbon\Carbon::parse($tanggal)->format('Y-m-d'))}}" class="btn btn-sm border-0 btn-transition btn btn-outline-dark"><strong>{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</strong></a>
                                 </th>
                             @endforeach
                         </tr>
@@ -106,7 +106,11 @@
                                     <td>{{ $anggota->siswa->nama_lengkap }}</td>
                                     @foreach ($tanggal_tercatat as $tanggal)
                                         @php
-                                            $presensiData = $presensi->where('anggota_kelas_id', $anggota->id)->where('tanggal', $tanggal)->first();
+                                            $presensiData = $presensi
+                                                ->where('anggota_kelas_id', $anggota->id)
+                                                ->first(function ($item) use ($tanggal) {
+                                                    return \Carbon\Carbon::parse($item->tanggal)->toDateString() === $tanggal;
+                                                });
                                         @endphp
                                             @if ($presensiData)
                                                 @if ($presensiData->status == 'hadir')

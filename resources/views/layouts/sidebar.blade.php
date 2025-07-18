@@ -206,6 +206,12 @@
                             </li>
                         </ul>
                     </li>
+                    <li>
+                    <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi')) ? 'mm-active' : ''}}">
+                        <i class="metismenu-icon pe-7s-home"></i>
+                            Laporan Presensi
+                    </a>
+                </li>
                 @endrole
                 @role('siswa')
                     <li>

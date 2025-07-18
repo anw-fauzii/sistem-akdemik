@@ -89,7 +89,6 @@ class KeuanganTahunanController extends Controller
                             $query->where('tahun_ajaran_id', $tahun_ajaran->id);
                         })
                         ->first();
-
             if (!$anggota_kelas) {
                 return redirect()->route('keuangan-tahunan.index')->with('error', 'Data tidak ditemukan!');
             }

@@ -5,6 +5,12 @@
 @endsection
 
 @section('content')
+<!-- Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<!-- Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 <div class="app-main__inner">
     <div class="app-page-title">
         <div class="page-title-wrapper">
@@ -32,7 +38,7 @@
             
                     <div class="mb-3">
                         <label for="tanggal" class="form-label">Tanggal</label>
-                        <input type="date" class="form-control" name="tanggal" value="{{$tanggal}}" readonly>
+                        <input type="date" class="form-control" name="tanggal" value="{{ \Carbon\Carbon::parse($tanggal)->format('Y-m-d') }}" readonly>
                     </div>
             
                     <table class="table">
@@ -40,6 +46,7 @@
                             <tr>
                                 <th>Nama</th>
                                 <th>Status</th>
+                                <th>Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,7 +54,11 @@
                                 <tr>
                                     <td>{{ $siswa->siswa->nama_lengkap }}</td>
                                     @php
-                                        $presensiData = $presensi->where('anggota_kelas_id', $siswa->id)->where('tanggal', $tanggal)->first();
+                                        $presensiData = $presensi
+                                            ->where('anggota_kelas_id', $siswa->id)
+                                            ->first(function ($item) use ($tanggal) {
+                                                return \Carbon\Carbon::parse($item->tanggal)->toDateString() === $tanggal;
+                                            });
                                     @endphp
                                     @if ($presensiData)
                                         <td>
@@ -59,6 +70,9 @@
                                                 <option value="Alpha" {{ $presensiData->status == 'alpha' ? 'selected' : '' }}>Alpha</option>
                                             </select>
                                         </td>
+                                    <td>
+                                        <input type="text" class="form-control waktu" value="{{ \Carbon\Carbon::parse($presensiData->tanggal)->format('H:i') }}" name="waktu[{{ $siswa->id }}]">
+                                    </td>
                                     @else
                                         <td>
                                             <select name="presensi[{{ $siswa->id }}]" class="form-control">
@@ -68,6 +82,9 @@
                                                 <option value="Sakit">Sakit</option>
                                                 <option value="Alpha">Alpha</option>
                                             </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control waktu" value="7:15" name="waktu[{{ $siswa->id }}]">
                                         </td>
                                     @endif
                                 </tr>
@@ -81,4 +98,12 @@
         </div>
     </div>
 </div>
+<script>
+    flatpickr(".waktu", {
+        enableTime: true,
+        noCalendar: true,
+        dateFormat: "H:i",
+        time_24hr: true,
+    });
+</script>
 @endsection
