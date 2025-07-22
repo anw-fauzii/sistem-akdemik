@@ -49,6 +49,7 @@
                                     <td>{{ $siswa->siswa->nama_lengkap }}</td>
                                     <td>
                                         <select name="presensi[{{ $siswa->id }}]" class="form-control">
+                                            <option value="">--Data Kosong--</option>
                                             <option value="Hadir">Hadir</option>
                                             <option value="Izin">Izin</option>
                                             <option value="Sakit">Sakit</option>

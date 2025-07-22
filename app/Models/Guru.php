@@ -32,4 +32,9 @@ class Guru extends Model
     {
         return $this->belongsTo(User::class, 'nipy', 'email');
     }
+
+    public function anggotaT2q()
+    {
+        return $this->hasMany(AnggotaT2Q::class);
+    }
 }

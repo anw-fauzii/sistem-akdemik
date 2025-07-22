@@ -215,6 +215,25 @@
                 @endrole
                 @role('siswa')
                     <li>
+                        <a href="#" class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-user"></i>
+                            Data Siswa
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-show' : ''}}">
+                            <li>
+                                <a href="{{route('profil-siswa')}}" class="{{(request()->is('profil-siswa*')) ? 'mm-active' : ''}}">
+                                    Profil
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('update-password')}}" class="{{(request()->is('update-password*')) ? 'mm-active' : ''}}">
+                                    Update Password
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
                         <a href="{{route('presensi.index')}}" class="{{(request()->is('presensi*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-clock"></i>
                                 Presensi
@@ -235,25 +254,6 @@
                             <li>
                                 <a href="{{route('keuangan-spp.index')}}" class="{{(request()->is('keuangan-spp*')) ? 'mm-active' : ''}}">
                                     SPP
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="#" class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-active' : ''}}">
-                            <i class="metismenu-icon pe-7s-user"></i>
-                            Data Siswa
-                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
-                        </a>
-                        <ul class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-show' : ''}}">
-                            <li>
-                                <a href="{{route('profil-siswa')}}" class="{{(request()->is('profil-siswa*')) ? 'mm-active' : ''}}">
-                                    Profil
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{route('update-password')}}" class="{{(request()->is('update-password*')) ? 'mm-active' : ''}}">
-                                    Update Password
                                 </a>
                             </li>
                         </ul>

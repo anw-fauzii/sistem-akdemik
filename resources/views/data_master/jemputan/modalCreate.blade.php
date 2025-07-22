@@ -16,7 +16,9 @@
                         <label for="siswa">Pilih Siswa</label>
                         <select multiple="multiple" size="10" name="siswa_nis[]" id="siswa_nis" class="duallistbox form-control">
                             @foreach($siswa_belum_masuk_jemputan as $belum_masuk_jemputan)
-                                <option value="{{$belum_masuk_jemputan->id}}">{{$belum_masuk_jemputan->siswa->nis}} | {{$belum_masuk_jemputan->siswa_nama}} ({{$belum_masuk_jemputan->kelas}})</option>
+                                <option value="{{$belum_masuk_jemputan->id}}">
+                                    {{$belum_masuk_jemputan->nis}} | {{ $belum_masuk_jemputan->siswa_nama }} ({{ $belum_masuk_jemputan->kelas }})
+                                </option>
                             @endforeach
                         </select>
                         <div class="form-group row pt-3 pb-0 justify-content-end">

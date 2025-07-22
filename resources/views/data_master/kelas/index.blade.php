@@ -35,9 +35,6 @@
                             <th>Kelas</th>
                             <th>Wali Kelas</th>
                             <th>Guru Pendamping</th>
-                            <th>SPP</th>
-                            <th>Makan</th>
-                            <th>Snack</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -52,11 +49,8 @@
                                 <td>{{$item->nama_kelas}}</td>
                                 <td>{{$item->guru->nama_lengkap}}, {{$item->guru->gelar}}.</td>
                                 <td>{{$item->pendamping->nama_lengkap}}, {{$item->pendamping->gelar}}.</td>
-                                <td>Rp. {{ number_format($item->spp, 0, ',', '.') }}</td>
-                                <td>Rp. {{ number_format($item->biaya_makan, 0, ',', '.') }}</td>
-                                <td>Rp. {{ number_format($item->snack, 0, ',', '.') }}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('kelas.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->jumlah_anggota}} Siswa</a>
+                                    <a href="{{ route('kelas.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->anggota_kelas_count}} Siswa</a>
                                     <a href="{{ route('kelas.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 0.85rem;"></i></a>
                                     <form action="{{ route('kelas.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf

@@ -46,7 +46,7 @@
                                 <td>{{$item->unit}}</td>
                                 <td>{{$item->nama_lengkap}}, {{$item->gelar}}.</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('anggota-t2q.show', $item->nipy) }}" class="btn btn-sm btn-success mx-1">{{$item->jumlah_anggota}} Siswa</a>
+                                    <a href="{{ route('anggota-t2q.show', $item->nipy) }}" class="btn btn-sm btn-success mx-1">{{$item->anggota_t2q_count}} Siswa</a>
                                 </td>
                             </tr>
                         @empty

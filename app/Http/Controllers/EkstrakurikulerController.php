@@ -17,11 +17,10 @@ class EkstrakurikulerController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             if($tahun_ajaran){
-                $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahun_ajaran->id)->orderBy('id', 'ASC')->get();
-                foreach ($ekstrakurikuler as $item) {
-                    $jumlah_anggota = AnggotaEkstrakurikuler::whereEkstrakurikulerId($item->id)->count();
-                    $item->jumlah_anggota = $jumlah_anggota;
-                }
+                $ekstrakurikuler = Ekstrakurikuler::withCount('anggotaEkstrakurikuler')
+                    ->whereTahunAjaranId($tahun_ajaran->id)
+                    ->orderBy('id', 'ASC')
+                    ->get();
                 return view('data_master.ekstrakurikuler.index', compact('ekstrakurikuler', 'tahun_ajaran'));
             }else{
                 return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
@@ -34,7 +33,7 @@ class EkstrakurikulerController extends Controller
     public function create()
     {
         if (user()?->hasRole('admin')) {
-            $guru = Guru::whereStatus(true)->get();
+            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
             return view('data_master.ekstrakurikuler.create', compact('guru'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -69,16 +68,22 @@ class EkstrakurikulerController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $ekstrakurikuler = Ekstrakurikuler::findorfail($id);
-            $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::whereEkstrakurikulerId($id)->get();
+            $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])->whereEkstrakurikulerId($id)->get();
             $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->pluck('id');
-            $siswa_belum_masuk_ekstrakurikuler = AnggotaKelas::with(['siswa', 'kelas'])
+            $siswa_belum_masuk_ekstrakurikuler = AnggotaKelas::with([
+                    'siswa:nis,nama_lengkap',
+                    'kelas:id,nama_kelas'
+                ])
                 ->whereIn('kelas_id', $kelas)
-                ->whereDoesntHave('anggota_ekstrakurikuler')
+                ->whereDoesntHave('anggotaEkstrakurikuler')
                 ->get()
                 ->map(function ($anggota) {
-                    $anggota->kelas = $anggota->kelas->nama_kelas ?? null;
-                    $anggota->siswa_nama = $anggota->siswa->nama_lengkap ?? '-';
-                    return $anggota;
+                    return (object) [
+                        'id' => $anggota->id,
+                        'nis' => $anggota->siswa->nis ?? '-',
+                        'siswa_nama' => $anggota->siswa->nama_lengkap ?? '-',
+                        'kelas' => $anggota->kelas->nama_kelas ?? '-',
+                    ];
                 });
             return view('data_master.ekstrakurikuler.show', compact('ekstrakurikuler', 'anggota_ekstrakurikuler', 'siswa_belum_masuk_ekstrakurikuler'));
         } else {
@@ -90,7 +95,7 @@ class EkstrakurikulerController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
-            $guru = Guru::whereStatus(true)->get();
+            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
             return view('data_master.ekstrakurikuler.edit', compact('ekstrakurikuler','guru'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);

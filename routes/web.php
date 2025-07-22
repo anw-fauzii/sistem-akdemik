@@ -107,6 +107,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('tarif-spp', TarifSppController::class);
     Route::get('/laporan/presensi-hari-ini', [LaporanPresensiController::class, 'presensiHariIni'])->name('laporan.presensi.hari_ini');
     Route::get('/laporan/presensi', [LaporanPresensiController::class, 'index'])->name('laporan.presensi.index');
+    Route::get('/laporan/ambil-data-harian', [LaporanPresensiController::class, 'ambilHariIni'])->name('laporan.presensi.ambil_harian');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

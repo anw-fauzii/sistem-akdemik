@@ -34,13 +34,13 @@ class SiswaController extends Controller
     public function create()
     {
         if (user()?->hasRole('admin')) {
-            $pekerjaan = Pekerjaan::all();
-            $penghasilan = Penghasilan::all();
-            $transportasi = Transportasi::all();
-            $berkebutuhan_khusus = BerkebutuhanKhusus::all();
             $tahun_ajaran = TahunAjaran::latest()->first();
-            $pendidikan = JenjangPendidikan::all();
-            $tarif_spp = TarifSpp::all();
+            $pekerjaan = Pekerjaan::select('id', 'nama_pekerjaan')->get();
+            $penghasilan = Penghasilan::select('id', 'nama_penghasilan')->get();
+            $transportasi = Transportasi::select('id', 'nama_transportasi')->get();
+            $berkebutuhan_khusus = BerkebutuhanKhusus::select('id', 'nama_berkebutuhan_khusus')->get();
+            $pendidikan = JenjangPendidikan::select('id', 'nama_jenjang_pendidikan')->get();
+            $tarif_spp = TarifSpp::select('id', 'unit','tahun_masuk')->get();
             $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
             return view('data_master.siswa.create', compact('tarif_spp','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
         } else {
@@ -154,15 +154,15 @@ class SiswaController extends Controller
     public function edit($id)
     {
         if (user()?->hasRole('admin')) {
-            $pekerjaan = Pekerjaan::all();
-            $penghasilan = Penghasilan::all();
-            $transportasi = Transportasi::all();
-            $berkebutuhan_khusus = BerkebutuhanKhusus::all();
             $tahun_ajaran = TahunAjaran::latest()->first();
-            $pendidikan = JenjangPendidikan::all();
+            $pekerjaan = Pekerjaan::select('id', 'nama_pekerjaan')->get();
+            $penghasilan = Penghasilan::select('id', 'nama_penghasilan')->get();
+            $transportasi = Transportasi::select('id', 'nama_transportasi')->get();
+            $berkebutuhan_khusus = BerkebutuhanKhusus::select('id', 'nama_berkebutuhan_khusus')->get();
+            $pendidikan = JenjangPendidikan::select('id', 'nama_jenjang_pendidikan')->get();
+            $tarif_spp = TarifSpp::select('id', 'unit','tahun_masuk')->get();
             $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
             $siswa = Siswa::findOrFail($id);
-            $tarif_spp = TarifSpp::all();
             return view('data_master.siswa.edit', compact('tarif_spp','siswa','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);

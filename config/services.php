@@ -35,6 +35,9 @@ return [
         'client_key' => env('MIDTRANS_CLIENT_KEY'),
         'sandbox' => env('MIDTRANS_SANDBOX', true),
     ],
+    'fingerspot' => [
+        'api_token' => env('FINGERPOT_API_TOKEN'),
+    ],
 
 
 ];

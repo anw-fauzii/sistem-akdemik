@@ -20,11 +20,7 @@ class AnggotaT2QController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             if($tahun_ajaran){
-                $data_guru = Guru::whereJabatan('T2Q')->whereStatus(TRUE)->get();
-                foreach ($data_guru as $guru) {
-                    $jumlah_anggota = Siswa::whereGuruNipy($guru->nipy)->count();
-                    $guru->jumlah_anggota = $jumlah_anggota;
-                }
+                $data_guru = Guru::withCount('anggotaT2q')->whereJabatan('T2Q')->whereStatus(TRUE)->get();
                 return view('data_master.t2q.index', compact('data_guru', 'tahun_ajaran'));
             }else{
                 return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
@@ -80,20 +76,26 @@ class AnggotaT2QController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $guru = Guru::findorfail($id);
-            $anggota_t2q = AnggotaT2Q::whereGuruNipy($guru->nipy)
+            $anggota_t2q = AnggotaT2Q::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])->whereGuruNipy($guru->nipy)
                 ->whereHas('anggotaKelas.kelas', function ($query) use ($tahun_ajaran) {
                 $query->where('tahun_ajaran_id', $tahun_ajaran->id);
             })
             ->get();
             $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->pluck('id');
-            $siswa_belum_masuk_t2q = AnggotaKelas::with(['siswa', 'kelas'])
+            $siswa_belum_masuk_t2q = AnggotaKelas::with([
+                    'siswa:nis,nama_lengkap',
+                    'kelas:id,nama_kelas'
+                ])
                 ->whereIn('kelas_id', $kelas)
-                ->whereDoesntHave('anggotaT2Q')
+                ->whereDoesntHave('anggotaT2q')
                 ->get()
                 ->map(function ($anggota) {
-                    $anggota->kelas = $anggota->kelas->nama_kelas ?? null;
-                    $anggota->siswa_nama = $anggota->siswa->nama_lengkap ?? '-';
-                    return $anggota;
+                    return (object) [
+                        'id' => $anggota->id,
+                        'nis' => $anggota->siswa->nis ?? '-',
+                        'siswa_nama' => $anggota->siswa->nama_lengkap ?? '-',
+                        'kelas' => $anggota->kelas->nama_kelas ?? '-',
+                    ];
                 });
             return view('data_master.t2q.show', compact('guru', 'anggota_t2q', 'siswa_belum_masuk_t2q'));
         } else {

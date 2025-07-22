@@ -25,4 +25,9 @@ class Ekstrakurikuler extends Model
     {
         return $this->belongsTo(Guru::class);
     }
+    
+    public function anggotaEkstrakurikuler()
+    {
+        return $this->hasMany(AnggotaEkstrakurikuler::class);
+    }
 }

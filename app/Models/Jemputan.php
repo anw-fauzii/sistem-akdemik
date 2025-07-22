@@ -15,4 +15,9 @@ class Jemputan extends Model
         'harga_pp',
         'harga_setengah'
     ];
+
+    public function anggotaJemputan()
+    {
+        return $this->hasMany(AnggotaJemputan::class);
+    }
 }

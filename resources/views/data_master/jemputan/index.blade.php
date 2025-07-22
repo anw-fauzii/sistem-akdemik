@@ -48,7 +48,7 @@
                                 <td>Rp. {{ number_format($item->harga_pp, 0, ',', '.') }}</td>
                                 <td>Rp. {{ number_format($item->harga_setengah, 0, ',', '.') }}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('jemputan.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->jumlah_anggota}} Siswa</a>
+                                    <a href="{{ route('jemputan.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->anggota_jemputan_count}} Siswa</a>
                                     <a href="{{ route('jemputan.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 0.85rem;"></i></a>
                                     <form action="{{ route('jemputan.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf
@@ -59,7 +59,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <th colspan="4" class="text-center"> Belum Ada Data</th>
+                                <th colspan="5" class="text-center"> Belum Ada Data</th>
                             </tr>
                         @endforelse 
                     </tbody>

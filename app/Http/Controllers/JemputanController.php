@@ -17,11 +17,7 @@ class JemputanController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             if($tahun_ajaran){
-                $jemputan = jemputan::whereTahunAjaranId($tahun_ajaran->id)->orderBy('id', 'ASC')->get();
-                foreach ($jemputan as $item) {
-                    $jumlah_anggota = AnggotaJemputan::whereJemputanId($item->id)->count();
-                    $item->jumlah_anggota = $jumlah_anggota;
-                }
+                $jemputan = Jemputan::withCount('anggotaJemputan')->whereTahunAjaranId($tahun_ajaran->id)->orderBy('id', 'ASC')->get();
                 return view('data_master.jemputan.index', compact('jemputan'));
             }else{
                 return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
@@ -66,16 +62,22 @@ class JemputanController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $jemputan = Jemputan::findorfail($id);
-            $anggota_jemputan = AnggotaJemputan::whereJemputanId($id)->get();
+            $anggota_jemputan = AnggotaJemputan::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])->whereJemputanId($id)->get();
             $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->pluck('id');
-            $siswa_belum_masuk_jemputan = AnggotaKelas::with(['siswa', 'kelas'])
+            $siswa_belum_masuk_jemputan = AnggotaKelas::with([
+                    'siswa:nis,nama_lengkap',
+                    'kelas:id,nama_kelas'
+                ])
                 ->whereIn('kelas_id', $kelas)
-                ->whereDoesntHave('anggota_jemputan')
+                ->whereDoesntHave('anggotaJemputan')
                 ->get()
                 ->map(function ($anggota) {
-                    $anggota->kelas = $anggota->kelas->nama_kelas ?? null;
-                    $anggota->siswa_nama = $anggota->siswa->nama_lengkap ?? '-';
-                    return $anggota;
+                    return (object) [
+                        'id' => $anggota->id,
+                        'nis' => $anggota->siswa->nis ?? '-',
+                        'siswa_nama' => $anggota->siswa->nama_lengkap ?? '-',
+                        'kelas' => $anggota->kelas->nama_kelas ?? '-',
+                    ];
                 });
             return view('data_master.jemputan.show', compact('jemputan','anggota_jemputan','siswa_belum_masuk_jemputan'));
         } else {

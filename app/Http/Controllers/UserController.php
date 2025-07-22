@@ -13,7 +13,11 @@ class UserController extends Controller
 {
     public function profil()
     {
-        $data = Siswa::findOrFail(Auth::user()->email);
+        $data = Siswa::with([
+            'pekerjaan_ayah','penghasilan_ayah','berkebutuhan_khusus_ayah','jenjang_pendidikan_ayah',
+            'pekerjaan_ibu','penghasilan_ibu','berkebutuhan_khusus_ibu','jenjang_pendidikan_ibu',
+            'pekerjaan_wali','penghasilan_wali','berkebutuhan_khusus_wali','jenjang_pendidikan_wali'
+            ])->findOrFail(Auth::user()->email);
         return view('user.index', compact('data'));
     }
 

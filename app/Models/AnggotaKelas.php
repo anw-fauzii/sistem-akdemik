@@ -35,12 +35,12 @@ class AnggotaKelas extends Model
         return $this->hasMany(AnggotaEkstrakurikuler::class)->with('ekstrakurikuler');
     }
 
-    public function anggota_ekstrakurikuler()
+    public function anggotaEkstrakurikuler()
     {
         return $this->hasOne(AnggotaEkstrakurikuler::class);
     }
 
-    public function anggota_jemputan()
+    public function anggotaJemputan()
     {
         return $this->hasOne(AnggotaJemputan::class);
     }
@@ -50,7 +50,7 @@ class AnggotaKelas extends Model
         return $this->hasMany(PembayaranTagihanTahunan::class, 'anggota_kelas_id');
     }
 
-    public function anggotaT2Q()
+    public function anggotaT2q()
     {
         return $this->hasOne(AnggotaT2Q::class);
     }

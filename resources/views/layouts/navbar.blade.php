@@ -1,6 +1,6 @@
 <div class="app-header header-shadow bg-primary header-text-light">
     <div class="app-header__logo">
-        <div class="logo-src mb-4"><img src="{{ asset('storage/logo/samping.png') }}" width="150px"></div>
+        <div class="logo-src mb-4"><img src="{{ asset('storage/logo/samping.png') }}" width="150px" loading="lazy" alt="Logo Yayasan"></div>
         <div class="header__pane ml-auto">
             <div>
                 <button type="button" class="hamburger close-sidebar-btn hamburger--elastic" data-class="closed-sidebar">
@@ -32,9 +32,9 @@
                         <div class="widget-content-left">                                 
                             <div class="dropdown show">
                                 @if(Auth::user()->foto)
-                                <img width="42" class="rounded-circle" src="{{asset('storage/'. Auth::user()->foto)}}" alt="">
+                                <img width="42" class="rounded-circle" src="{{asset('storage/'. Auth::user()->foto)}}" loading="lazy" alt="Foto User">
                                 @else
-                                <img width="42" class="rounded-circle" src="{{asset('storage/logo/user.png')}}" alt="">
+                                <img width="42" class="rounded-circle" src="{{asset('storage/logo/user.png')}}" loading="lazy" alt="Foto User">
                                 @endif
                             </div>
                         </div>

@@ -194,4 +194,14 @@ class Siswa extends Model
 
         return $map[$this->tempat_tinggal] ?? '-';
     }
+
+    public function anggotaKelasAktif()
+    {
+        $tahunAjaran = TahunAjaran::latest()->first();
+
+        return $this->hasOne(AnggotaKelas::class, 'siswa_nis', 'nis')
+            ->whereHas('kelas', function ($q) use ($tahunAjaran) {
+                $q->where('tahun_ajaran_id', $tahunAjaran->id);
+            });
+    }
 }

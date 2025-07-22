@@ -48,7 +48,7 @@
                                 <td>{{$item->guru->nama_lengkap}}, {{$item->guru->gelar}}.</td>
                                 <td>Rp. {{ number_format($item->biaya, 0, ',', '.') }}</td>
                                 <td class="d-flex">
-                                    <a href="{{ route('ekstrakurikuler.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->jumlah_anggota}} Siswa</a>
+                                    <a href="{{ route('ekstrakurikuler.show', $item->id) }}" class="btn btn-sm btn-success mx-1">{{$item->anggota_ekstrakurikuler_count}} Siswa</a>
                                     <a href="{{ route('ekstrakurikuler.edit', $item->id) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 0.85rem;"></i></a>
                                     <form action="{{ route('ekstrakurikuler.destroy', $item->id) }}" method="POST" class="delete-form">
                                         @csrf

@@ -16,11 +16,11 @@ class KelasController extends Controller
         if (user()?->hasRole('admin')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             if($tahun_ajaran){
-                $data_kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)->orderBy('id', 'ASC')->get();
-                foreach ($data_kelas as $kelas) {
-                    $jumlah_anggota = AnggotaKelas::whereKelasId($kelas->id)->count();
-                    $kelas->jumlah_anggota = $jumlah_anggota;
-                }
+                $data_kelas = Kelas::with(['guru', 'pendamping'])
+                    ->withCount('anggotaKelas')
+                    ->where('tahun_ajaran_id', $tahun_ajaran->id)
+                    ->orderBy('id', 'ASC')
+                    ->get();
                 return view('data_master.kelas.index', compact('data_kelas', 'tahun_ajaran'));
             }else{
                 return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
@@ -33,7 +33,7 @@ class KelasController extends Controller
     public function create()
     {
         if (user()?->hasRole('admin')) {
-            $guru = Guru::whereStatus(true)->get();
+            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
             return view('data_master.kelas.create', compact('guru'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);
@@ -74,15 +74,16 @@ class KelasController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $kelas = Kelas::findOrFail($id);
-            $anggota_kelas = AnggotaKelas::whereKelasId($id)->get();
+            $anggota_kelas = AnggotaKelas::with('siswa')->whereKelasId($id)->get();
             $siswa_belum_masuk_kelas = Siswa::whereKelasId(NULL)->get();
+            $riwayat_kelas = AnggotaKelas::with('kelas')
+                ->whereIn('siswa_nis', $siswa_belum_masuk_kelas->pluck('nis'))
+                ->orderBy('id', 'DESC')
+                ->get()
+                ->groupBy('siswa_nis');
             foreach ($siswa_belum_masuk_kelas as $belum_masuk_kelas) {
-                $kelas_sebelumnya = AnggotaKelas::whereSiswaNis($belum_masuk_kelas->nis)->orderBy('id', 'DESC')->first();
-                if (is_null($kelas_sebelumnya)) {
-                    $belum_masuk_kelas->kelas_sebelumnya = null;
-                } else {
-                    $belum_masuk_kelas->kelas_sebelumnya = $kelas_sebelumnya->kelas->nama_kelas;
-                }
+                $kelas_terakhir = $riwayat_kelas[$belum_masuk_kelas->nis][0] ?? null;
+                $belum_masuk_kelas->kelas_sebelumnya = $kelas_terakhir?->kelas->nama_kelas;
             }
             return view('data_master.kelas.show', compact('kelas','anggota_kelas','siswa_belum_masuk_kelas'));
         } else {
@@ -94,7 +95,7 @@ class KelasController extends Controller
     {
         if (user()?->hasRole('admin')) {
             $kelas = Kelas::findOrFail($id);
-            $guru = Guru::whereStatus(true)->get();
+            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
             return view('data_master.kelas.edit', compact('guru','kelas'));
         } else {
             return response()->view('errors.403', [abort(403)], 403);

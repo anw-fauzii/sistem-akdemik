@@ -99,6 +99,7 @@
                             <th>No</th>
                             <th>Tanggal</th>
                             <th>Status</th>
+                            <th>Terlambat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -110,31 +111,41 @@
                         @php
                             $no = 1;
                         @endphp
-                                @foreach ($tanggal_tercatat as $tanggal)
-                                <tr>
-                                    <td>{{$no++}}</td>
-                                    <td>{{ \Carbon\Carbon::parse($tanggal)->format('d/m/Y') }}</td>
-                                    @php
-                                        $presensiData = $presensi->where('anggota_kelas_id', $anggotaKelas->id)->where('tanggal', $tanggal)->first();
-                                    @endphp
-                                        @if ($presensiData)
-                                            @if ($presensiData->status == 'hadir')
-                                            <td class="text-center"> &#10003; </td>
-                                            @elseif ($presensiData->status == 'sakit')
-                                            <td class="text-center" style="background-color: yellow;"> S </td>
-                                            @elseif ($presensiData->status == 'izin')
-                                            <td class="text-center" style="background-color: green; color:white">  I </td>
-                                            @elseif ($presensiData->status == 'alpha')
-                                            <td class="text-center" style="background-color: red; color:white">  A </td>
+                            @foreach ($tanggal_tercatat as $tanggal)
+                            <tr>
+                                <td>{{$no++}}</td>
+                                <td>{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</td>
+                                @php
+                                    $presensiData = $presensi->where('anggota_kelas_id', $anggotaKelas->id)->where('tanggal', $tanggal)->first();
+                                @endphp
+                                    @if ($presensiData)
+                                        @if ($presensiData->status == 'hadir')
+                                        <td class="text-center"> &#10003; </td>
+                                        <td class="text-center">
+                                            @if ($presensiData->terlambat)
+                                                <span class="text-danger">{{ $presensiData->menit_terlambat }}</span>
                                             @else
-                                                {{ $presensiData->status }} 
+                                                <span class="text-muted">-</span>
                                             @endif
+                                        </td>
+                                        @elseif ($presensiData->status == 'sakit')
+                                        <td class="text-center" style="background-color: yellow;"> S </td>
+                                        <td class="text-center" style="background-color: yellow;"> - </td>
+                                        @elseif ($presensiData->status == 'izin')
+                                        <td class="text-center" style="background-color: green; color:white"> I </td>
+                                        <td class="text-center" style="background-color: green; color:white"> - </td>
+                                        @elseif ($presensiData->status == 'alpha')
+                                        <td class="text-center" style="background-color: red; color:white"> A </td>
+                                        <td class="text-center" style="background-color: red; color:white"> - </td>
                                         @else
-                                            <td class="text-center" style="background-color: black;"> -</td>
+                                            {{ $presensiData->status }} 
                                         @endif
-                                    </tr>
-                                @endforeach
-                            
+                                    @else
+                                        <td class="text-center" style="background-color: black;"> -</td>
+                                        <td class="text-center" style="background-color: black;"> -</td>
+                                    @endif
+                                </tr>
+                            @endforeach
                         @endif
                     </tbody>
                 </table>
