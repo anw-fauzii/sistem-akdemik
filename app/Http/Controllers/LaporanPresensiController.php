@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Presensi;
 use App\Models\AnggotaKelas;
+use App\Models\Presensi;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Request;
 
 class LaporanPresensiController extends Controller
 {
@@ -123,6 +123,72 @@ class LaporanPresensiController extends Controller
         return redirect()->back()->with('success', 'Data presensi hari ini berhasil diambil dan disimpan.');
     }
 
+    public function pekanan()
+    {
+        return view('laporan.presensi.pekanan');
+    }
+
+    public function cari(Request $request)
+    {
+        $tanggal = $request->tanggal;
+        $tanggalCarbon = Carbon::parse($tanggal);
+        $bulan = $tanggalCarbon->month;
+        $tahun = $tanggalCarbon->year;
+
+        $tanggalAwalBulan = Carbon::create($tahun, $bulan, 1);
+        $seninPertama = $tanggalAwalBulan->copy()->startOfWeek(Carbon::MONDAY);
+        
+        $pekanTanggal = collect();
+        for ($pekan = 1; $pekan <= 5; $pekan++) {
+            $start = $seninPertama->copy()->addWeeks($pekan - 1);
+            $end = $start->copy()->addDays(6);
+
+
+            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+                if ($date->month == $bulan) {
+                    $pekanTanggal->put($date->format('Y-m-d'), $pekan);
+                }
+            }
+        }
+
+        $pekanKe = $pekanTanggal->get($tanggalCarbon->format('Y-m-d'), 1);
+        $namaBulan = $tanggalCarbon->translatedFormat('F'); 
+
+        $judul = "Bulan $namaBulan Minggu ke-$pekanKe";
+
+        $tahunAjaran=TahunAjaran::latest()->first();
+        $pekanPertama = $tanggalCarbon->copy()->startOfWeek(Carbon::MONDAY);
+        $pekanTerakhir =$pekanPertama->copy()->endOfWeek();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $dataChart = [];
+
+        $anggotaKelas = AnggotaKelas::whereIn('kelas_id', $kelasList->pluck('id'))->get()->groupBy('kelas_id');
+
+        $presensis = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->flatten()->pluck('id'))
+            ->whereBetween('tanggal', [$seninPertama, $pekanTerakhir])
+            ->get()
+            ->groupBy('anggota_kelas_id');
+
+        $dataChart = [];
+
+        foreach ($kelasList as $kelas) {
+            $anggotaIds = $anggotaKelas[$kelas->id]->pluck('id') ?? collect();
+            $presensiKelas = $anggotaIds->flatMap(fn ($id) => $presensis[$id] ?? collect());
+            $hariEfektif = $presensiKelas->pluck('tanggal')->unique()->count();
+            $dataTerlambat = $presensiKelas->where('terlambat', true)->count();
+
+            $totalTerlambat = $hariEfektif > 0
+                ? round(($dataTerlambat / $hariEfektif) * 100, 1)
+                : 0;
+
+            $dataChart[] = [
+                'name' => $kelas->nama_kelas,
+                'y' => $totalTerlambat,
+                'x' => $dataTerlambat,
+            ];
+        }
+        return view('laporan.presensi.pekanan',compact('dataChart','tahunAjaran','judul','tanggal'));
+    }
 
     // public function simpanNantiButuhdatapresensiHariIni()
     // {

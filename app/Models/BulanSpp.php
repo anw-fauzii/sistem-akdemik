@@ -13,6 +13,7 @@ class BulanSpp extends Model
         'nama_bulan',
         'bulan_angka',
         'tambahan',
+        'tahun_ajaran_id'
     ];
 
     protected $dates = ['bulan_angka'];

@@ -11,7 +11,6 @@ use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class PresensiKelasController extends Controller
@@ -23,22 +22,23 @@ class PresensiKelasController extends Controller
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
                         ->where('guru_nipy', Auth::user()->email)
                         ->first();
+            $kelas_id = $kelas->id;
             if (!$kelas) {
                 return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
             }
-            $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
-            $bulan = $request->bulan ?? now()->format('Y-m'); 
-            $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-                                ->whereMonth('tanggal', date('m', strtotime($bulan)))
-                                ->whereYear('tanggal', date('Y', strtotime($bulan)))
-                                ->get();
-            $tanggal_tercatat = $presensi->pluck('tanggal')
-                ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString()) // Ambil hanya tanggal
-                ->unique()
-                ->sort()
-                ->values();
-            $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
-            return view('presensi_kelas.index', compact('anggotaKelas', 'presensi', 'tanggal_tercatat', 'bulan_spp', 'bulan'));
+            
+            $bulan = BulanSpp::latest()->first();
+            $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
+            $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+            $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+
+            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter);
+
+            return view('presensi_kelas.index', [
+                'bulan' => $bulan,
+                'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+                ...$statistik
+            ]);
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }
@@ -136,22 +136,24 @@ class PresensiKelasController extends Controller
     {
         if (user()?->hasRole('guru')) {
             $tahunAjaran = TahunAjaran::latest()->first();
-            $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             $bulan = BulanSpp::findOrFail($id);
             $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
                         ->where('guru_nipy', Auth::user()->email)
                         ->first();
-
+            $kelas_id = $kelas->id;
+            $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+            $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+            
             if (!$kelas) {
                 return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
             }
-            $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
-            $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-                                ->where('tanggal', 'like', "$bulanFilter%")
-                                ->get();
-            $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort();
-            return view('presensi_kelas.show', compact('bulan', 'anggotaKelas', 'presensi', 'tanggal_tercatat','bulan_spp'));
+            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter);
+            return view('presensi_kelas.index', [
+                'bulan' => $bulan,
+                'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+                ...$statistik
+            ]);
         } else {
             return response()->view('errors.403', [abort(403)], 403);
         }
@@ -197,5 +199,53 @@ class PresensiKelasController extends Controller
         );
 
         return response()->json(['status' => 'success'], 200);
+    }
+
+    private function hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter)
+    {
+        $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas_id)->get();
+        $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+                            ->whereMonth('tanggal', date('m', strtotime($bulanFilter)))
+                            ->whereYear('tanggal', date('Y', strtotime($bulanFilter)))
+                            ->get();
+        $tanggal_tercatat =$presensi->pluck('tanggal')
+                ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString())
+                ->unique()
+                ->sort()
+                ->values(); 
+        $hariEfektif = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+                ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+                    ->selectRaw('DATE(tanggal) as tgl') 
+                    ->distinct()
+                    ->count();
+        $totalHadir = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->where('status', 'hadir')
+            ->count();
+        $totalTepatWaktu = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->where('terlambat', FALSE)
+            ->count();
+        if ($hariEfektif > 0) {
+            $persentaseHadir = round(($totalHadir / $hariEfektif) * 100, 1);
+            $persentaseTidakHadir = round(100 - $persentaseHadir, 1);
+            $persentaseTepatWaktu = round(($totalTepatWaktu / $hariEfektif) * 100, 1);
+            $persentaseTerlambat = round(100 - $persentaseTepatWaktu, 1);
+        } else {
+            $persentaseHadir = 0;
+            $persentaseTidakHadir = 0;
+            $persentaseTepatWaktu = 0;
+            $persentaseTerlambat = 0;
+        }
+
+        return [
+            'persentaseHadir' => $persentaseHadir,
+            'persentaseTidakHadir' => $persentaseTidakHadir,
+            'persentaseTepatWaktu' => $persentaseTepatWaktu,
+            'persentaseTerlambat' => $persentaseTerlambat,
+            'anggotaKelas' => $anggotaKelas,
+            'presensi' => $presensi,
+            'tanggal_tercatat' => $tanggal_tercatat,
+        ];
     }
 }

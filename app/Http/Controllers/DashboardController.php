@@ -4,11 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Agenda;
 use App\Models\AnggotaKelas;
+use App\Models\BulanSpp;
 use App\Models\Guru;
 use App\Models\Kelas;
 use App\Models\Pengumuman;
+use App\Models\Presensi;
 use App\Models\Siswa;
 use App\Models\TahunAjaran;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -64,7 +67,46 @@ class DashboardController extends Controller
                     'color' => $color,
                 ];
             });
-            return view('dashboard.siswa', compact('agenda','pengumuman'));
+            $tahunAjaran=TahunAjaran::latest()->first();
+            $daftarBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+            $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+                ->where('guru_nipy', Auth::user()->email)
+                ->first();
+
+            $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->pluck('id');
+
+            $presensiAll = Presensi::whereIn('anggota_kelas_id', $anggotaKelas)->get();
+
+            $dataChart = [];
+
+            foreach ($daftarBulan as $bulan) {
+                $tanggalAwal = Carbon::parse($bulan->bulan_angka)->startOfMonth();
+                $tanggalAkhir = Carbon::parse($bulan->bulan_angka)->endOfMonth();
+
+                $presensiBulan = $presensiAll->filter(function ($p) use ($tanggalAwal, $tanggalAkhir) {
+                    return Carbon::parse($p->tanggal)->between($tanggalAwal, $tanggalAkhir);
+                });
+                $hariEfektif = $presensiBulan->count();
+
+                $dataTepatWaktu = $presensiBulan->where('terlambat',FALSE)->count();
+
+                $dataHadir = $presensiBulan->where('status','hadir')->count();
+                $totalTepatWaktu = $hariEfektif > 0
+                ? round(($dataTepatWaktu / $hariEfektif) * 100, 1)
+                : 0;
+                $totalHadir = $hariEfektif > 0
+                ? round(($dataHadir / $hariEfektif) * 100, 1)
+                : 0;
+
+                $dataChart[] = [
+                    'name' => Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y'),
+                    'tepat_waktu' => $totalTepatWaktu,
+                    'hadir' => $totalHadir,
+                    'absen' => round(100 - $totalHadir, 1),
+                    'terlambat' => round(100 - $totalTepatWaktu, 1),
+                ];
+            }
+            return view('dashboard.siswa', compact('agenda','pengumuman','dataChart'));
         }  else {
             return response()->view('errors.403', [abort(403)], 403);
         }

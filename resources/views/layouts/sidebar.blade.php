@@ -291,6 +291,12 @@
                             </li>
                         </ul>
                     </li>
+                    <li>
+                        <a href="{{route('laporan.presensi.pekanan')}}" class="{{(request()->is('laporan/presensi-pekanan*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-graph"></i>
+                                Laporan Presensi
+                        </a>
+                    </li>
                 @endrole
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item" onclick="event.preventDefault();

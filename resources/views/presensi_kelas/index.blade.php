@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-smile icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Presensi {{ now()->translatedFormat('F Y') }}
+                <div>Presensi {{$bulan->nama_bulan}}
                     <div class="page-title-subheading">
                         Merupakan Presensi yang Berada di sekolah
                     </div>
@@ -56,6 +56,58 @@
                     </div>
                     <div class="widget-content-right">
                         <div class="widget-numbers"><span>{{$presensi->where('status', 'alpha')->count()}}</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card mb-3 widget-content"  style="border-bottom: 4px solid var(--yellow);"">
+                <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                        <div class="widget-heading">Pesentase Masuk</div>
+                        <div class="widget-subheading">Siswa yang hadir</div>
+                    </div>
+                    <div class="widget-content-right">
+                        <div class="widget-numbers"><span>{{$persentaseHadir}}%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card mb-3 widget-content"  style="border-bottom: 4px solid var(--yellow);"">
+                <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                        <div class="widget-heading">Pesentase Absen</div>
+                        <div class="widget-subheading">Siswa yang tidak hadir</div>
+                    </div>
+                    <div class="widget-content-right">
+                        <div class="widget-numbers"><span>{{$persentaseTidakHadir}}%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card mb-3 widget-content"  style="border-bottom: 4px solid var(--yellow);"">
+                <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                        <div class="widget-heading">Pesentase Tepat Waktu</div>
+                        <div class="widget-subheading">Siswa yang hadir</div>
+                    </div>
+                    <div class="widget-content-right">
+                        <div class="widget-numbers"><span>{{$persentaseTepatWaktu}}%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card mb-3 widget-content"  style="border-bottom: 4px solid var(--yellow);"">
+                <div class="widget-content-wrapper">
+                    <div class="widget-content-left">
+                        <div class="widget-heading">Pesentase Terlambat</div>
+                        <div class="widget-subheading">Siswa yang tidak hadir</div>
+                    </div>
+                    <div class="widget-content-right">
+                        <div class="widget-numbers"><span>{{$persentaseTerlambat}}%</span></div>
                     </div>
                 </div>
             </div>
