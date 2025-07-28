@@ -73,7 +73,9 @@ class AnggotaKelasController extends Controller
                         ->orWhere('pendamping_nipy', Auth::user()->email);
                 })->firstOrFail();
             if($kelas){
-                $anggotaKelas = AnggotaKelas::whereKelasId($kelas->id)->get();
+                $anggotaKelas = AnggotaKelas::with(['siswa.ekstrakurikuler', 'siswa.guru'])
+                    ->where('kelas_id', $kelas->id)
+                    ->get();
                 return view('anggota_kelas.index', compact('kelas','anggotaKelas'));
             }
         }

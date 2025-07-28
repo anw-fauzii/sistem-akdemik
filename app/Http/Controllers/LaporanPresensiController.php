@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnggotaKelas;
+use App\Models\BulanSpp;
 use App\Models\Presensi;
 use App\Models\Kelas;
 use App\Models\Siswa;
@@ -128,7 +129,7 @@ class LaporanPresensiController extends Controller
         return view('laporan.presensi.pekanan');
     }
 
-    public function cari(Request $request)
+    public function pekananCari(Request $request)
     {
         $tanggal = $request->tanggal;
         $tanggalCarbon = Carbon::parse($tanggal);
@@ -137,7 +138,6 @@ class LaporanPresensiController extends Controller
 
         $tanggalAwalBulan = Carbon::create($tahun, $bulan, 1);
         $seninPertama = $tanggalAwalBulan->copy()->startOfWeek(Carbon::MONDAY);
-        
         $pekanTanggal = collect();
         for ($pekan = 1; $pekan <= 5; $pekan++) {
             $start = $seninPertama->copy()->addWeeks($pekan - 1);
@@ -165,7 +165,7 @@ class LaporanPresensiController extends Controller
         $anggotaKelas = AnggotaKelas::whereIn('kelas_id', $kelasList->pluck('id'))->get()->groupBy('kelas_id');
 
         $presensis = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->flatten()->pluck('id'))
-            ->whereBetween('tanggal', [$seninPertama, $pekanTerakhir])
+            ->whereBetween('tanggal', [$pekanPertama, $pekanTerakhir])
             ->get()
             ->groupBy('anggota_kelas_id');
 
@@ -189,6 +189,124 @@ class LaporanPresensiController extends Controller
         }
         return view('laporan.presensi.pekanan',compact('dataChart','tahunAjaran','judul','tanggal'));
     }
+
+    public function bulanan()
+    {
+        $tahunAjaran = TahunAjaran::latest()->first();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+
+        if ($kelasList->isEmpty()) {
+            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+        }
+
+        $bulan = BulanSpp::latest()->first();
+        $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
+        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+        $statistikPerKelas = [];
+
+        foreach ($kelasList as $kelas) {
+            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter);
+
+            $statistikPerKelas[] = [
+                'kelas' => $kelas,
+                ...$statistik
+            ];
+        }
+
+        return view('laporan.presensi.bulanan', [
+            'bulan' => $bulan,
+            'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+            'statistikPerKelas' => $statistikPerKelas,
+        ]);
+    }
+
+    public function bulananShow($id)
+    {
+        $tahunAjaran = TahunAjaran::latest()->first();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+
+        if ($kelasList->isEmpty()) {
+            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+        }
+
+        $bulan = BulanSpp::findOrFail($id);
+        $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
+        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+        $statistikPerKelas = [];
+
+        foreach ($kelasList as $kelas) {
+            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter);
+
+            $statistikPerKelas[] = [
+                'kelas' => $kelas,
+                ...$statistik
+            ];
+        }
+
+        return view('laporan.presensi.bulanan', [
+            'bulan' => $bulan,
+            'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+            'statistikPerKelas' => $statistikPerKelas,
+        ]);
+    }
+
+
+    private function hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter)
+    {
+        $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
+
+        $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+                            ->whereMonth('tanggal', date('m', strtotime($bulanFilter)))
+                            ->whereYear('tanggal', date('Y', strtotime($bulanFilter)))
+                            ->get();
+
+        $tanggal_tercatat = $presensi->pluck('tanggal')
+            ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString())
+            ->unique()
+            ->sort()
+            ->values();
+
+        $hariEfektif = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->selectRaw('DATE(tanggal) as tgl')
+            ->distinct()
+            ->count();
+
+        $totalHadir = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->where('status', 'hadir')
+            ->count();
+
+        $totalTepatWaktu = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
+            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
+            ->where('terlambat', false)
+            ->count();
+
+        if ($hariEfektif > 0) {
+            $persentaseHadir = round(($totalHadir / $hariEfektif) * 100, 1);
+            $persentaseTidakHadir = round(100 - $persentaseHadir, 1);
+            $persentaseTepatWaktu = round(($totalTepatWaktu / $hariEfektif) * 100, 1);
+            $persentaseTerlambat = round(100 - $persentaseTepatWaktu, 1);
+        } else {
+            $persentaseHadir = 0;
+            $persentaseTidakHadir = 0;
+            $persentaseTepatWaktu = 0;
+            $persentaseTerlambat = 0;
+        }
+
+        return [
+            'persentaseHadir' => $persentaseHadir,
+            'persentaseTidakHadir' => $persentaseTidakHadir,
+            'persentaseTepatWaktu' => $persentaseTepatWaktu,
+            'persentaseTerlambat' => $persentaseTerlambat,
+            'anggotaKelas' => $anggotaKelas,
+            'presensi' => $presensi,
+            'tanggal_tercatat' => $tanggal_tercatat,
+        ];
+    }
+
 
     // public function simpanNantiButuhdatapresensiHariIni()
     // {

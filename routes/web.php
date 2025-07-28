@@ -9,6 +9,7 @@ use App\Http\Controllers\BerkebutuhanKhususController;
 use App\Http\Controllers\BulanSppController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkstrakurikulerController;
+use App\Http\Controllers\ExportPdfController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JemputanController;
 use App\Http\Controllers\JenjangPendidikanController;
@@ -109,7 +110,11 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/laporan/presensi', [LaporanPresensiController::class, 'index'])->name('laporan.presensi.index');
     Route::get('/laporan/ambil-data-harian', [LaporanPresensiController::class, 'ambilHariIni'])->name('laporan.presensi.ambil_harian');
     Route::get('/laporan/presensi-pekanan', [LaporanPresensiController::class, 'pekanan'])->name('laporan.presensi.pekanan');
-    Route::post('/laporan/presensi-pekanan/cari', [LaporanPresensiController::class, 'cari'])->name('laporan.presensi.pekanan.cari');
+    Route::post('/laporan/presensi-pekanan/cari', [LaporanPresensiController::class, 'pekananCari'])->name('laporan.presensi.pekanan.cari');
+    Route::get('/laporan/presensi-bulanan', [LaporanPresensiController::class, 'bulanan'])->name('laporan.presensi.bulanan');
+    Route::get('/laporan/presensi-bulanan/{id}', [LaporanPresensiController::class, 'bulananShow'])->name('laporan.presensi.bulanan.show');
+    Route::get('/pdf-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananPdf'])->name('export.laporan.bulanan.pdf');
+    Route::get('/excel-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananExcel'])->name('export.laporan.bulanan.excel');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

@@ -437,9 +437,6 @@ class KeuanganController extends Controller
     public function callback(Request $request)
     {
         $serverKey = config('services.midtrans.server_key');
-        Log::info('Midtrans callback diterima', [
-            'payload' => $request->all()
-        ]);
         $signatureKey = $request->input('signature_key');
         $orderId = $request->input('order_id');
         $statusCode = $request->input('status_code');

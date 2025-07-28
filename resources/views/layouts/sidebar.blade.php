@@ -292,10 +292,23 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="{{route('laporan.presensi.pekanan')}}" class="{{(request()->is('laporan/presensi-pekanan*')) ? 'mm-active' : ''}}">
-                            <i class="metismenu-icon pe-7s-graph"></i>
-                                Laporan Presensi
+                        <a href="#" class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-graph2"></i>
+                            Laporan 
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                         </a>
+                        <ul class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-show' : ''}}">
+                            <li>
+                                <a href="{{route('laporan.presensi.pekanan')}}" class="{{(request()->is('laporan/presensi-pekanan*')) ? 'mm-active' : ''}}">
+                                    Pekanan
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('laporan.presensi.bulanan')}}" class="{{(request()->is('laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
+                                    Bulanan
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                 @endrole
                 <li>
