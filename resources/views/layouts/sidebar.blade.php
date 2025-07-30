@@ -265,7 +265,27 @@
                         </a>
                     </li>
                 @endrole
-                @role('guru')
+                @role(['guru_tk'])
+                    <li>
+                        <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-users"></i>
+                                Peserta Didik
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('data-kesehatan.index')}}" class="{{(request()->is('data-kesehatan*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-smile"></i>
+                                Data Kesehatan
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{route('kelas.pgtk.index.kelas')}}" class="{{(request()->is('kelas-pg-tk*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-smile"></i>
+                                Kelas
+                        </a>
+                    </li>
+                @endrole
+                @role('guru_sd')
                     <li>
                         <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-users"></i>

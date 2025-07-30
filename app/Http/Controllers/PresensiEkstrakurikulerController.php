@@ -15,7 +15,7 @@ class PresensiEkstrakurikulerController extends Controller
 {
     public function index(Request $request)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahunAjaran->id)
                         ->where('guru_nipy', Auth::user()->email)
@@ -40,7 +40,7 @@ class PresensiEkstrakurikulerController extends Controller
 
     public function create()
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahun_ajaran->id)
                         ->where('guru_nipy', Auth::user()->email)
@@ -58,7 +58,7 @@ class PresensiEkstrakurikulerController extends Controller
 
     public function store(Request $request)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $request->validate([
                 'tanggal' => 'required|date',
                 'presensi' => 'required|array', 
@@ -83,7 +83,7 @@ class PresensiEkstrakurikulerController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             $bulan = BulanSpp::findOrFail($id);

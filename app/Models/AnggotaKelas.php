@@ -59,4 +59,9 @@ class AnggotaKelas extends Model
     {
         return $this->hasOne(AnggotaJemputan::class);
     }
+
+    public function dataKesehatan()
+    {
+        return $this->hasOne(Kesehatan::class);
+    }
 }

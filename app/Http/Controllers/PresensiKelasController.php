@@ -17,7 +17,7 @@ class PresensiKelasController extends Controller
 {
     public function index(Request $request)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
                         ->where('guru_nipy', Auth::user()->email)
@@ -46,7 +46,7 @@ class PresensiKelasController extends Controller
 
     public function create()
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)
                         ->where('guru_nipy', Auth::user()->email)
@@ -64,7 +64,7 @@ class PresensiKelasController extends Controller
 
     public function store(Request $request)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $request->validate([
                 'tanggal' => 'required|date',
                 'presensi' => 'array',
@@ -112,7 +112,7 @@ class PresensiKelasController extends Controller
 
     public function edit($id)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahun_ajaran = TahunAjaran::latest()->first();
             $kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)
                         ->where('guru_nipy', Auth::user()->email)
@@ -134,7 +134,7 @@ class PresensiKelasController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('guru')) {
+        if (user()?->hasRole('guru_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $bulan = BulanSpp::findOrFail($id);
             $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');

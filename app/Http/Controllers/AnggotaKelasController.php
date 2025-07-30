@@ -65,7 +65,7 @@ class AnggotaKelasController extends Controller
     }
 
     public function index(){
-        if(user()->hasRole('guru')){
+        if(user()->hasAnyRole(['guru_sd','guru_tk'])){
             $tahunAjaran = TahunAjaran::latest()->first();
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
                 ->where(function ($query) {

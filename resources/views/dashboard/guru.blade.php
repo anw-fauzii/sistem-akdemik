@@ -21,7 +21,21 @@
             </div>
         </div>
     </div>
+@php
+    $categories = [];
+    $tepatWaktu = [];
+    $terlambat = [];
+    $hadir = [];
+    $absen = [];
 
+    foreach ($dataChart as $item) {
+        $categories[] = $item['name'];
+        $tepatWaktu[] = $item['tepat_waktu'];
+        $terlambat[] = $item['terlambat'];
+        $hadir[] = $item['hadir'];
+        $absen[] = $item['absen'];
+    }
+@endphp
     <div class="row">
         <div class="col-md-5">
             <div class="card mb-3">
@@ -59,7 +73,7 @@
                     Pengumuman
                 </div>
                 <div class="card-body">
-                    <div id="chart-kesehatan" style="position: relative; z-index: 2; padding: 35px 40px 40px;"></div>
+                    <div id="chart-container" style="position: relative; z-index: 2; padding: 35px 40px 40px;"></div>
                 </div>
             </div>
         </div>
@@ -79,40 +93,66 @@
 
 @section('js')
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js'></script>
     <script>
-        Highcharts.chart('chart-kesehatan', {
+        Highcharts.chart('chart-container', {
             chart: {
-                type: 'line'
+                type: 'column',
+                height: 350,
+                backgroundColor: 'transparent'
             },
             title: {
-                text: 'Riwayat Pertumbuhan'
+                text: 'Statistik Kehadiran & Ketepatan Waktu Siswa'
             },
             xAxis: {
-                categories: {!! json_encode($bulanLabels) !!},
-                title: {
-                    text: 'Bulan'
-                }
+                categories: {!! json_encode($categories) !!}
             },
             yAxis: {
+                min: 0,
+                max: 120,
                 title: {
-                    text: 'Nilai (cm / kg)'
+                    text: 'Persentase (%)'
                 }
             },
             tooltip: {
-                shared: true,
-                valueSuffix: ''
+                pointFormat: '{series.name}: <b>{point.y}%</b><br/>'
             },
-            series: [{
-                name: 'Tinggi Badan (cm)',
-                data: {!! json_encode($tbData) !!},
-                color: '#007bff'
-            }, {
-                name: 'Berat Badan (kg)',
-                data: {!! json_encode($bbData) !!},
-                color: '#dc3545'
-            }]
+            plotOptions: {
+                column: {
+                    stacking: 'normal',
+                }
+            },
+            credits: {
+                enabled: false
+            },
+            series: [
+                {
+                    name: 'Tepat Waktu',
+                    data: {!! json_encode($tepatWaktu) !!},
+                    stack: 'ketepatan',
+                    color: '#28a745'
+                },
+                {
+                    name: 'Terlambat',
+                    data: {!! json_encode($terlambat) !!},
+                    stack: 'ketepatan',
+                    color: '#dc3545'
+                },
+                {
+                    name: 'Hadir',
+                    data: {!! json_encode($hadir) !!},
+                    stack: 'kehadiran',
+                    color: '#007bff'
+                },
+                {
+                    name: 'Absen',
+                    data: {!! json_encode($absen) !!},
+                    stack: 'kehadiran',
+                    color: '#fd7e14'
+                }
+            ]
         });
     </script>
 

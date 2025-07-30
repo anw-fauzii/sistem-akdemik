@@ -18,4 +18,9 @@ class TahunAjaran extends Model
     {
         return $this->hasMany(Kelas::class, 'tahun_ajaran_id');
     }
+    
+    public function bulanSpp()
+    {
+        return $this->hasMany(BulanSpp::class, 'tahun_ajaran_id');
+    }
 }

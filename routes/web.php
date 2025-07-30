@@ -33,9 +33,10 @@ use App\Http\Controllers\SiswaController;
 use App\Http\Controllers\TagihanTahunanController;
 use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\TarifSppController;
+use App\Http\Controllers\TK\KesehatanController as TkKesehatanController;
+use App\Http\Controllers\Puskesmas\KesehatanController as PuskesmasKesehatanController;
 use App\Http\Controllers\TransportasiController;
 use App\Http\Controllers\UserController;
-use App\Models\PembayaranJemputan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -115,6 +116,11 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/laporan/presensi-bulanan/{id}', [LaporanPresensiController::class, 'bulananShow'])->name('laporan.presensi.bulanan.show');
     Route::get('/pdf-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananPdf'])->name('export.laporan.bulanan.pdf');
     Route::get('/excel-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananExcel'])->name('export.laporan.bulanan.excel');
+    Route::resource('/data-kesehatan', TkKesehatanController::class);
+    Route::get('/kelas-pg-tk',[PuskesmasKesehatanController::class, 'indexKelas'])->name('kelas.pgtk.index.kelas');
+    Route::get('/kelas-pg-tk/{id}',[PuskesmasKesehatanController::class, 'showKelas'])->name('kelas.pgtk.show.kelas');
+    Route::get('/kelas-pg-tk/detail/{bulan_spp_id}/{kelas_id}',[PuskesmasKesehatanController::class, 'detailKelas'])->name('kelas.pgtk.detail.kelas');
+    Route::get('/kelas-pg-tk/detail/{bulan_spp_id}/{kelas_id}/edit',[PuskesmasKesehatanController::class, 'editKelas'])->name('kelas.pgtk.edit.kelas');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

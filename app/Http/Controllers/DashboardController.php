@@ -7,6 +7,7 @@ use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Guru;
 use App\Models\Kelas;
+use App\Models\Kesehatan;
 use App\Models\Pengumuman;
 use App\Models\Presensi;
 use App\Models\Siswa;
@@ -45,8 +46,13 @@ class DashboardController extends Controller
             return view('dashboard.admin', compact('siswa_sd','siswa_tk','kelas','guru', 'agenda'));
         } 
         elseif (user()?->hasRole('siswa')) {
+            $tahunAjaran = TahunAjaran::latest()->first();
+            $kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
+                ->whereHas('kelas', function ($query) use ($tahunAjaran) {
+                    $query->where('tahun_ajaran_id', $tahunAjaran->id);
+                })
+                ->first();
             $pengumuman = Pengumuman::orderBy('id', 'desc')->take(3)->get();
-            $kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)->firstOrFail();
             $agenda = Agenda::whereUnit($kelas->kelas->jenjang)->get()->map(function ($agenda) {
                 $color = $agenda->unit === 'SD' ? '#007bff' : '#f39c12';
                 return [
@@ -55,8 +61,23 @@ class DashboardController extends Controller
                     'color' => $color,
                 ];
             });
-            return view('dashboard.siswa', compact('agenda','pengumuman'));
-        }elseif (user()?->hasRole('guru')) {
+            $riwayatKesehatan = Kesehatan::where('anggota_kelas_id', $kelas->id)
+                ->with('bulanSpp')
+                ->orderBy('bulan_spp_id')
+                ->get();
+            
+            $bulanLabels = $riwayatKesehatan->map(fn($k) => $k->bulanSpp->nama_bulan);
+            $tbData = $riwayatKesehatan->pluck('tb')->map(function ($val) {
+                return is_numeric($val) ? (float) $val : 0;
+            })->values()->all();
+
+            $bbData = $riwayatKesehatan->pluck('bb')->map(function ($val) {
+                return is_numeric($val) ? (float) $val : 0;
+            })->values()->all();
+
+
+            return view('dashboard.siswa', compact('agenda','pengumuman','bulanLabels', 'tbData', 'bbData'));
+        }elseif (user()?->hasAnyRole(['guru_sd','guru_tk'])) {
             $pengumuman = Pengumuman::orderBy('id', 'desc')->take(3)->get();
             $guru = Guru::findOrFail(Auth::user()->email);
             $agenda = Agenda::whereUnit($guru->unit)->get()->map(function ($agenda) {
@@ -106,7 +127,7 @@ class DashboardController extends Controller
                     'terlambat' => round(100 - $totalTepatWaktu, 1),
                 ];
             }
-            return view('dashboard.siswa', compact('agenda','pengumuman','dataChart'));
+            return view('dashboard.guru', compact('agenda','pengumuman','dataChart'));
         }  else {
             return response()->view('errors.403', [abort(403)], 403);
         }
