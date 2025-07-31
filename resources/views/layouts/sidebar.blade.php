@@ -259,6 +259,12 @@
                         </ul>
                     </li>
                     <li>
+                        <a href="{{route('kesehatan-siswa.index')}}" class="{{(request()->is('kesehatan-siswa*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-smile"></i>
+                                Data Kesehatan
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{route('qr-code.index')}}" class="{{(request()->is('QR-Code*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-keypad"></i>
                                 QR Code

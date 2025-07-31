@@ -22,6 +22,7 @@ use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
 use App\Http\Controllers\PengumumanController;
+use App\Http\Controllers\PesertaDidik\KesehatanController as PesertaDidikKesehatanController;
 use App\Http\Controllers\PesertaDidik\KeuanganController;
 use App\Http\Controllers\PesertaDidik\KeuanganTahunanController;
 use App\Http\Controllers\PesertaDidik\PresensiController;
@@ -121,6 +122,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/kelas-pg-tk/{id}',[PuskesmasKesehatanController::class, 'showKelas'])->name('kelas.pgtk.show.kelas');
     Route::get('/kelas-pg-tk/detail/{bulan_spp_id}/{kelas_id}',[PuskesmasKesehatanController::class, 'detailKelas'])->name('kelas.pgtk.detail.kelas');
     Route::get('/kelas-pg-tk/detail/{bulan_spp_id}/{kelas_id}/edit',[PuskesmasKesehatanController::class, 'editKelas'])->name('kelas.pgtk.edit.kelas');
+
+    Route::resource('/kesehatan-siswa', PesertaDidikKesehatanController::class)->only(['index','show']);
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

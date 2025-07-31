@@ -25,7 +25,7 @@ class PresensiController extends Controller
             if (!$anggotaKelas) {
                 return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
             }
-            $bulan = $request->bulan ?? now()->format('Y-m'); 
+            $bulan = BulanSpp::latest()->first(); 
             $presensi = Presensi::where('anggota_kelas_id', $anggotaKelas->id)
                                 ->whereMonth('tanggal', date('m', strtotime($bulan)))
                                 ->whereYear('tanggal', date('Y', strtotime($bulan)))

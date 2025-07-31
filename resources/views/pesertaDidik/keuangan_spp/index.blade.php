@@ -79,15 +79,10 @@
                                     </thead>
                                     <tbody>
                                         @php
-                                            if($tagihan_spp->count() === 6){
-                                                $filteredTagihan = $tagihan_spp;
-                                            }else{
-                                                $filteredTagihan = $tagihan_spp->slice(0, count($tagihan_spp) - 1);
-                                            }
-                                            
                                             $no = 1;
                                         @endphp
-                                        @foreach ($filteredTagihan as $tagihan)
+
+                                        @forelse ($tagihan_spp as $tagihan)
                                             <tr>
                                                 <td>{{ $no++ }}</td>
                                                 <td>{{ $tagihan->nama_bulan }}</td>
@@ -107,11 +102,15 @@
                                                     @endif
                                                 </td>
                                             </tr>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="9" class="text-center">Data Belum tersedia</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
-                            <!-- Tampilan list/card untuk mobile -->
+                            
                             <div class="d-block d-md-none" >
                                 @php $no = 1; @endphp
                                 @foreach ($tagihan_spp as $tagihan)

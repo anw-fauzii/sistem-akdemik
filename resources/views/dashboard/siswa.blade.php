@@ -56,7 +56,7 @@
         <div class="col-md-7">
             <div class="card mb-3">
                 <div class="card-header bg-primary text-white">
-                    Pengumuman
+                    Grafik Pertumbuhan
                 </div>
                 <div class="card-body">
                     <div id="chart-kesehatan" style="position: relative; z-index: 2; padding: 35px 40px 40px;"></div>
@@ -87,7 +87,7 @@
                 type: 'line'
             },
             title: {
-                text: 'Riwayat Pertumbuhan'
+                text: ''
             },
             xAxis: {
                 categories: {!! json_encode($bulanLabels) !!},

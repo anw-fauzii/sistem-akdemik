@@ -62,7 +62,7 @@
                 <div class="col-md-6">
                     <div class="section-title">🧑‍🎓 Data Diri</div>
                     <table class="table table-borderless table-profile">
-                        <tr><td>No. Kartu Keluarga</td><td>: {{ $data->no_kk }}</td></tr>
+                        <tr><td>No. Kartu Keluarga</td><td>: {{ $data->no_kk ?? '-' }}</td></tr>
                         <tr><td>NIK</td><td>: {{ $data->nik }}</td></tr>
                         <tr><td>Akta Kelahiran</td><td>: {{ $data->akta_lahir ?? '-' }}</td></tr>
                         <tr><td>Jenis Kelamin</td><td>: {{ $data->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</td></tr>
@@ -75,9 +75,9 @@
                 <div class="col-md-6">
                     <div class="section-title">☎️ Kontak</div>
                     <table class="table table-borderless table-profile">
-                        <tr><td>No HP</td><td>: {{ $data->nomor_hp }}</td></tr>
-                        <tr><td>Whatsapp</td><td>: {{ $data->whatsapp }}</td></tr>
-                        <tr><td>Email</td><td>: {{ $data->email }}</td></tr>
+                        <tr><td>No HP</td><td>: {{ $data->nomor_hp ?? '-' }}</td></tr>
+                        <tr><td>Whatsapp</td><td>: {{ $data->whatsapp ?? '-' }}</td></tr>
+                        <tr><td>Email</td><td>: {{ $data->email ?? '-' }}</td></tr>
                     </table>
                 </div>
             </div>
@@ -91,24 +91,24 @@
 
                 <div class="{{ $colClass }}">
                     <table class="table table-borderless table-profile">
-                        <tr><td>NIK Ayah</td><td>: {{ $data->nik_ayah }}</td></tr>
-                        <tr><td>Nama Ayah</td><td>: {{ $data->nama_ayah }}</td></tr>
-                        <tr><td>Tahun Lahir Ayah</td><td>: {{ $data->lahir_ayah }}</td></tr>
-                        <tr><td>Pekerjaan Ayah</td><td>: {{ $data->pekerjaan_ayah->nama_pekerjaan }}</td></tr>
-                        <tr><td>Penghasilan Ayah</td><td>: {{ $data->penghasilan_ayah->nama_penghasilan }}</td></tr>
-                        <tr><td>Berkebutuhan Khusus</td><td>: {{ $data->berkebutuhan_khusus_ayah->nama_berkebutuhan_khusus }}</td></tr>
-                        <tr><td>Pendidikan Terakhir</td><td>: {{ $data->jenjang_pendidikan_ayah->nama_jenjang_pendidikan}}</td></tr>
+                        <tr><td>NIK Ayah</td><td>: {{ $data->nik_ayah ?? '-' }}</td></tr>
+                        <tr><td>Nama Ayah</td><td>: {{ $data->nama_ayah ?? '-' }}</td></tr>
+                        <tr><td>Tahun Lahir Ayah</td><td>: {{ $data->lahir_ayah ?? '-' }}</td></tr>
+                        <tr><td>Pekerjaan Ayah</td><td>: {{ $data->pekerjaan_ayah?->nama_pekerjaan ?? '-' }}</td></tr>
+                        <tr><td>Penghasilan Ayah</td><td>: {{ $data->penghasilan_ayah?->nama_penghasilan ?? '-' }}</td></tr>
+                        <tr><td>Berkebutuhan Khusus</td><td>: {{ $data->berkebutuhan_khusus_ayah?->nama_berkebutuhan_khusus ?? '-' }}</td></tr>
+                        <tr><td>Pendidikan Terakhir</td><td>: {{ $data->jenjang_pendidikan_ayah?->nama_jenjang_pendidikan ?? '-'}}</td></tr>
                     </table>
                 </div>
                 <div class="{{ $colClass }}">
                     <table class="table table-borderless table-profile">
-                        <tr><td>NIK Ibu</td><td>: {{ $data->nik_ibu }}</td></tr>
-                        <tr><td>Nama Ibu</td><td>: {{ $data->nama_ibu }}</td></tr>
-                        <tr><td>Tahun Lahir Ibu</td><td>: {{ $data->lahir_ibu }}</td></tr>
-                        <tr><td>Pekerjaan Ibu</td><td>: {{ $data->pekerjaan_ibu->nama_pekerjaan }}</td></tr>
-                        <tr><td>Penghasilan Ibu</td><td>: {{ $data->penghasilan_ibu->nama_penghasilan }}</td></tr>
-                        <tr><td>Berkebutuhan Khusus</td><td>: {{ $data->berkebutuhan_khusus_ibu->nama_berkebutuhan_khusus }}</td></tr>
-                        <tr><td>Pendidikan Terakhir</td><td>: {{ $data->jenjang_pendidikan_ibu->nama_jenjang_pendidikan}}</td></tr>
+                        <tr><td>NIK Ibu</td><td>: {{ $data->nik_ibu ?? '-' }}</td></tr>
+                        <tr><td>Nama Ibu</td><td>: {{ $data->nama_ibu ?? '-' }}</td></tr>
+                        <tr><td>Tahun Lahir Ibu</td><td>: {{ $data->lahir_ibu ?? '-' }}</td></tr>
+                        <tr><td>Pekerjaan Ibu</td><td>: {{ $data->pekerjaan_ibu?->nama_pekerjaan ?? '-' }}</td></tr>
+                        <tr><td>Penghasilan Ibu</td><td>: {{ $data->penghasilan_ibu?->nama_penghasilan ?? '-' }}</td></tr>
+                        <tr><td>Berkebutuhan Khusus</td><td>: {{ $data->berkebutuhan_khusus_ibu?->nama_berkebutuhan_khusus ?? '-' }}</td></tr>
+                        <tr><td>Pendidikan Terakhir</td><td>: {{ $data->jenjang_pendidikan_ibu?->nama_jenjang_pendidikan ?? '-' }}</td></tr>
                     </table>
                 </div>
                 @if ($data->nik_wali && $data->nama_wali)
@@ -136,13 +136,13 @@
                         @if (!empty($data->rt)) RT {{ $data->rt }} @endif
                         @if (!empty($data->rw)) RW {{ $data->rw }} @endif
                         </td></tr>
-                        <tr><td>Desa/Kelurahan</td><td>: {{ $data->desa }}</td></tr>
-                        <tr><td>Kecamatan</td><td>: {{ $data->kecamatan }}</td></tr>
-                        <tr><td>Kota/Kabupaten</td><td>: {{ $data->kabupaten }}</td></tr>
-                        <tr><td>Provinsi</td><td>: {{ $data->provinsi }}</td></tr>
-                        <tr><td>Kode Pos</td><td>: {{ $data->kode_pos }}</td></tr>
-                        <tr><td>Nama Negara</td><td>: {{ $data->nama_negara }}</td></tr>
-                        <tr><td>Kewarganegaraan</td><td>: {{ $data->kewarganegaraan }}</td></tr>
+                        <tr><td>Desa/Kelurahan</td><td>: {{ $data->desa ?? '-' }}</td></tr>
+                        <tr><td>Kecamatan</td><td>: {{ $data->kecamatan ?? '-' }}</td></tr>
+                        <tr><td>Kota/Kabupaten</td><td>: {{ $data->kabupaten ?? '-' }}</td></tr>
+                        <tr><td>Provinsi</td><td>: {{ $data->provinsi ?? '-' }}</td></tr>
+                        <tr><td>Kode Pos</td><td>: {{ $data->kode_pos ?? '-' }}</td></tr>
+                        <tr><td>Nama Negara</td><td>: {{ $data->nama_negara ?? '-' }}</td></tr>
+                        <tr><td>Kewarganegaraan</td><td>: {{ $data->kewarganegaraan ?? '-' }}</td></tr>
                         <tr><td>Bujur</td><td>: {{ $data->bujur ?? '-' }}</td></tr>
                         <tr><td>Lintang</td><td>: {{ $data->lintang ?? '-' }}</td></tr>
 

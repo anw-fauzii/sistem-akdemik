@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-clock icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>Presensi Kehadiran {{ now()->translatedFormat('F Y') }}
+                <div>Presensi Kehadiran {{ $bulan->nama_bulan }}
                     <div class="page-title-subheading">
                         Rekap presensi kehadiran siswa
                     </div>
@@ -105,7 +105,7 @@
                     <tbody>
                         @if ($tanggal_tercatat->isEmpty()) 
                         <tr>
-                            <td colspan="3" class="text-center">Belum ada data </td>
+                            <td colspan="4" class="text-center">Belum ada data </td>
                         </tr>
                         @else
                         @php
