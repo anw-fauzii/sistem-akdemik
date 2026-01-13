@@ -32,6 +32,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>NIS/NISN</th>
                             <th>Nama Siswa</th>
                             <th>Aksi</th>
                         </tr>
@@ -43,6 +44,7 @@
                         @forelse ($anggota_kelas as $item)
                             <tr>
                                 <td>{{$no++}}</td>
+                                <td>{{$item->siswa->nis}}/{{$item->siswa->nisn}}</td>
                                 <td>{{$item->siswa->nama_lengkap}}</td>
                                 <td class="d-flex">
                                     <form action="{{ route('anggota-kelas.destroy', $item->id) }}" method="POST" class="delete-form">
@@ -74,7 +76,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                buttonsStyling: false, // Mematikan styling default
+                buttonsStyling: false, 
                 customClass: {
                     confirmButton: 'btn-swal-confirm',
                     cancelButton: 'btn-swal-cancel'

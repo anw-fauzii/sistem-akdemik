@@ -15,7 +15,7 @@ class PresensiController extends Controller
 {
     public function index(Request $request)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                         ->whereHas('kelas', function ($query) use ($tahunAjaran) {
@@ -41,7 +41,7 @@ class PresensiController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             $bulan = BulanSpp::findOrFail($id);

@@ -31,6 +31,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>NIS/NISN</th>
                             <th>Nama Siswa</th>
                             <th>Ekstrakurikuler</th>
                             <th>T2Q</th>
@@ -44,6 +45,7 @@
                         @forelse ($anggotaKelas as $item)
                             <tr>
                                 <td>{{$no++}}</td>
+                                <td>{{$item->siswa->nis}}/{{$item->siswa->nisn ?? '-'}}</td>
                                 <td>{{$item->siswa->nama_lengkap}}</td>
                                 <td>
                                     @if ($item->siswa->ekstrakurikuler_id == NULL)

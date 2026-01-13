@@ -138,6 +138,25 @@
                             </li>
                         </ul>
                     </li>
+                    <li>
+                        <a href="#" class="{{(request()->is('kategori-mata-pelajaran*','daftar-mata-pelajaran*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-science"></i>
+                            Mata Pelajaran
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul class="{{(request()->is('kategori-mata-pelajaran*','daftar-mata-pelajaran*')) ? 'mm-show' : ''}}">
+                            <li>
+                                <a href="{{route('kategori-mata-pelajaran.index')}}" class="{{(request()->is('kategori-mata-pelajaran*')) ? 'mm-active' : ''}}">
+                                    Kategori
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('daftar-mata-pelajaran.index')}}" class="{{(request()->is('daftar-mata-pelajaran*')) ? 'mm-active' : ''}}">
+                                    Detail
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="app-sidebar__heading">Keuangan</li>
                     <li>
                         <a href="#" class="{{(request()->is('tarif-spp*', 'bulan-spp*','tagihan-tahunan*')) ? 'mm-active' : ''}}">
@@ -207,13 +226,13 @@
                         </ul>
                     </li>
                     <li>
-                    <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi')) ? 'mm-active' : ''}}">
-                        <i class="metismenu-icon pe-7s-home"></i>
-                            Laporan Presensi
-                    </a>
-                </li>
+                        <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-home"></i>
+                                Laporan Presensi
+                        </a>
+                    </li>
                 @endrole
-                @role('siswa')
+                @role(['siswa_sd','siswa_tk'])
                     <li>
                         <a href="#" class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-user"></i>
@@ -233,6 +252,14 @@
                             </li>
                         </ul>
                     </li>
+                    <li>
+                        <a href="{{route('qr-code.index')}}" class="{{(request()->is('QR-Code*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-keypad"></i>
+                                QR Code
+                        </a>
+                    </li>
+                @endrole
+                @role('siswa_sd')
                     <li>
                         <a href="{{route('presensi.index')}}" class="{{(request()->is('presensi*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-clock"></i>
@@ -258,16 +285,12 @@
                             </li>
                         </ul>
                     </li>
+                @endrole
+                @role('siswa_tk')
                     <li>
                         <a href="{{route('kesehatan-siswa.index')}}" class="{{(request()->is('kesehatan-siswa*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-smile"></i>
                                 Data Kesehatan
-                        </a>
-                    </li>
-                    <li>
-                        <a href="{{route('qr-code.index')}}" class="{{(request()->is('QR-Code*')) ? 'mm-active' : ''}}">
-                            <i class="metismenu-icon pe-7s-keypad"></i>
-                                QR Code
                         </a>
                     </li>
                 @endrole
@@ -284,6 +307,8 @@
                                 Data Kesehatan
                         </a>
                     </li>
+                @endrole
+                @role(['puskesmas'])
                     <li>
                         <a href="{{route('kelas.pgtk.index.kelas')}}" class="{{(request()->is('kelas-pg-tk*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-smile"></i>
@@ -332,6 +357,30 @@
                             <li>
                                 <a href="{{route('laporan.presensi.bulanan')}}" class="{{(request()->is('laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
                                     Bulanan
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="#" class="{{(request()->is('administrasi-guru*','administrasi-kelas*','administrasi-rapot*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-portfolio"></i>
+                            Administrasi 
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul class="{{(request()->is('administrasi-guru*','administrasi-kelas*','adminstrasi-rapot*')) ? 'mm-show' : ''}}">
+                            <li>
+                                <a href="{{route('administrasi-guru.index')}}" class="{{(request()->is('administrasi-guru*')) ? 'mm-active' : ''}}">
+                                    Pribadi
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('administrasi-kelas.index')}}" class="{{(request()->is('administrasi-kelas*')) ? 'mm-active' : ''}}">
+                                    Kelas
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('administrasi-rapot.index')}}" class="{{(request()->is('administrasi-rapot*')) ? 'mm-active' : ''}}">
+                                    Rapot
                                 </a>
                             </li>
                         </ul>

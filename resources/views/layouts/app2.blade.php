@@ -38,11 +38,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" integrity="sha512-RXf+QSDCUQs5uwRKaDoXt55jygZZm2V++WUZduaU/Ui/9EGp3f/2KZVahFZBKGH0s774sd3HmrhUy+SgOFQLVQ==" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     @stack('css')
 </head>
 <body>
+    <div id="loadingOverlay" class="loader-overlay d-none">
+        <div class="loader-content">
+            <div class="loader"></div>
+            <p class="loader-text">Proses sedang berlangsung, Jangan tinggalkan halaman ini...</p>
+        </div>
+    </div>
+
     <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
         @include('layouts.navbar')             
         <div class="app-main">
@@ -91,6 +99,15 @@
         $('#myTable5').dataTable({ 
             "ordering": true,
             "processing": true,
+            "lengthMenu": [
+            [ 25, 50, 100, 1000, -1 ],
+            [ '25', '50', '100', '1000', 'All' ]
+        ],
+        });
+        $('#myTable6').dataTable({ 
+            "ordering": false,
+            "processing": false,
+            "searching":false,
             "lengthMenu": [
             [ 25, 50, 100, 1000, -1 ],
             [ '25', '50', '100', '1000', 'All' ]

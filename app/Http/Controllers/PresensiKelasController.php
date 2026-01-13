@@ -20,8 +20,10 @@ class PresensiKelasController extends Controller
         if (user()?->hasRole('guru_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
+                ->where(function ($query) {
+                    $query->where('guru_nipy', Auth::user()->email)
+                        ->orWhere('pendamping_nipy', Auth::user()->email);
+                })->firstOrFail();
             $kelas_id = $kelas->id;
             if (!$kelas) {
                 return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
@@ -139,8 +141,10 @@ class PresensiKelasController extends Controller
             $bulan = BulanSpp::findOrFail($id);
             $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
+                ->where(function ($query) {
+                    $query->where('guru_nipy', Auth::user()->email)
+                        ->orWhere('pendamping_nipy', Auth::user()->email);
+                })->firstOrFail();
             $kelas_id = $kelas->id;
             $tanggalAwal = Carbon::parse($bulan->bulan_angka);
             $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin\Informasi;
 
+use App\Http\Controllers\Controller;
 use App\Models\Pengumuman;
 use App\Models\TahunAjaran;
 use Illuminate\Http\Request;

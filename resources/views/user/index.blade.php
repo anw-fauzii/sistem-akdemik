@@ -68,7 +68,7 @@
                         <tr><td>Jenis Kelamin</td><td>: {{ $data->jenis_kelamin == 'L' ? 'Laki-laki' : 'Perempuan' }}</td></tr>
                         <tr><td>Tempat Lahir</td><td>: {{ $data->tempat_lahir }}</td></tr>
                         <tr><td>Tanggal Lahir</td><td>: {{ \Carbon\Carbon::parse($data->tanggal_lahir)->translatedFormat('d F Y') }}</td></tr>
-                        <tr><td>Tahun Masuk</td><td>: {{ $data->tarif_spp->tahun_masuk }}</td></tr>
+                        <tr><td>Tahun Masuk</td><td>: {{ $data->tarif_spp->tahun_masuk  ?? '-' }}</td></tr>
                         <tr><td>Jenis Pendaftaran</td><td>: {{ $data->jenis_pendaftaran == '1' ? 'Siswa Baru' : 'Pindahan' }}</td></tr>
                     </table>
                 </div>

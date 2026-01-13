@@ -22,7 +22,8 @@ class GuruImport implements ToCollection
                         'email' => $row[3],
                         'password' => Hash::make('pass1234'),
                     ]);
-                    $user->assignRole('guru');
+                    $user->assignRole('guru_tk');
+                        
                 }
 
                 $tanggal_lahir = null;

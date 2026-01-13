@@ -45,7 +45,7 @@ class DashboardController extends Controller
             $guru = Guru::whereStatus('1')->count();
             return view('dashboard.admin', compact('siswa_sd','siswa_tk','kelas','guru', 'agenda'));
         } 
-        elseif (user()?->hasRole('siswa')) {
+        elseif (user()?->hasAnyRole(['siswa_sd','siswa_tk'])) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $kelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                 ->whereHas('kelas', function ($query) use ($tahunAjaran) {
@@ -91,8 +91,10 @@ class DashboardController extends Controller
             $tahunAjaran=TahunAjaran::latest()->first();
             $daftarBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
             $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                ->where('guru_nipy', Auth::user()->email)
-                ->first();
+                ->where(function ($query) {
+                    $query->where('guru_nipy', Auth::user()->email)
+                        ->orWhere('pendamping_nipy', Auth::user()->email);
+                })->firstOrFail();
 
             $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->pluck('id');
 
@@ -128,6 +130,49 @@ class DashboardController extends Controller
                 ];
             }
             return view('dashboard.guru', compact('agenda','pengumuman','dataChart'));
+        } elseif (user()?->hasRole('puskesmas')) {
+            $bulanAktifId = BulanSpp::select('id')->latest()->first();
+            $kelasList = Kelas::with([
+                'anggotaKelas.dataKesehatan' => function ($query) use ($bulanAktifId) {
+                    $query->where('bulan_spp_id', $bulanAktifId->id);
+                }
+            ])->get();
+
+            $statistik = $kelasList->map(function ($kelas) use ($bulanAktifId) {
+                $total = 0;
+                $jumlah = 0;
+                $jumlahMasalah = 0;
+                $belumDiperiksa = 0;
+                $tbTotal = 0;
+                $bbTotal = 0;
+
+                foreach ($kelas->anggotaKelas as $anggota) {
+                    $kesehatan = $anggota->dataKesehatan;
+                    if ($kesehatan) {
+                        $jumlah++;
+                        $tbTotal += (float) $kesehatan->tb;
+                        $bbTotal += (float) $kesehatan->bb;
+                        if ($kesehatan->hasil !== 'Normal') {
+                            $jumlahMasalah++;
+                        }
+                    }else {
+                        $belumDiperiksa++;
+                    }
+                }
+
+                return [
+                    'nama_kelas' => $kelas->nama_kelas,
+                    'jumlah_diperiksa' => $jumlah,
+                    'belum_diperiksa' => $belumDiperiksa,
+                    'rata_tb' => $jumlah ? round($tbTotal / $jumlah, 1) : 0,
+                    'rata_bb' => $jumlah ? round($bbTotal / $jumlah, 1) : 0,
+                    'jumlah_masalah' => $jumlahMasalah,
+
+                ];
+            });
+
+            $pengumuman = Pengumuman::orderBy('id', 'desc')->take(3)->get();
+            return view('dashboard.puskesmas', compact('pengumuman','statistik'));
         }  else {
             return response()->view('errors.403', [abort(403)], 403);
         }

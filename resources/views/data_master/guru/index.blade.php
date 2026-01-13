@@ -29,12 +29,12 @@
         </div>
         <div class="card-body">
             <div class="table-responsive">
-                <table class="mb-0 table table-hover table-striped" id="myTable2">
+                <table class="mb-0 table table-hover table-striped" id="myTable3">
                     <thead>
                         <tr>
                             <th>No</th>
                             <th>Guru</th>
-                            <th>Semester</th>
+                            <th>Jabatan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -76,7 +76,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                buttonsStyling: false, // Mematikan styling default
+                buttonsStyling: false, 
                 customClass: {
                     confirmButton: 'btn-swal-confirm',
                     cancelButton: 'btn-swal-cancel'

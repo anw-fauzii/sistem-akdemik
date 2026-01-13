@@ -22,7 +22,7 @@ class SiswaImport implements ToCollection
                         'email' => $row[1],
                         'password' => Hash::make('pass1234'),
                     ]);
-                    $user->assignRole('siswa');
+                    $user->assignRole('siswa_tk');
                 }
 
                 $tanggal_lahir = null;

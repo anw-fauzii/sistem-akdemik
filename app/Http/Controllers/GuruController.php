@@ -184,7 +184,7 @@ class GuruController extends Controller
 
             try {
                 Excel::import(new GuruImport, $request->file('file_import'));
-                return back()->with('success', 'Peserta didik berhasil diimport');
+                return back()->with('success', 'Guru & Staf berhasil diimport');
             } catch (\Exception $e) {
                 return back()->with('error', 'Terjadi error: ' . $e->getMessage());
             }

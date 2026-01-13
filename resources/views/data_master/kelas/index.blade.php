@@ -81,7 +81,7 @@
                 showCancelButton: true,
                 confirmButtonText: 'Ya',
                 cancelButtonText: 'Tidak',
-                buttonsStyling: false, // Mematikan styling default
+                buttonsStyling: false, 
                 customClass: {
                     confirmButton: 'btn-swal-confirm',
                     cancelButton: 'btn-swal-cancel'

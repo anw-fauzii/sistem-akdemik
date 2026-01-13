@@ -34,7 +34,7 @@ class KeuanganController extends Controller
 
     public function index()
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                         ->whereHas('kelas', function ($query) use ($tahunAjaran) {
@@ -144,7 +144,7 @@ class KeuanganController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_sd')) {
             $tahunAjaran = TahunAjaran::findOrFail($id);
             $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                 ->whereHas('kelas', function ($query) use ($tahunAjaran) {
@@ -251,7 +251,7 @@ class KeuanganController extends Controller
 
     public function bayarSpp($id)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_sd')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $anggota_kelas = AnggotaKelas::whereHas('kelas', function ($query) use ($tahunAjaran) {
                 $query->where('tahun_ajaran_id', $tahunAjaran->id);

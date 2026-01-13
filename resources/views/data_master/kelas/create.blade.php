@@ -47,7 +47,7 @@
                     <div class="col-md-2">
                         <div class="position-relative form-group">
                             <label for="tingkatan_kelas" class="">Tingkat Kelas</label>
-                            <input name="tingkatan_kelas" id="tingkatan_kelas" placeholder="Masukkan tinkat kelas" type="number" class="form-control @error('tingkatan_kelas') is-invalid @enderror" value="{{ old('tingkatan_kelas') }}">
+                            <input name="tingkatan_kelas" id="tingkatan_kelas" placeholder="Masukkan tinkat kelas" type="text" class="form-control @error('tingkatan_kelas') is-invalid @enderror" value="{{ old('tingkatan_kelas') }}">
                             @error('tingkatan_kelas')
                                 <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
                                     {{ strtolower($message) }}

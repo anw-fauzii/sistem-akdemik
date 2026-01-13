@@ -13,7 +13,7 @@ class KesehatanController extends Controller
 {
     public function index(Request $request)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_tk')) {
             $tahunAjaran = TahunAjaran::latest()->first();
             $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                         ->whereHas('kelas', function ($query) use ($tahunAjaran) {
@@ -36,7 +36,7 @@ class KesehatanController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('siswa')) {
+        if (user()?->hasRole('siswa_tk')) {
             $tahunAjaran = TahunAjaran::findOrFail($id);
             $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
                         ->whereHas('kelas', function ($query) use ($id) {

@@ -12,7 +12,7 @@
                 <div class="page-title-icon">
                     <i class="pe-7s-smile icon-gradient bg-mean-fruit"></i>
                 </div>
-                <div>{{ $semuaKosong ? 'Tambah Data' : 'Ubah Data' }} Kelas <strong>{{$kelas->nama_kelas}}</strong>, Bulan {{$bulanTerbaru->nama_bulan}}
+                <div>{{ $semuaKosong ? 'Tambah Data' : 'Ubah Data' }} {{$bulanTerbaru->nama_bulan}}
                     <div class="page-title-subheading">
                         Merupakan tambah kesehatan siswa
                     </div>

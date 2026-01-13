@@ -1,6 +1,13 @@
 <?php
 
-use App\Http\Controllers\AgendaController;
+use App\Http\Controllers\Admin\DataMaster\KategoriMataPelajaranController;
+use App\Http\Controllers\Admin\DataMaster\MataPelajaranController;
+use App\Http\Controllers\Admin\DataMaster\PembelajaranController;
+use App\Http\Controllers\Admin\Informasi\AgendaController;
+use App\Http\Controllers\Admin\Informasi\PengumumanController;
+use App\Http\Controllers\AdministrasiGuruController;
+use App\Http\Controllers\AdministrasiKelasController;
+use App\Http\Controllers\AdministrasiRapotController;
 use App\Http\Controllers\AnggotaEkstrakurikulerController;
 use App\Http\Controllers\AnggotaJemputanController;
 use App\Http\Controllers\AnggotaKelasController;
@@ -21,7 +28,6 @@ use App\Http\Controllers\PembayaranJemputanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
-use App\Http\Controllers\PengumumanController;
 use App\Http\Controllers\PesertaDidik\KesehatanController as PesertaDidikKesehatanController;
 use App\Http\Controllers\PesertaDidik\KeuanganController;
 use App\Http\Controllers\PesertaDidik\KeuanganTahunanController;
@@ -38,6 +44,7 @@ use App\Http\Controllers\TK\KesehatanController as TkKesehatanController;
 use App\Http\Controllers\Puskesmas\KesehatanController as PuskesmasKesehatanController;
 use App\Http\Controllers\TransportasiController;
 use App\Http\Controllers\UserController;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -52,7 +59,14 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('login');
+});
+
+Route::get('/php-limits', function () {
+    return [
+        'upload_max_filesize' => ini_get('upload_max_filesize'),
+        'post_max_size' => ini_get('post_max_size'),
+    ];
 });
 
 Route::middleware(['auth','preventBackHistory'])->group(function () {
@@ -124,8 +138,20 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/kelas-pg-tk/detail/{bulan_spp_id}/{kelas_id}/edit',[PuskesmasKesehatanController::class, 'editKelas'])->name('kelas.pgtk.edit.kelas');
 
     Route::resource('/kesehatan-siswa', PesertaDidikKesehatanController::class)->only(['index','show']);
+
+    Route::resource('/kategori-mata-pelajaran', KategoriMataPelajaranController::class)->except(['show']);
+    Route::resource('/daftar-mata-pelajaran', MataPelajaranController::class);
+    Route::resource('/pembelajaran', PembelajaranController::class);
+
+    Route::resource('/administrasi-guru', AdministrasiGuruController::class);
+    Route::resource('/administrasi-kelas', AdministrasiKelasController::class);
+    Route::resource('/administrasi-rapot', AdministrasiRapotController::class);
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
+});
+Route::get('/optimize', function () {
+    $exitCode = Artisan::call('optimize');
+    return '<h1>Clear Config cleared</h1>';
 });
 require __DIR__.'/auth.php';

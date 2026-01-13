@@ -8,7 +8,6 @@ use App\Models\BulanSpp;
 use App\Models\Kelas;
 use App\Models\Kesehatan;
 use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
 
 class KesehatanController extends Controller
 {
@@ -102,6 +101,6 @@ class KesehatanController extends Controller
         $semuaKosong = $anggotaKelasList->every(function ($anggota) {
             return $anggota->dataKesehatan === null;
         });
-        return view('tk.kesehatan.create', compact('anggotaKelasList','bulanTerbaru','semuaKosong','kelas'));
+        return view('tk.puskesmas.create', compact('anggotaKelasList','bulanTerbaru','semuaKosong','kelas'));
     }
 }
