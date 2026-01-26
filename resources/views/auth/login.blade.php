@@ -1,5 +1,11 @@
 <x-guest-layout>
-    <!-- Session Status -->
+    @section('title', 'Login - Sistem Informasi Akademik Yayasan Prima Insani')
+    @section('description', 'Halaman login SIMAK Yayasan Prima Insani')
+    @section('og_title', 'SIMAK Yayasan Prima Insani')
+    @section('og_description', 'Kelola absensi, nilai, kelas, dan data siswa secara online')
+    @section('og_image', asset('storage/logo/samping.png'))
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
     <form method="POST" action="{{ route('login') }}">

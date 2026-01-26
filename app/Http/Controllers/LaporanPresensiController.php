@@ -90,8 +90,8 @@ class LaporanPresensiController extends Controller
             ])->post('https://developer.fingerspot.io/api/get_attlog', [
                 'trans_id' => uniqid(),
                 'cloud_id' => $cloud_id,
-                'start_date' => '2026-01-23',
-                'end_date' => '2026-01-23',
+                'start_date' => $today,
+                'end_date' => $today,
             ]);
 
             if ($response->successful()) {

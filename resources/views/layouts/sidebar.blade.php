@@ -225,13 +225,16 @@
                             </li>
                         </ul>
                     </li>
+                @endrole
+                @role(['admin','dapur'])
                     <li>
                         <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi','presensi-kelas*')) ? 'mm-active' : ''}}">
-                            <i class="metismenu-icon pe-7s-home"></i>
+                            <i class="metismenu-icon pe-7s-timer"></i>
                                 Laporan Presensi
                         </a>
                     </li>
                 @endrole
+                
                 @role(['siswa_sd','siswa_tk'])
                     <li>
                         <a href="#" class="{{(request()->is('profil-siswa*','update-password*')) ? 'mm-active' : ''}}">
@@ -342,25 +345,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li>
-                        <a href="#" class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
-                            <i class="metismenu-icon pe-7s-graph2"></i>
-                            Laporan 
-                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
-                        </a>
-                        <ul class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-show' : ''}}">
-                            <li>
-                                <a href="{{route('laporan.presensi.pekanan')}}" class="{{(request()->is('laporan/presensi-pekanan*')) ? 'mm-active' : ''}}">
-                                    Pekanan
-                                </a>
-                            </li>
-                            <li>
-                                <a href="{{route('laporan.presensi.bulanan')}}" class="{{(request()->is('laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
-                                    Bulanan
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
+                    
                     <li>
                         <a href="#" class="{{(request()->is('administrasi-guru*','administrasi-kelas*','administrasi-rapot*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-portfolio"></i>
@@ -381,6 +366,27 @@
                             <li>
                                 <a href="{{route('administrasi-rapot.index')}}" class="{{(request()->is('administrasi-rapot*')) ? 'mm-active' : ''}}">
                                     Rapot
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                @endrole
+                @role(['guru_sd','dapur','admin'])
+                    <li>
+                        <a href="#" class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
+                            <i class="metismenu-icon pe-7s-graph2"></i>
+                            Laporan 
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul class="{{(request()->is('laporan/presensi-pekanan*','laporan/presensi-bulanan*')) ? 'mm-show' : ''}}">
+                            <li>
+                                <a href="{{route('laporan.presensi.pekanan')}}" class="{{(request()->is('laporan/presensi-pekanan*')) ? 'mm-active' : ''}}">
+                                    Pekanan
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{route('laporan.presensi.bulanan')}}" class="{{(request()->is('laporan/presensi-bulanan*')) ? 'mm-active' : ''}}">
+                                    Bulanan
                                 </a>
                             </li>
                         </ul>

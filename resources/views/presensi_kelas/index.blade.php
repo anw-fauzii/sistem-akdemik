@@ -134,7 +134,7 @@
                     'bulan_id' => $bulan->id
                 ])}}" class="btn btn-success ml-2">Download</a>
             @endrole
-            @role('admin')
+            @role(['admin','dapur'])
                 <select id="select-periode" class="form-control multiple-select" required>
                     <option disabled selected>Pilih Kelas</option>
                     @foreach($data_kelas as $p)

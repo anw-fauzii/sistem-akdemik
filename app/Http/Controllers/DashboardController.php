@@ -23,7 +23,7 @@ class DashboardController extends Controller
             auth()->logout(); 
             return redirect()->route('login')->with('error', 'Anda belum memiliki role akses!');
         }
-        if (user()?->hasRole('admin')) {
+        if (user()?->hasAnyRole(['admin','dapur'])) {
             $agenda = Agenda::all()->map(function ($agenda) {
                 $color = $agenda->unit === 'SD' ? '#007bff' : '#f39c12';
 

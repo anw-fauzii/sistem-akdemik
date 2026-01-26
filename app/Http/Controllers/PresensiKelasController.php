@@ -136,7 +136,7 @@ class PresensiKelasController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasAnyRole(['guru_sd','admin'])) {
+        if (user()?->hasAnyRole(['guru_sd','admin','dapur'])) {
             $tahunAjaran = TahunAjaran::latest()->first();
             if(user()?->hasRole('guru_sd')){
                 $bulan = BulanSpp::findOrFail($id);
@@ -146,7 +146,7 @@ class PresensiKelasController extends Controller
                         $query->where('guru_nipy', Auth::user()->email)
                             ->orWhere('pendamping_nipy', Auth::user()->email);
                     })->firstOrFail();
-            }elseif(user()?->hasRole('admin')){
+            }elseif(user()?->hasRole('admin') || user()?->hasRole('dapur')){
                 $bulan = BulanSpp::latest()->first();
                 $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
                 $kelas = Kelas::find($id);

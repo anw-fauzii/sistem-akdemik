@@ -20,11 +20,21 @@
 
     <meta http-equiv="Content-Language" content="en">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Analytics Dashboard - This is an example dashboard created using build-in elements and components.</title>
+    <!-- BASIC META -->
+    <title>Sistem Informasi Akademik - Yayasan Prima Insani</title>
+    <meta name="description" content="Sistem Informasi Akademik Yayasan Prima Insani untuk absensi, nilai, kelas, dan data siswa">
+    <meta property="og:title" content="Sistem Informasi Akademik Yayasan Prima Insani">
+    <meta property="og:description" content="SIMAK Yayasan Prima Insani — Kelola absensi, nilai, kelas, dan data siswa secara online">
+    <meta property="og:url" content="https://akademik.primainsanigarut.sch.id/">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://akademik.primainsanigarut.sch.id/logo.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:image:type" content="image/png">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
     <meta name="description" content="This is an example dashboard created using build-in elements and components.">
     <meta name="msapplication-tap-highlight" content="no">
-  	<link rel="icon" href="{{asset('logo/logo.png')}}" type="image/png">
+  	<link rel="icon" href="{{asset('logo.png')}}" type="image/png">
       <script src="{{ asset('js/main_tambahan.js') }}"></script>
       <link rel="stylesheet" href="{{ asset('css/main_tambahan.css') }}">
     <link rel="stylesheet" href="{{ asset('Icon-font-7-stroke/assets/Pe-icon-7-stroke.css') }}">
