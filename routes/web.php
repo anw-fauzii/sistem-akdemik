@@ -129,8 +129,9 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::post('/laporan/presensi-pekanan/cari', [LaporanPresensiController::class, 'pekananCari'])->name('laporan.presensi.pekanan.cari');
     Route::get('/laporan/presensi-bulanan', [LaporanPresensiController::class, 'bulanan'])->name('laporan.presensi.bulanan');
     Route::get('/laporan/presensi-bulanan/{id}', [LaporanPresensiController::class, 'bulananShow'])->name('laporan.presensi.bulanan.show');
-    Route::get('/pdf-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananPdf'])->name('export.laporan.bulanan.pdf');
-    Route::get('/excel-laproran-bulanan/{id}', [ExportPdfController::class, 'laporanBulananExcel'])->name('export.laporan.bulanan.excel');
+    Route::get('/pdf-laporan-bulanan/{id}', [ExportPdfController::class, 'laporanBulananPdf'])->name('export.laporan.bulanan.pdf');
+    Route::get('/excel-laporan-bulanan/{id}', [ExportPdfController::class, 'laporanBulananExcel'])->name('export.laporan.bulanan.excel');
+    Route::get('/pdf-laporan-bulanan-kelas/{kelas_id}/{bulan_id}', [ExportPdfController::class, 'laporanBulananKelasPdf'])->name('export.laporan.bulanan.kelas.pdf');
     Route::resource('/data-kesehatan', TkKesehatanController::class);
     Route::get('/kelas-pg-tk',[PuskesmasKesehatanController::class, 'indexKelas'])->name('kelas.pgtk.index.kelas');
     Route::get('/kelas-pg-tk/{id}',[PuskesmasKesehatanController::class, 'showKelas'])->name('kelas.pgtk.show.kelas');

@@ -16,7 +16,9 @@ class LaporanPresensiController extends Controller
 {
     public function index()
     {
-        return view('laporan.presensi.index');
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->whereJenjang('SD')->get();
+        return view('laporan.presensi.index', compact('kelas'));
     }
 
     public function presensiHariIni()
@@ -25,7 +27,7 @@ class LaporanPresensiController extends Controller
         $tahunAjaran = TahunAjaran::latest()->first();
 
         $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-            ->with(['anggotaKelas.siswa'])
+            ->with(['anggotaKelas.siswa'])->where('jenjang','SD')
             ->get();
 
         $presensiHariIni = Presensi::whereDate('tanggal', $tanggal)->get()->keyBy(function ($item) {
@@ -68,6 +70,12 @@ class LaporanPresensiController extends Controller
     {
         $cloud_ids = [
             'C2630450C30A1D24',
+            'C262C44523180D2B',
+            'C262C4452319112B',
+            'C262C44523201F31',
+            'C262C44523270B2F',
+            'C262C4452336242D',
+            'C2630450C3391926'
         ];
 
         $api_token = config('services.fingerspot.api_token');
@@ -82,8 +90,8 @@ class LaporanPresensiController extends Controller
             ])->post('https://developer.fingerspot.io/api/get_attlog', [
                 'trans_id' => uniqid(),
                 'cloud_id' => $cloud_id,
-                'start_date' => $today,
-                'end_date' => $today,
+                'start_date' => '2026-01-23',
+                'end_date' => '2026-01-23',
             ]);
 
             if ($response->successful()) {
@@ -108,13 +116,12 @@ class LaporanPresensiController extends Controller
             $anggota = $siswa->anggotaKelasAktif; 
 
             foreach ($tanggalList as $tanggal => $waktuMasuk) {
-                $menitTerlambat = max(0, $waktuMasuk->diffInMinutes(Carbon::createFromTime(7, 15), false) * -1);
-                $status = $menitTerlambat > 0 ? '1' : '0';
+                $menitTerlambat = max(0, $waktuMasuk->diffInMinutes(Carbon::createFromTime(7,30), false) * -1);
 
                 Presensi::firstOrCreate(
                     ['anggota_kelas_id' => $anggota->id, 'tanggal' => $waktuMasuk],
                     [
-                        'status' => $status,
+                        'status' => "hadir",
                         'terlambat' => $menitTerlambat > 0,
                         'menit_terlambat' => $menitTerlambat,
                     ]
@@ -159,7 +166,7 @@ class LaporanPresensiController extends Controller
         $tahunAjaran=TahunAjaran::latest()->first();
         $pekanPertama = $tanggalCarbon->copy()->startOfWeek(Carbon::MONDAY);
         $pekanTerakhir =$pekanPertama->copy()->endOfWeek();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $kelasList = Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get();
         $dataChart = [];
 
         $anggotaKelas = AnggotaKelas::whereIn('kelas_id', $kelasList->pluck('id'))->get()->groupBy('kelas_id');
@@ -171,20 +178,38 @@ class LaporanPresensiController extends Controller
 
         $dataChart = [];
 
-        foreach ($kelasList as $kelas) {
-            $anggotaIds = $anggotaKelas[$kelas->id]->pluck('id') ?? collect();
-            $presensiKelas = $anggotaIds->flatMap(fn ($id) => $presensis[$id] ?? collect());
-            $hariEfektif = $presensiKelas->pluck('tanggal')->unique()->count();
-            $dataTerlambat = $presensiKelas->where('terlambat', true)->count();
+        $totalTerlambatSekolah = 0;
+        $terlambatPerKelas = [];
 
-            $totalTerlambat = $hariEfektif > 0
-                ? round(($dataTerlambat / $hariEfektif) * 100, 1)
+        foreach ($kelasList as $kelas) {
+            $anggota = $anggotaKelas[$kelas->id] ?? collect();
+
+            $presensiKelas = $anggota->flatMap(
+                fn ($a) => $presensis[$a->id] ?? collect()
+            );
+
+            $jumlahTerlambat = $presensiKelas
+                ->where('terlambat', true)
+                ->count();
+
+            $terlambatPerKelas[] = [
+                'nama' => $kelas->nama_kelas,
+                'jumlah' => $jumlahTerlambat,
+            ];
+
+            $totalTerlambatSekolah += $jumlahTerlambat;
+        }
+        $dataChart = [];
+
+        foreach ($terlambatPerKelas as $item) {
+            $persen = $totalTerlambatSekolah > 0
+                ? round(($item['jumlah'] / $totalTerlambatSekolah) * 100, 1)
                 : 0;
 
             $dataChart[] = [
-                'name' => $kelas->nama_kelas,
-                'y' => $totalTerlambat,
-                'x' => $dataTerlambat,
+                'name' => $item['nama'],
+                'y' => $persen,
+                'x' => $item['jumlah'], 
             ];
         }
         return view('laporan.presensi.pekanan',compact('dataChart','tahunAjaran','judul','tanggal'));
@@ -193,7 +218,7 @@ class LaporanPresensiController extends Controller
     public function bulanan()
     {
         $tahunAjaran = TahunAjaran::latest()->first();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->whereJenjang('SD')->get();
 
         if ($kelasList->isEmpty()) {
             return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');

@@ -62,7 +62,7 @@
                                     @endif
                                 </td>
                                 <td class="d-flex">
-
+                                    <a href="{{ route('siswa.show', $item->siswa->nis) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 0.85rem;"></i></a>
                                 </td>
                             </tr>
                         @empty

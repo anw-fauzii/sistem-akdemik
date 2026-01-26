@@ -136,16 +136,23 @@ class PresensiKelasController extends Controller
 
     public function show($id)
     {
-        if (user()?->hasRole('guru_sd')) {
+        if (user()?->hasAnyRole(['guru_sd','admin'])) {
             $tahunAjaran = TahunAjaran::latest()->first();
-            $bulan = BulanSpp::findOrFail($id);
-            $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-            $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                ->where(function ($query) {
-                    $query->where('guru_nipy', Auth::user()->email)
-                        ->orWhere('pendamping_nipy', Auth::user()->email);
-                })->firstOrFail();
+            if(user()?->hasRole('guru_sd')){
+                $bulan = BulanSpp::findOrFail($id);
+                $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');   
+                $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+                    ->where(function ($query) {
+                        $query->where('guru_nipy', Auth::user()->email)
+                            ->orWhere('pendamping_nipy', Auth::user()->email);
+                    })->firstOrFail();
+            }elseif(user()?->hasRole('admin')){
+                $bulan = BulanSpp::latest()->first();
+                $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
+                $kelas = Kelas::find($id);
+            }
             $kelas_id = $kelas->id;
+            $data_kelas  = Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get();
             $tanggalAwal = Carbon::parse($bulan->bulan_angka);
             $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
             
@@ -156,6 +163,8 @@ class PresensiKelasController extends Controller
             return view('presensi_kelas.index', [
                 'bulan' => $bulan,
                 'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+                'data_kelas' => $data_kelas,
+                'kelas' => $kelas,
                 ...$statistik
             ]);
         } else {

@@ -148,7 +148,8 @@ class SiswaController extends Controller
 
     public function show($id)
     {
-        //
+        $siswa = Siswa::findOrFail($id);
+        return view('data_master.siswa.show', compact('siswa'));
     }
 
     public function edit($id)

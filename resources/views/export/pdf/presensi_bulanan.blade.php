@@ -59,8 +59,8 @@
                     <td>{{ $data['presensi']->where('status', 'sakit')->count() }}</td>
                     <td>{{ $data['presensi']->where('status', 'izin')->count() }}</td>
                     <td>{{ $data['presensi']->where('status', 'alpha')->count() }}</td>
-                    <td>{{ number_format($data['persentaseTidakHadir'], 1) }}</td>
                     <td>{{ number_format($data['persentaseHadir'], 1) }}</td>
+                    <td>{{ number_format($data['persentaseTidakHadir'], 1) }}</td>
                     <td>{{ number_format($data['persentaseTerlambat'], 1) }}</td>
                     <td>{{ number_format($data['persentaseTepatWaktu'], 1) }}</td>
                 </tr>

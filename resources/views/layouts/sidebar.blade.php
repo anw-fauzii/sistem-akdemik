@@ -226,7 +226,7 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi')) ? 'mm-active' : ''}}">
+                        <a href="{{route('laporan.presensi.index')}}" class="{{(request()->is('laporan/presensi','presensi-kelas*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-home"></i>
                                 Laporan Presensi
                         </a>
@@ -296,7 +296,7 @@
                 @endrole
                 @role(['guru_tk'])
                     <li>
-                        <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*')) ? 'mm-active' : ''}}">
+                        <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*','siswa*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-users"></i>
                                 Peserta Didik
                         </a>
@@ -318,7 +318,7 @@
                 @endrole
                 @role('guru_sd')
                     <li>
-                        <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*')) ? 'mm-active' : ''}}">
+                        <a href="{{route('anggota-kelas.index')}}" class="{{(request()->is('anggota-kelas*','siswa*')) ? 'mm-active' : ''}}">
                             <i class="metismenu-icon pe-7s-users"></i>
                                 Peserta Didik
                         </a>

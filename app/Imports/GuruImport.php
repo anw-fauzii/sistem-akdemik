@@ -13,7 +13,7 @@ class GuruImport implements ToCollection
     public function collection(Collection $collection)
     {
         foreach ($collection as $key => $row) {
-            if ($key >= 9 && $key <= 59) {
+            if ($key >= 9 && $key <= 100) {
                 $user = User::where('email', $row[3])->first();
 
                 if (!$user) {
@@ -22,7 +22,7 @@ class GuruImport implements ToCollection
                         'email' => $row[3],
                         'password' => Hash::make('pass1234'),
                     ]);
-                    $user->assignRole('guru_tk');
+                    $user->assignRole($row['12']);
                         
                 }
 
@@ -44,6 +44,7 @@ class GuruImport implements ToCollection
                         'nuptk' => $row[8],
                         'alamat' => $row[9],
                         'telepon' => $row['10'],
+                        'unit' => $row['11'],
                         'avatar' => 'default.png'
                     ]);
                 }

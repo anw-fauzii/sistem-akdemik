@@ -16,6 +16,7 @@ class Guru extends Model
         'nama_lengkap',
         'gelar',
         'jabatan',
+        'unit',
         'nipy',
         'telepon',
         'jenis_kelamin',

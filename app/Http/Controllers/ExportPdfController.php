@@ -11,6 +11,7 @@ use App\Models\TahunAjaran;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ExportPdfController extends Controller
@@ -18,7 +19,7 @@ class ExportPdfController extends Controller
     public function laporanBulananExcel($id)
     {
         $tahunAjaran = TahunAjaran::latest()->first();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->whereJenjang('SD')->get();
 
         if ($kelasList->isEmpty()) {
             return redirect()->back()->with('error', 'Tidak ada data kelas.');
@@ -44,7 +45,7 @@ class ExportPdfController extends Controller
     public function laporanBulananPdf($id)
     {
         $tahunAjaran = TahunAjaran::latest()->first();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->whereJenjang('SD')->get();
 
         if ($kelasList->isEmpty()) {
             return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
@@ -70,6 +71,34 @@ class ExportPdfController extends Controller
             'statistikPerKelas' => $statistikPerKelas,
         ]);
         return $pdf->download("laporan-presensi-bulanan-{$bulan->nama_bulan}.pdf");
+    }
+
+    public function laporanBulananKelasPdf($kelas_id, $bulan_id){
+        $tahunAjaran = TahunAjaran::latest()->first();
+        $bulan = BulanSpp::findOrFail($bulan_id);
+        $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
+        if (user()?->hasRole('guru_sd')) {
+            $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+                ->where(function ($query) {
+                    $query->where('guru_nipy', Auth::user()->email)
+                        ->orWhere('pendamping_nipy', Auth::user()->email);
+                })->firstOrFail();
+            if (!$kelas) {
+                return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+            }
+        }else{
+            $kelas = Kelas::findOrFail($kelas_id);
+        }
+        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+        $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter);
+
+        $pdf = Pdf::loadView('export.pdf.presensi_bulanan_kelas', [
+            'bulan' => $bulan,
+            'kelas' => $kelas,
+            ...$statistik
+        ])->setPaper('A3', 'landscape');
+        return $pdf->download("laporan-presensi-bulanan-kelas-{$kelas->nama_kelas}-{$bulan->nama_bulan}.pdf");
     }
 
     private function hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter)

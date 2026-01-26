@@ -44,6 +44,7 @@
                                 <td>{{$item->nama_lengkap}}</td>
                                 <td class="d-flex">
                                     <a href="{{ route('siswa.edit', $item->nis) }}" class="btn btn-sm btn-primary mx-1"><i class="pe-7s-note" style="font-size: 0.85rem;"></i></a>
+                                    <a href="{{ route('siswa.show', $item->nis) }}" class="btn btn-sm btn-success mx-1"><i class="pe-7s-info" style="font-size: 0.85rem;"></i></a>
                                     <form action="{{ route('siswa.destroy', $item->nis) }}" method="POST" class="delete-form">
                                         @csrf
                                         @method('DELETE')

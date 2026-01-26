@@ -104,7 +104,7 @@
                     cursor: 'pointer',
                     dataLabels: {
                         enabled: true,
-                        format: '{point.name}: {point.y}%',
+                        format: '{point.name}: {point.percentage:.1f}%',
                         style: {
                             fontSize: '14px',
                             fontWeight: 'bold'
