@@ -13,6 +13,7 @@ class Presensi extends Model
         'anggota_kelas_id',
         'tanggal',
         'status',
+        'jam_scan',
         'terlambat',
         'menit_terlambat',
     ];

@@ -11,6 +11,7 @@ use App\Models\TahunAjaran;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class LaporanPresensiController extends Controller
 {
@@ -79,56 +80,109 @@ class LaporanPresensiController extends Controller
         ];
 
         $api_token = config('services.fingerspot.api_token');
-        $today = Carbon::today()->format('Y-m-d');
+
+        $today = Carbon::now('Asia/Jakarta')->toDateString();
 
         $allLogs = [];
 
         foreach ($cloud_ids as $cloud_id) {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $api_token,
-                'Content-Type' => 'application/json',
-            ])->post('https://developer.fingerspot.io/api/get_attlog', [
-                'trans_id' => uniqid(),
-                'cloud_id' => $cloud_id,
-                'start_date' => $today,
-                'end_date' => $today,
-            ]);
 
-            if ($response->successful()) {
-                $data = $response->json();
-                $logs = $data['data'] ?? [];
-                foreach ($logs as $log) {
-                    $nis = $log['pin'];
-                    $waktu = Carbon::parse($log['scan_date']);
-                    $tanggal = $waktu->toDateString();
+            $maxRetry = 3;
+            $attempt = 0;
+            $response = null;
 
-                    if (!isset($allLogs[$nis][$tanggal]) || $waktu->lt($allLogs[$nis][$tanggal])) {
-                        $allLogs[$nis][$tanggal] = $waktu;
-                    }
+            do {
+                sleep(1);
+
+                $response = Http::timeout(30)->withHeaders([
+                    'Authorization' => 'Bearer ' . $api_token,
+                    'Content-Type'  => 'application/json',
+                ])->post('https://developer.fingerspot.io/api/get_attlog', [
+                    'trans_id'  => uniqid(),
+                    'cloud_id'  => $cloud_id,
+                    'start_date' => $today,
+                    'end_date'   => $today,
+                ]);
+
+                $attempt++;
+
+            } while ((!$response || !$response->successful()) && $attempt < $maxRetry);
+
+            if (!$response || !$response->successful()) {
+                Log::error('Fingerspot gagal ambil data', [
+                    'cloud_id' => $cloud_id,
+                    'status'   => $response ? $response->status() : null,
+                    'body'     => $response ? $response->body() : null,
+                ]);
+                continue;
+            }
+
+            $data = $response->json();
+            $logs = $data['data'] ?? [];
+
+            foreach ($logs as $log) {
+                if (!isset($log['pin'], $log['scan_date'])) {
+                    continue;
+                }
+
+                $nis = $log['pin'];
+                $waktu = Carbon::parse($log['scan_date']);
+                $tanggal = $waktu->toDateString();
+
+                if (!isset($allLogs[$nis][$tanggal]) || $waktu->lt($allLogs[$nis][$tanggal])) {
+                    $allLogs[$nis][$tanggal] = $waktu;
                 }
             }
         }
 
         foreach ($allLogs as $nis => $tanggalList) {
-            $siswa = Siswa::where('nis', $nis)->first();
-            if (!$siswa) continue;
 
-            $anggota = $siswa->anggotaKelasAktif; 
+            // Normalisasi ulang dari API
+            $nis = preg_replace('/[\s\x{00A0}\x{200B}]/u', '', trim($nis));
+
+            $siswa = Siswa::whereRaw(
+                'REPLACE(REPLACE(REPLACE(nis, CHAR(194,160), ""), CHAR(226,128,139), ""), " ", "") = ?',
+                [$nis]
+            )->first();
+
+            if (!$siswa) {
+                Log::warning('NIS tidak ditemukan', ['nis' => $nis]);
+                continue;
+            }
+
+            $anggota = $siswa->anggotaKelasAktif;
+            if (!$anggota) {
+                Log::warning('Anggota kelas aktif tidak ditemukan', [
+                    'nis' => $nis,
+                    'siswa_id' => $siswa->id
+                ]);
+                continue;
+            }
 
             foreach ($tanggalList as $tanggal => $waktuMasuk) {
-                $menitTerlambat = max(0, $waktuMasuk->diffInMinutes(Carbon::createFromTime(7,30), false) * -1);
+
+                $jamMasuk = Carbon::createFromFormat('Y-m-d H:i', $tanggal . ' 07:35');
+
+                $menitTerlambat = max(0, $jamMasuk->diffInMinutes($waktuMasuk, false));
 
                 Presensi::firstOrCreate(
-                    ['anggota_kelas_id' => $anggota->id, 'tanggal' => $waktuMasuk],
                     [
-                        'status' => "hadir",
+                        'anggota_kelas_id' => $anggota->id,
+                        'tanggal' => $tanggal, 
+                    ],
+                    [
+                        'status' => 'hadir',
                         'terlambat' => $menitTerlambat > 0,
                         'menit_terlambat' => $menitTerlambat,
                     ]
                 );
             }
         }
-        return redirect()->back()->with('success', 'Data presensi hari ini berhasil diambil dan disimpan.');
+
+        return redirect()->back()->with(
+            'success',
+            'Data presensi hari ini berhasil diambil dan disimpan dengan aman.'
+        );
     }
 
     public function pekanan()

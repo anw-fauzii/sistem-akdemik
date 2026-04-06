@@ -91,19 +91,29 @@ class PresensiKelasController extends Controller
                     $lateMinutes = $isLate ? $jamMasukStandar->diffInMinutes($waktuPresensi) : 0;
                 }
 
-                $existing = Presensi::whereDate('tanggal', $tanggal)
-                    ->where('anggota_kelas_id', $anggota_kelas_id)
+                $existing = Presensi::where('anggota_kelas_id', $anggota_kelas_id)
+                    ->whereBetween('tanggal', [
+                        Carbon::parse($tanggal)->startOfDay(),
+                        Carbon::parse($tanggal)->endOfDay(),
+                    ])
                     ->first();
 
-                if (!$existing) {
-                    Presensi::create([
-                        'anggota_kelas_id' => $anggota_kelas_id,
-                        'tanggal' => $waktuPresensi,
-                        'status' => $status,
-                        'terlambat' => $isLate,
-                        'menit_terlambat' => $lateMinutes,
-                    ]);
-                }
+                    if ($existing) {
+                        $existing->update([
+                            'tanggal' => $waktuPresensi,
+                            'status' => $status,
+                            'terlambat' => $isLate,
+                            'menit_terlambat' => $lateMinutes,
+                        ]);
+                    } else {
+                        Presensi::create([
+                            'anggota_kelas_id' => $anggota_kelas_id,
+                            'tanggal' => $waktuPresensi,
+                            'status' => $status,
+                            'terlambat' => $isLate,
+                            'menit_terlambat' => $lateMinutes,
+                        ]);
+                    }
             }
 
             return redirect()->route('presensi-kelas.index')->with('success', 'Presensi berhasil disimpan.');

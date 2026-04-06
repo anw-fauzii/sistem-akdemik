@@ -29,7 +29,7 @@
 
     <div class="main-card card">
         <div class="card-header">
-            Tambah Presensi
+            Perbarui Presensi
         </div>
         <div class="card-body">
             <div class="table-responsive">
