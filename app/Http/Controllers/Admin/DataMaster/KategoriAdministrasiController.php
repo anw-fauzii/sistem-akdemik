@@ -8,59 +8,84 @@ use Illuminate\Http\Request;
 
 class KategoriAdministrasiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+        public function index()
     {
-        //
+        if (user()?->hasRole('admin')) {
+            $kategori = KategoriAdministrasi::all();
+            return view('data_master.kategori_administrasi.index', compact('kategori'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        //
+        if (user()?->hasRole('admin')) {
+            return view('data_master.kategori_administrasi.create');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        //
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_kategori' => 'required',
+                'jenis' => 'required',
+                'semester' => 'required',
+            ], [
+                'nama_kategori.required' => 'Nama kategori wajib diisi.',
+                'jenis.required' => 'Jenis kategori wajib diisi.',
+                'semester.required' => 'Pilihan Semester wajib diisi.',
+            ]);
+            
+            KategoriAdministrasi::create($validated);
+            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil disimpan');   
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }    
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(KategoriAdministrasi $kategoriAdministrasi)
+    public function edit($id)
     {
-        //
+        if (user()?->hasRole('admin')) {
+            $kategori = KategoriAdministrasi::findOrFail($id);
+            return view('data_master.kategori_administrasi.edit', compact('kategori'));
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(KategoriAdministrasi $kategoriAdministrasi)
+    public function update(Request $request, $id)
     {
-        //
+        if (user()?->hasRole('admin')) {
+            $validated = $request->validate([
+                'nama_kategori' => 'required',
+                'jenis' => 'required',
+                'semester' => 'required',
+            ], [
+                'nama_kategori.required' => 'Nama kategori wajib diisi.',
+                'jenis.required' => 'Jenis kategori wajib diisi.',
+                'semester.required' => 'Pilihan Semester wajib diisi.',
+            ]);
+            
+            $kategori = KategoriAdministrasi::findOrFail($id);
+            $kategori->update($validated);
+            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil diupdate');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, KategoriAdministrasi $kategoriAdministrasi)
+    public function destroy($id)
     {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(KategoriAdministrasi $kategoriAdministrasi)
-    {
-        //
+        if (user()?->hasRole('admin')) {
+            $kategori = KategoriAdministrasi::findOrFail($id);
+            $kategori->delete();
+            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil dihapus');
+        } else {
+            return response()->view('errors.403', [abort(403)], 403);
+        }
     }
 }

@@ -15,6 +15,15 @@ class AnggotaKelas extends Model
         'pendaftaran',
     ];
 
+    public function scopeTahunAjaranAktif($query)
+    {
+        $tahunAjaran = TahunAjaran::latest()->first();
+
+        return $query->whereHas('kelas', function ($q) use ($tahunAjaran) {
+            $q->where('tahun_ajaran_id', $tahunAjaran->id);
+        });
+    }
+
     public function siswa()
     {
         return $this->belongsTo(Siswa::class, 'siswa_nis', 'nis');
@@ -63,5 +72,15 @@ class AnggotaKelas extends Model
     public function dataKesehatan()
     {
         return $this->hasOne(Kesehatan::class);
+    }
+
+    public function prestasi()
+    {
+        return $this->belongsToMany(
+            PrestasiSiswa::class,
+            'prestasi_siswa_anggota',
+            'anggota_kelas_id',
+            'prestasi_siswa_id'
+        );
     }
 }

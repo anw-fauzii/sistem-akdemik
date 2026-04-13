@@ -1,8 +1,9 @@
-<div class="modal fade" id="modalCreate{{$item->id}}" tabindex="-1" role="dialog" aria-labelledby="modalCreateLabel" aria-hidden="true">
+<div class="modal fade" id="modalCreate{{ $item->id }}" tabindex="-1" role="dialog" aria-labelledby="modalCreateLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalCreateLabel">{{$item->nama_kategori}}</h5>
+                <h5 class="modal-title" id="modalCreateLabel">{{ $item->nama_kategori }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -10,13 +11,14 @@
 
             <div class="modal-body">
                 @if ($item->semester)
-                    
+
                     <h5>Semester 1</h5>
                     <ul>
                         @forelse ($semester1 as $f)
                             <li>
                                 {{ $f->keterangan }} —
-                                <span class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
+                                <span
+                                    class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
                                     {{ $f->status ? 'Sudah diperiksa' : 'Belum diperiksa' }}
                                 </span>
                             </li>
@@ -31,7 +33,8 @@
                         @forelse ($semester2 as $f)
                             <li>
                                 {{ $f->keterangan }} —
-                                <span class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
+                                <span
+                                    class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
                                     {{ $f->status ? 'Sudah diperiksa' : 'Belum diperiksa' }}
                                 </span>
                             </li>
@@ -45,8 +48,10 @@
                     <ul>
                         @forelse ($files as $f)
                             <li class="mb-1">
-                                {{ $f->keterangan }} —
-                                <span class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
+                                <a href="{{ route('administrasi-guru.show', $f->id) }}" target="_blank"
+                                    rel="noopener noreferrer">{{ $f->keterangan }}</a> —
+                                <span
+                                    class="badge badge-sm badge-pill {{ $f->status ? 'badge-success' : 'badge-warning' }}">
                                     {{ $f->status ? 'Sudah diperiksa' : 'Belum diperiksa' }}
                                 </span>
                             </li>
@@ -66,6 +71,6 @@
 
 <script>
     function showCreateModal(id) {
-        $('#modalCreate'+id).appendTo('body').modal('show');
+        $('#modalCreate' + id).appendTo('body').modal('show');
     }
 </script>

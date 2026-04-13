@@ -62,9 +62,11 @@ class AdministrasiGuruController extends Controller
     {
         $administrasi = AdministrasiGuru::findOrFail($id);
         $data = Gdrive::get($administrasi->link);
+
         return response($data->file, 200)
             ->header('Content-Type', $data->ext)
             ->header('Content-disposition', 'attachment; filename="'.$data->filename.'"');
+    
     }
 
     public function destroy($id)

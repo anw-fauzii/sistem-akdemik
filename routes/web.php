@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\DataMaster\KategoriAdministrasiController;
 use App\Http\Controllers\Admin\DataMaster\KategoriMataPelajaranController;
 use App\Http\Controllers\Admin\DataMaster\MataPelajaranController;
 use App\Http\Controllers\Admin\DataMaster\PembelajaranController;
@@ -34,6 +35,7 @@ use App\Http\Controllers\PesertaDidik\KeuanganTahunanController;
 use App\Http\Controllers\PesertaDidik\PresensiController;
 use App\Http\Controllers\PresensiEkstrakurikulerController;
 use App\Http\Controllers\PresensiKelasController;
+use App\Http\Controllers\PrestasiSiswaController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QRCodeController;
 use App\Http\Controllers\SiswaController;
@@ -42,6 +44,7 @@ use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\TarifSppController;
 use App\Http\Controllers\TK\KesehatanController as TkKesehatanController;
 use App\Http\Controllers\Puskesmas\KesehatanController as PuskesmasKesehatanController;
+use App\Http\Controllers\SuratIzinController;
 use App\Http\Controllers\TransportasiController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Artisan;
@@ -147,6 +150,9 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/administrasi-guru', AdministrasiGuruController::class);
     Route::resource('/administrasi-kelas', AdministrasiKelasController::class);
     Route::resource('/administrasi-rapot', AdministrasiRapotController::class);
+    Route::resource('/prestasi-siswa', PrestasiSiswaController::class);
+    Route::resource('/surat-izin', SuratIzinController::class);
+    Route::resource('/kategori-administrasi', KategoriAdministrasiController::class);
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
