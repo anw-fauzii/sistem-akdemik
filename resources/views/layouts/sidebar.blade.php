@@ -491,6 +491,13 @@
                     </li>
                 @endrole
                 <li>
+                    <a href="{{ route('pesan-saran.index') }}"
+                        class="{{ request()->is('pesan-saran*') ? 'mm-active' : '' }}">
+                        <i class="metismenu-icon pe-7s-chat"></i>
+                        E-Curhat
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('logout') }}" class="dropdown-item"
                         onclick="event.preventDefault();
                         document.getElementById('logout-form').submit();"><i

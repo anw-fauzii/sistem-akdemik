@@ -29,6 +29,7 @@ use App\Http\Controllers\PembayaranJemputanController;
 use App\Http\Controllers\PembayaranSppController;
 use App\Http\Controllers\PembayaranTagihanTahunanController;
 use App\Http\Controllers\PenghasilanController;
+use App\Http\Controllers\PesanSaranController;
 use App\Http\Controllers\PesertaDidik\KesehatanController as PesertaDidikKesehatanController;
 use App\Http\Controllers\PesertaDidik\KeuanganController;
 use App\Http\Controllers\PesertaDidik\KeuanganTahunanController;
@@ -153,7 +154,13 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/prestasi-siswa', PrestasiSiswaController::class);
     Route::resource('/surat-izin', SuratIzinController::class);
     Route::resource('/kategori-administrasi', KategoriAdministrasiController::class);
-});
+    Route::resource('/pesan-saran', PesanSaranController::class);
+
+    Route::post('pesan-saran/{id}/kirim', [PesanSaranController::class, 'kirim'])->name('pesan-saran.kirim');
+    Route::get('pesan-saran/{id}/fetch', [PesanSaranController::class, 'fetch'])->name('pesan-saran.fetch');
+    Route::get('/pesan-saran-data', [PesanSaranController::class, 'data'])
+        ->name('pesan-saran.index.data');
+    });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
