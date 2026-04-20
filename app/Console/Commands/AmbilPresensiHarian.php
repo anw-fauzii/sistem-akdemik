@@ -2,33 +2,21 @@
 
 namespace App\Console\Commands;
 
+use App\Services\FingerspotSyncService;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 
 class AmbilPresensiHarian extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'ambil:presensi-harian';
+    protected $description = 'Mengambil data presensi otomatis setiap pagi';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
-    protected $description = 'Command description';
-
-    /**
-     * Execute the console command.
-     */
-    public function handle()
+    public function handle(FingerspotSyncService $fingerspotSyncService)
     {
-        app(\App\Http\Controllers\LaporanPresensiController::class)
-        ->ambilHariIni();
+        // Panggil Service, bukan Controller
+        $fingerspotSyncService->syncToday();
 
         Log::info('Ambil presensi harian otomatis jalan.');
+        $this->info('Presensi berhasil diambil!'); // Muncul di terminal
     }
 }

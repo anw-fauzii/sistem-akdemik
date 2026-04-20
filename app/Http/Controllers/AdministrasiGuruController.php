@@ -4,80 +4,70 @@ namespace App\Http\Controllers;
 
 use App\Models\AdministrasiGuru;
 use App\Models\KategoriAdministrasi;
-use App\Models\TahunAjaran;
+use App\Http\Requests\StoreAdministrasiGuruRequest;
+use App\Services\AdministrasiGuruService;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 use Yaza\LaravelGoogleDriveStorage\Gdrive;
 
 class AdministrasiGuruController extends Controller
 {
-    public function index(){
-        if (user()?->hasRole('guru_sd')) {
-            $kategori = KategoriAdministrasi::whereJenis('guru')->with(['administrasi_guru' => function($q){
-                $q->where('guru_nipy', Auth::user()->email);
-            }])->get();
-            return view('administrasi.guru.index', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+    public function __construct(
+        protected AdministrasiGuruService $service
+    ) {
+        // Sentralisasi Role: Kunci seluruh akses khusus untuk Guru SD
+        $this->middleware(['auth', 'role:guru_sd']);
     }
 
-    public function create(){
-        if (user()?->hasRole('guru_sd')) {
-            $kategori = KategoriAdministrasi::whereJenis('guru')->get();
-            return view('administrasi.guru.create', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function store(Request $request)
+    public function index(): View
     {
-        $tahun_ajaran = TahunAjaran::latest()->first();
-        $kategori_adm = KategoriAdministrasi::find($request->judul);
-        $nama_tahun_ajaran = str_replace('/', '_', $tahun_ajaran->nama_tahun_ajaran);
-        $basePath = $nama_tahun_ajaran . '/Per Guru/' . Auth::user()->email . '_' . Auth::user()->name . '/' . $kategori_adm->nama_kategori;
-        if ($request->filled('semester')) {
-            $basePath .= '/Semester ' . $request->semester;
-        }
-        if ($request->hasFile('link')) {
-            foreach ($request->file('link') as $file) {
-                $filename = $basePath . '/' . $file->getClientOriginalName();
-                Gdrive::put($filename, $file);
-                AdministrasiGuru::create([
-                    'tahun_ajaran_id'         => $tahun_ajaran->id,
-                    'guru_nipy'               => Auth::user()->email,
-                    'kategori_administrasi_id'=> $request->judul,
-                    'keterangan'              => $file->getClientOriginalName(),
-                    'link'                    => $filename,
-                ]);
-            }
-        }
-        return redirect()
-            ->route('administrasi-guru.index')
-            ->with('success', 'Administrasi berhasil diupload');
+        $kategori = KategoriAdministrasi::where('jenis', 'guru')
+            ->with(['administrasiGuru' => fn($q) => $q->where('guru_nipy', Auth::user()->email)])
+            ->get();
+
+        return view('administrasi.guru.index', compact('kategori'));
     }
 
-    public function show($id)
+    public function create(): View
     {
-        $administrasi = AdministrasiGuru::findOrFail($id);
-        $data = Gdrive::get($administrasi->link);
+        $kategori = KategoriAdministrasi::where('jenis', 'guru')->get();
+        return view('administrasi.guru.create', compact('kategori'));
+    }
+
+    public function store(StoreAdministrasiGuruRequest $request): RedirectResponse
+    {
+        try {
+            $this->service->uploadFiles($request->validated(), $request->file('files'));
+            return redirect()->route('administrasi-guru.index')->with('success', 'Administrasi berhasil diupload');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Upload GDrive Gagal: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengunggah file. Silakan coba lagi.')->withInput();
+        }
+    }
+
+    public function show(AdministrasiGuru $administrasiGuru): Response
+    {
+        // PROTEKSI KEAMANAN: Pastikan yang mau diunduh adalah file miliknya sendiri!
+        abort_if($administrasiGuru->guru_nipy !== Auth::user()->email, 403, 'Akses ditolak.');
+
+        $data = Gdrive::get($administrasiGuru->link);
 
         return response($data->file, 200)
             ->header('Content-Type', $data->ext)
-            ->header('Content-disposition', 'attachment; filename="'.$data->filename.'"');
-    
+            ->header('Content-disposition', 'attachment; filename="' . $data->filename . '"');
     }
 
-    public function destroy($id)
+    public function destroy(AdministrasiGuru $administrasiGuru): RedirectResponse
     {
-        if (user()?->hasRole('guru_sd')) {
-            $administrasi = AdministrasiGuru::findOrFail($id);
-            Gdrive::delete($administrasi->link);
-            $administrasi->delete();
+        abort_if($administrasiGuru->guru_nipy !== Auth::user()->email, 403, 'Akses ditolak.');
+
+        try {
+            $this->service->deleteFile($administrasiGuru);
             return redirect()->route('administrasi-guru.index')->with('success', 'Administrasi berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus file.');
         }
     }
 }

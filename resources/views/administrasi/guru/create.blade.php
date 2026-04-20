@@ -1,189 +1,235 @@
 @extends('layouts.app2')
 
 @section('title')
-<title>Kelas</title>
+    <title>Tambah Administrasi Guru</title>
 @endsection
 
 @section('content')
-<div class="app-main__inner">
-    <div class="app-page-title">
-        <div class="page-title-wrapper">
-            <div class="page-title-heading">
-                <div class="page-title-icon">
-                    <i class="pe-7s-portfolio icon-gradient bg-mean-fruit"></i>
-                </div>
-                <div>Tambah Administrasi
-                    <div class="page-title-subheading">
-                        Membuat administrasi guru untuk diperikasa pimpinan
+    <div class="app-main__inner">
+        <div class="app-page-title">
+            <div class="page-title-wrapper">
+                <div class="page-title-heading">
+                    <div class="page-title-icon">
+                        <i class="pe-7s-portfolio icon-gradient bg-mean-fruit"></i>
+                    </div>
+                    <div>Tambah Administrasi
+                        <div class="page-title-subheading">
+                            Mengunggah administrasi guru untuk diperiksa pimpinan
+                        </div>
                     </div>
                 </div>
-            </div>  
-        </div> 
-    </div>
-
-    <div class="main-card card">
-        <div class="card-header">
-            Tambah Data
+            </div>
         </div>
-        <div class="card-body">
-            <form method="POST" 
-                  action="{{ route('administrasi-guru.store') }}" 
-                  id="createForm" 
-                  enctype="multipart/form-data">
-                @csrf
-                <div class="form-row">
-                    <div class="col-md-12">
-                        <div class="position-relative form-group">
-                            <label for="judul">Judul Administrasi</label>
-                            <select name="judul" id="judul"
-                                class="form-control @error('judul') is-invalid @enderror">
-                                <option value="">-- Pilih Judul Administrasi --</option>
-                                @foreach ($kategori as $item)
-                                    <option value="{{ $item->id }}" data-semester="{{ $item->semester }}">
-                                        {{ $item->nama_kategori }}
-                                    </option>
-                                @endforeach
-                            </select>
 
-                            @error('judul')
-                                <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
-                                    {{ strtolower($message) }}
-                                </div>
-                            @enderror
-                        </div>
-                        <div class="position-relative form-group" id="semester-group" style="display: none;">
-                            <label for="semester">Semester</label>
-                            <select id="semester" name="semester" class="form-control">
-                                <option value="">-- Pilih Semester --</option>
-                                <option value="1">Semester 1</option>
-                                <option value="2">Semester 2</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="position-relative form-group">
-                            <label>Berkas</label>
+        <div id="loadingOverlay" class="loader-overlay d-none">
+            <div class="loader-content">
+                <div class="loader"></div>
+                <div class="loader-text">Sedang mengunggah file ke Google Drive...<br><small>Mohon jangan tutup halaman
+                        ini.</small></div>
+            </div>
+        </div>
 
-                            <div id="file-wrapper">
-                                <div class="d-flex mb-2 file-row">
-                                    <input name="link[]" type="file" class="form-control" />
-                                    <button type="button" class="btn btn-danger btn-sm ml-2 remove-file">
-                                        Hapus
-                                    </button>
-                                </div>
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <h6 class="font-weight-bold">Gagal Menyimpan!</h6>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="main-card card">
+            <div class="card-header">
+                Tambah Data
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ route('administrasi-guru.store') }}" id="createForm"
+                    enctype="multipart/form-data">
+                    @csrf
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <div class="position-relative form-group">
+                                <label for="kategori_administrasi_id">Judul Administrasi</label>
+                                <select name="kategori_administrasi_id" id="kategori_administrasi_id"
+                                    class="form-control @error('kategori_administrasi_id') is-invalid @enderror" required>
+                                    <option value="" selected disabled>-- Pilih Judul Administrasi --</option>
+                                    @foreach ($kategori as $item)
+                                        <option value="{{ $item->id }}" data-semester="{{ $item->semester }}"
+                                            {{ old('kategori_administrasi_id') == $item->id ? 'selected' : '' }}>
+                                            {{ $item->nama_kategori }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('kategori_administrasi_id')
+                                    <div class="invalid-feedback" style="font-style: italic; font-size: 0.8rem;">
+                                        {{ $message }}
+                                    </div>
+                                @enderror
                             </div>
 
-                            <button type="button" class="btn btn-success btn-sm mt-2" id="add-file">
-                                + Tambah Berkas
-                            </button>
+                            <div class="position-relative form-group" id="semester-group" style="display: none;">
+                                <label for="semester">Semester</label>
+                                <select id="semester" name="semester" class="form-control">
+                                    <option value="">-- Pilih Semester --</option>
+                                    <option value="1" {{ old('semester') == '1' ? 'selected' : '' }}>Semester 1
+                                    </option>
+                                    <option value="2" {{ old('semester') == '2' ? 'selected' : '' }}>Semester 2
+                                    </option>
+                                </select>
+                            </div>
                         </div>
 
-                    </div>
-                </div>
+                        <div class="col-md-12">
+                            <div class="position-relative form-group">
+                                <label>Berkas (Maksimal 10MB per file, Format: PDF, DOC, XLS)</label>
 
-                <div class="form-group mb-0">
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        Simpan
-                    </button>
-                </div>
-            </form>
+                                <div id="file-wrapper">
+                                    <div class="d-flex mb-2 file-row">
+                                        <input name="files[]" type="file" class="form-control" required
+                                            accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                                        <button type="button" class="btn btn-danger btn-sm ml-2 remove-file" disabled
+                                            title="File pertama tidak bisa dihapus">
+                                            <i class="pe-7s-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button type="button" class="btn btn-outline-success btn-sm mt-2 font-weight-bold"
+                                    id="add-file">
+                                    <i class="pe-7s-plus"></i> Tambah Berkas Lainnya
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <div class="form-group mb-0 text-right">
+                        <a href="{{ route('administrasi-guru.index') }}" class="btn btn-secondary mr-2">Batal</a>
+                        <button type="submit" class="btn btn-primary font-weight-bold" id="submitBtn">
+                            <i class="pe-7s-cloud-upload mr-1"></i> Mulai Unggah
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<style>
-    .loader-overlay {
-        position: fixed;
-        top: 0; 
-        left: 0;
-        width: 100%; 
-        height: 100%;
-        background: rgba(2, 0, 15, 0.8);
-        z-index: 9999;
-        display: flex;
-        align-items: center; 
-        justify-content: center; 
-    }
-
-    .loader-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-    }
-
-    .loader {
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #007bff;
-        border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 0.8s linear infinite;
-    }
-
-    .loader-text {
-        margin-top: 12px;
-        font-size: 1rem;
-        color: #ffffff;
-        font-weight: 600;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-</style>
-
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $('#judul').on('change', function() {
-        const semesterFlag = $(this).find(':selected').data('semester');
-
-        if (semesterFlag == 1) {
-            $('#semester-group').show();
-        } else {
-            $('#semester-group').hide();
-            $('#semester').val('');
+    <style>
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(2, 0, 15, 0.9);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-    });
-</script>
-<script>
-    $(document).ready(function () {
 
-        // Tambah input file
-        $('#add-file').click(function () {
-            $('#file-wrapper').append(`
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #007bff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .loader-text {
+            margin-top: 15px;
+            font-size: 1.1rem;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Trigger saat halaman dimuat (untuk mempertahankan pilihan jika validasi gagal)
+            function checkSemester() {
+                const semesterFlag = $('#kategori_administrasi_id').find(':selected').data('semester');
+                if (semesterFlag == 1) {
+                    $('#semester-group').fadeIn();
+                } else {
+                    $('#semester-group').fadeOut();
+                    $('#semester').val('');
+                }
+            }
+
+            $('#kategori_administrasi_id').on('change', checkSemester);
+            checkSemester(); // Jalankan sekali saat load
+
+            // Tambah input file
+            $('#add-file').click(function() {
+                $('#file-wrapper').append(`
                 <div class="d-flex mb-2 file-row">
-                    <input name="link[]" type="file" class="form-control" />
-                    <button type="button" class="btn btn-danger btn-sm ml-2 remove-file">
-                        Hapus
+                    <input name="files[]" type="file" class="form-control" required accept=".pdf,.doc,.docx,.xls,.xlsx" />
+                    <button type="button" class="btn btn-danger btn-sm ml-2 remove-file" title="Hapus baris ini">
+                        <i class="pe-7s-trash"></i>
                     </button>
                 </div>
             `);
+            });
+
+            // Hapus input file dinamis
+            $(document).on('click', '.remove-file', function() {
+                // Jangan hapus jika hanya tersisa 1 input
+                if ($('.file-row').length > 1) {
+                    $(this).closest('.file-row').remove();
+                }
+            });
         });
 
-        // Hapus salah satu input
-        $(document).on('click', '.remove-file', function () {
-            $(this).closest('.file-row').remove();
-        });
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("createForm");
+            const submitBtn = document.getElementById("submitBtn");
+            const overlay = document.getElementById("loadingOverlay");
 
-    });
-    document.addEventListener("DOMContentLoaded", function () {
-        const form = document.getElementById("createForm");
-        const submitBtn = document.getElementById("submitBtn");
-        const overlay = document.getElementById("loadingOverlay");
+            form.addEventListener("submit", function() {
+                // Cek manual jika tidak ada file yang diplih
+                const files = document.querySelectorAll('input[type="file"]');
+                let hasFile = false;
+                files.forEach(input => {
+                    if (input.files.length > 0) hasFile = true;
+                });
 
-        form.addEventListener("submit", function () {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...`;
-            overlay.classList.remove("d-none");
+                if (hasFile) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML =
+                        `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Mengunggah...`;
+                    overlay.classList.remove("d-none");
+                }
+            });
+
+            // Fitur pengaman jika user menekan tombol Back di browser
+            window.addEventListener('pageshow', function() {
+                overlay.classList.add("d-none");
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<i class="pe-7s-cloud-upload mr-1"></i> Mulai Unggah`;
+            });
         });
-        window.addEventListener('pageshow', function() {
-            overlay.classList.add("d-none");
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = "Simpan";
-        });
-    });
-</script>
+    </script>
 @endsection

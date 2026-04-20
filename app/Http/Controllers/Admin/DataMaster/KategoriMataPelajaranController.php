@@ -1,82 +1,51 @@
 <?php
-
 namespace App\Http\Controllers\Admin\DataMaster;
 
 use App\Http\Controllers\Controller;
 use App\Models\KategoriMataPelajaran;
-use Illuminate\Http\Request;
+use App\Http\Requests\KategoriMataPelajaranRequest;
+use App\Services\KategoriMataPelajaranService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class KategoriMataPelajaranController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected KategoriMataPelajaranService $service
+    ) {}
+
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriMataPelajaran::all();
-            return view('mapel.kategori.index', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('mapel.kategori.index', [
+            'kategori' => $this->service->getAll()
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            return view('mapel.kategori.create');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('mapel.kategori.create');
     }
 
-    public function store(Request $request)
+    public function store(KategoriMataPelajaranRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'kategori' => 'required',
-            ], [
-                'kategori.required' => 'Nama kategori wajib diisi.',
-            ]);
-            
-            KategoriMataPelajaran::create($validated);
-            return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'kategori berhasil disimpan');   
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }    
+        $this->service->store($request->validated());
+        return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'Kategori berhasil disimpan');
     }
 
-    public function edit($id)
+    public function edit(KategoriMataPelajaran $kategoriMataPelajaran): View
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriMataPelajaran::findOrFail($id);
-            return view('mapel.kategori.edit', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('mapel.kategori.edit', ['kategori' => $kategoriMataPelajaran]);
     }
 
-    public function update(Request $request, $id)
+    public function update(KategoriMataPelajaranRequest $request, KategoriMataPelajaran $kategoriMataPelajaran): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'kategori' => 'required',
-            ], [
-                'kategori.required' => 'Nama kategori wajib diisi.',
-            ]);
-            $kategori = KategoriMataPelajaran::findOrFail($id);
-            $kategori->update($validated);
-            return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'kategori berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->update($kategoriMataPelajaran, $request->validated());
+        return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'Kategori berhasil diupdate');
     }
 
-    public function destroy($id)
+    public function destroy(KategoriMataPelajaran $kategoriMataPelajaran): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriMataPelajaran::findOrFail($id);
-            $kategori->delete();
-            return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'kategori berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->delete($kategoriMataPelajaran);
+        return redirect()->route('kategori-mata-pelajaran.index')->with('success', 'Kategori berhasil dihapus');
     }
 }

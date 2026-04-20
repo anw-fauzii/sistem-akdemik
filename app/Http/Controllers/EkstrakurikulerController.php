@@ -2,134 +2,90 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnggotaEkstrakurikuler;
-use App\Models\AnggotaKelas;
 use App\Models\Ekstrakurikuler;
 use App\Models\Guru;
-use App\Models\Kelas;
 use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
+use App\Models\AnggotaEkstrakurikuler;
+use App\Http\Requests\EkstrakurikulerRequest;
+use App\Services\EkstrakurikulerService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class EkstrakurikulerController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected EkstrakurikulerService $service
+    ) {}
+
+    public function index(): View|RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            if($tahun_ajaran){
-                $ekstrakurikuler = Ekstrakurikuler::withCount('anggotaEkstrakurikuler')
-                    ->whereTahunAjaranId($tahun_ajaran->id)
-                    ->orderBy('id', 'ASC')
-                    ->get();
-                return view('data_master.ekstrakurikuler.index', compact('ekstrakurikuler', 'tahun_ajaran'));
-            }else{
-                return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
-            }
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        
+        if (!$tahun_ajaran) {
+            return redirect()->route('tahun-ajaran.index')->with('warning', 'Isi terlebih dahulu tahun ajaran!');
         }
+
+        $ekstrakurikuler = Ekstrakurikuler::withCount('anggotaEkstrakurikuler')
+            ->where('tahun_ajaran_id', $tahun_ajaran->id)
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        return view('data_master.ekstrakurikuler.index', compact('ekstrakurikuler', 'tahun_ajaran'));
     }
 
-    public function create()
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
-            return view('data_master.ekstrakurikuler.create', compact('guru'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $guru = Guru::select('nipy', 'nama_lengkap', 'gelar')->where('status', true)->get();
+        return view('data_master.ekstrakurikuler.create', compact('guru'));
     }
 
-    public function store(Request $request)
+    public function store(EkstrakurikulerRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tahun = TahunAjaran::latest()->first();
-            $validated = $request->validate([
-                'nama_ekstrakurikuler' => 'required',
-                'guru_nipy' => 'required',
-                'biaya' => 'numeric',
-            ], [
-                'nama_ekstrakurikuler.required' => 'Nama ekstrakurikuler wajib diisi.',
-                'guru_nipy.required' => 'Tanggal bulan wajib diisi.',
-                'biaya.numeric' => 'Jumlah biaya harus berupa angka.', 
-            ]);
-            
-            
-            $validated['tahun_ajaran_id'] = $tahun->id;
-            Ekstrakurikuler::create($validated);   
-            return redirect()->route('ekstrakurikuler.index')->with('success', 'ekstrakurikuler berhasil disimpan');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }        
+        $tahun = TahunAjaran::latest()->firstOrFail();
+        
+        $data = $request->validated();
+        $data['tahun_ajaran_id'] = $tahun->id;
+
+        Ekstrakurikuler::create($data);   
+        
+        return redirect()->route('ekstrakurikuler.index')->with('success', 'Ekstrakurikuler berhasil disimpan');
     }
 
-    public function show($id)
+    public function show(Ekstrakurikuler $ekstrakurikuler): View
     {
-        if (user()?->hasRole('admin')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $ekstrakurikuler = Ekstrakurikuler::findorfail($id);
-            $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])->whereEkstrakurikulerId($id)->get();
-            $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->pluck('id');
-            $siswa_belum_masuk_ekstrakurikuler = AnggotaKelas::with([
-                    'siswa:nis,nama_lengkap',
-                    'kelas:id,nama_kelas'
-                ])
-                ->whereIn('kelas_id', $kelas)
-                ->whereDoesntHave('anggotaEkstrakurikuler')
-                ->get()
-                ->map(function ($anggota) {
-                    return (object) [
-                        'id' => $anggota->id,
-                        'nis' => $anggota->siswa->nis ?? '-',
-                        'siswa_nama' => $anggota->siswa->nama_lengkap ?? '-',
-                        'kelas' => $anggota->kelas->nama_kelas ?? '-',
-                    ];
-                });
-            return view('data_master.ekstrakurikuler.show', compact('ekstrakurikuler', 'anggota_ekstrakurikuler', 'siswa_belum_masuk_ekstrakurikuler'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $tahun_ajaran = TahunAjaran::latest()->firstOrFail();
+        
+        // Eager load untuk mencegah N+1 di halaman Show
+        $anggota_ekstrakurikuler = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
+            ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->get();
+
+        $siswa_belum_masuk_ekstrakurikuler = $this->service->getSiswaBelumMasuk($tahun_ajaran->id);
+
+        return view('data_master.ekstrakurikuler.show', compact(
+            'ekstrakurikuler', 
+            'anggota_ekstrakurikuler', 
+            'siswa_belum_masuk_ekstrakurikuler'
+        ));
     }
 
-    public function edit($id)
+    public function edit(Ekstrakurikuler $ekstrakurikuler): View
     {
-        if (user()?->hasRole('admin')) {
-            $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
-            $guru = Guru::select('nipy','nama_lengkap', 'gelar')->whereStatus(true)->get();
-            return view('data_master.ekstrakurikuler.edit', compact('ekstrakurikuler','guru'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $guru = Guru::select('nipy', 'nama_lengkap', 'gelar')->where('status', true)->get();
+        return view('data_master.ekstrakurikuler.edit', compact('ekstrakurikuler', 'guru'));
     }
 
-    public function update(Request $request, $id)
+    public function update(EkstrakurikulerRequest $request, Ekstrakurikuler $ekstrakurikuler): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'nama_ekstrakurikuler' => 'required',
-                'guru_nipy' => 'required',
-                'biaya' => 'numeric',
-            ], [
-                'nama_ekstrakurikuler.required' => 'Nama ekstrakurikuler wajib diisi.',
-                'guru_nipy.required' => 'Tanggal bulan wajib diisi.',
-                'biaya.numeric' => 'Jumlah biaya harus berupa angka.', 
-            ]);
-            $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
-            $ekstrakurikuler->update($validated);
-            return redirect()->route('ekstrakurikuler.index')->with('success', 'ekstrakurikuler berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $ekstrakurikuler->update($request->validated());
+        
+        return redirect()->route('ekstrakurikuler.index')->with('success', 'Ekstrakurikuler berhasil diupdate');
     }
 
-    public function destroy($id)
+    public function destroy(Ekstrakurikuler $ekstrakurikuler): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $ekstrakurikuler = Ekstrakurikuler::findOrFail($id);
-            $ekstrakurikuler->delete();
-            return redirect()->route('ekstrakurikuler.index')->with('success', 'ekstrakurikuler berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $ekstrakurikuler->delete();
+        
+        return redirect()->route('ekstrakurikuler.index')->with('success', 'Ekstrakurikuler berhasil dihapus');
     }
 }

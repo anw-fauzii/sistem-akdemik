@@ -4,105 +4,163 @@ namespace App\Http\Controllers;
 
 use App\Models\AnggotaEkstrakurikuler;
 use App\Models\BulanSpp;
-use App\Models\Ekstrakurikuler;
 use App\Models\PresensiEkstrakurikuler;
 use App\Models\TahunAjaran;
-use Carbon\Carbon;
+use App\Http\Requests\StorePresensiEkskulRequest;
+use App\Services\PresensiEkstrakurikulerService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Carbon\Carbon;
 
 class PresensiEkstrakurikulerController extends Controller
 {
-    public function index(Request $request)
-    {
-        if (user()?->hasRole('guru_sd')) {
-            $tahunAjaran = TahunAjaran::latest()->first();
-            $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahunAjaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
-
-            if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
-            }
-            $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->get();
-            $bulan = $request->bulan ?? now()->format('Y-m'); 
-            $presensi = PresensiEkstrakurikuler::whereIn('anggota_ekstrakurikuler_id', $anggotaEkstrakurikuler->pluck('id'))
-                                ->whereMonth('tanggal', date('m', strtotime($bulan)))
-                                ->whereYear('tanggal', date('Y', strtotime($bulan)))
-                                ->get();
-            $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort()->values();
-            $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
-            return view('presensi_ekstrakurikuler.index', compact('anggotaEkstrakurikuler', 'ekstrakurikuler', 'presensi', 'tanggal_tercatat', 'bulan_spp', 'bulan'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+    public function __construct(
+        protected PresensiEkstrakurikulerService $service
+    ) {
+        $this->middleware(['auth', 'role:guru_sd']);
     }
 
-    public function create()
+    public function index(Request $request): View|RedirectResponse
     {
-        if (user()?->hasRole('guru_sd')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahun_ajaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $ekstrakurikuler = $this->service->getEkstrakurikulerGuru(Auth::user()->email, $tahunAjaran->id);
 
-            if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
-            }
-            $siswaList = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->with('anggotaKelas')->get();
-            return view('presensi_ekstrakurikuler.create', compact('siswaList', 'ekstrakurikuler'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        abort_if(!$ekstrakurikuler, 403, 'Anda tidak mendampingi ekstrakurikuler manapun.');
+
+        $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
+            ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->get();
+        
+        $bulan = $request->bulan ?? now()->format('Y-m'); 
+        $parsedDate = Carbon::parse($bulan);
+
+        // OPTIMASI: Mencari tanggal awal dan akhir bulan untuk whereBetween
+        $awalBulan = $parsedDate->copy()->startOfMonth()->format('Y-m-d');
+        $akhirBulan = $parsedDate->copy()->endOfMonth()->format('Y-m-d');
+
+        $presensi = PresensiEkstrakurikuler::whereIn('anggota_ekstrakurikuler_id', $anggotaEkstrakurikuler->pluck('id'))
+            ->whereBetween('tanggal', [$awalBulan, $akhirBulan])
+            ->get();
+
+        // ARRAY MAPPING: Menyiapkan data ke RAM untuk Blade
+        $rekapPresensi = [];
+        foreach ($presensi as $p) {
+            $tglString = Carbon::parse($p->tanggal)->format('Y-m-d');
+            $rekapPresensi[$p->anggota_ekstrakurikuler_id][$tglString] = $p;
         }
+
+        // PERBAIKAN BUG TANGGAL BERULANG
+        $tanggal_tercatat = $presensi->pluck('tanggal')->map(function($date) {
+            return Carbon::parse($date)->format('Y-m-d');
+        })->unique()->sort()->values();
+
+        $bulan_spp_all = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+
+        return view('presensi_ekstrakurikuler.index', compact(
+            'anggotaEkstrakurikuler', 'ekstrakurikuler', 'presensi', 'rekapPresensi', 'tanggal_tercatat', 'bulan_spp_all', 'bulan'
+        ));
     }
 
-    public function store(Request $request)
+    public function create(): View|RedirectResponse
     {
-        if (user()?->hasRole('guru_sd')) {
-            $request->validate([
-                'tanggal' => 'required|date',
-                'presensi' => 'required|array', 
-            ]);
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $ekstrakurikuler = $this->service->getEkstrakurikulerGuru(Auth::user()->email, $tahunAjaran->id);
 
-            foreach ($request->presensi as $anggota_ekstrakurikuler_id => $status) {
-                PresensiEkstrakurikuler::updateOrCreate(
-                    [
-                        'anggota_ekstrakurikuler_id' => $anggota_ekstrakurikuler_id,
-                        'tanggal' => $request->tanggal,
-                    ],
-                    [
-                        'status' => $status
-                    ]
-                );
-            }
+        abort_if(!$ekstrakurikuler, 403, 'Anda tidak mendampingi ekstrakurikuler manapun.');
+
+        $siswaList = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
+            ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->get();
+
+        return view('presensi_ekstrakurikuler.create', compact('siswaList', 'ekstrakurikuler'));
+    }
+
+    public function store(StorePresensiEkskulRequest $request): RedirectResponse
+    {
+        try {
+            $this->service->simpanPresensiMassal(
+                $request->validated('presensi'),
+                $request->validated('tanggal')
+            );
+
             return redirect()->route('presensi-ekstrakurikuler.index')->with('success', 'Presensi berhasil disimpan.');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Terjadi kesalahan sistem saat menyimpan data.');
         }
     }
 
-    public function show($id)
+    public function show(BulanSpp $bulanSpp): View|RedirectResponse
     {
-        if (user()?->hasRole('guru_sd')) {
-            $tahunAjaran = TahunAjaran::latest()->first();
-            $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
-            $bulan = BulanSpp::findOrFail($id);
-            $ekstrakurikuler = Ekstrakurikuler::where('tahun_ajaran_id', $tahunAjaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $ekstrakurikuler = $this->service->getEkstrakurikulerGuru(Auth::user()->email, $tahunAjaran->id);
 
-            if (!$ekstrakurikuler) {
-                return redirect()->back()->with('error', 'Anda tidak mendampingi ekstrakurikuler manapun.');
-            }
-            $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-            $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::where('ekstrakurikuler_id', $ekstrakurikuler->id)->get();
-            $presensi = PresensiEkstrakurikuler::whereIn('anggota_ekstrakurikuler_id', $anggotaEkstrakurikuler->pluck('id'))
-                        ->where('tanggal', 'like', "$bulanFilter%")
-                        ->get();
-            $tanggal_tercatat = $presensi->pluck('tanggal')->unique()->sort();
-            return view('presensi_ekstrakurikuler.show', compact('ekstrakurikuler', 'bulan', 'anggotaEkstrakurikuler', 'presensi', 'tanggal_tercatat','bulan_spp'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        } 
+        abort_if(!$ekstrakurikuler, 403, 'Anda tidak mendampingi ekstrakurikuler manapun.');
+
+        $anggotaEkstrakurikuler = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
+            ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->get();
+
+        $parsedDate = Carbon::parse($bulanSpp->bulan_angka);
+        
+        $awalBulan = $parsedDate->copy()->startOfMonth()->format('Y-m-d');
+        $akhirBulan = $parsedDate->copy()->endOfMonth()->format('Y-m-d');
+
+        $presensi = PresensiEkstrakurikuler::whereIn('anggota_ekstrakurikuler_id', $anggotaEkstrakurikuler->pluck('id'))
+            ->whereBetween('tanggal', [$awalBulan, $akhirBulan])
+            ->get();
+
+        $rekapPresensi = [];
+        foreach ($presensi as $p) {
+            $tglString = Carbon::parse($p->tanggal)->format('Y-m-d');
+            $rekapPresensi[$p->anggota_ekstrakurikuler_id][$tglString] = $p;
+        }
+
+        $tanggal_tercatat = $presensi->pluck('tanggal')->map(function($date) {
+            return Carbon::parse($date)->format('Y-m-d');
+        })->unique()->sort()->values();
+        
+        $bulan_spp_all = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $bulan = $bulanSpp; 
+
+        return view('presensi_ekstrakurikuler.index', compact(
+            'ekstrakurikuler', 'bulan', 'anggotaEkstrakurikuler', 'presensi', 'rekapPresensi', 'tanggal_tercatat', 'bulan_spp_all'
+        ));
+    }
+    public function edit($tanggal): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
+    {
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $ekstrakurikuler = $this->service->getEkstrakurikulerGuru(Auth::user()->email, $tahunAjaran->id);
+
+        abort_if(!$ekstrakurikuler, 403, 'Akses ditolak.');
+
+        $siswaList = AnggotaEkstrakurikuler::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
+            ->where('ekstrakurikuler_id', $ekstrakurikuler->id)
+            ->get();
+
+        // Tarik data presensi khusus di tanggal yang diklik
+        $presensiHariIni = PresensiEkstrakurikuler::whereIn('anggota_ekstrakurikuler_id', $siswaList->pluck('id'))
+            ->where('tanggal', $tanggal)
+            ->pluck('status', 'anggota_ekstrakurikuler_id'); // Menghasilkan array: [id_siswa => 'status']
+
+        return view('presensi_ekstrakurikuler.edit', compact('siswaList', 'ekstrakurikuler', 'tanggal', 'presensiHariIni'));
+    }
+
+    public function update(StorePresensiEkskulRequest $request, $tanggal): \Illuminate\Http\RedirectResponse
+    {
+        try {
+            // Karena service kita menggunakan updateOrCreate, kita bisa menggunakannya untuk Edit juga!
+            $this->service->simpanPresensiMassal(
+                $request->validated('presensi'),
+                $tanggal // Gunakan tanggal dari parameter URL yang tidak bisa diubah user
+            );
+
+            return redirect()->route('presensi-ekstrakurikuler.index')
+                ->with('success', 'Presensi tanggal ' . \Carbon\Carbon::parse($tanggal)->format('d/m/Y') . ' berhasil diperbarui.');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Gagal update presensi ekskul: ' . $e->getMessage());
+            return back()->with('error', 'Terjadi kesalahan sistem saat memperbarui data.');
+        }
     }
 }

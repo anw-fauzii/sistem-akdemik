@@ -4,90 +4,55 @@ namespace App\Http\Controllers\Admin\Informasi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Agenda;
-use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
+use App\Http\Requests\AgendaRequest;
+use App\Services\AgendaService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class AgendaController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected AgendaService $service
+    ) {}
+
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            $agenda = Agenda::all();
-            return view('informasi.agenda.index', compact('agenda'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.agenda.index', [
+            'agenda' => $this->service->getAllAgenda()
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            return view('informasi.agenda.create');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.agenda.create');
     }
 
-    public function store(Request $request)
+    public function store(AgendaRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tahun = TahunAjaran::latest()->first();
-            $validated = $request->validate([
-                'kegiatan' => 'required',
-                'tanggal' => 'required',
-                'unit' => 'required',
-            ], [
-                'kegiatan.required' => 'Nama agenda wajib diisi.',
-                'tanggal.required' => 'Tanggal bulan wajib diisi.',
-                'unit.required' => 'Jumlah unit harus berupa angka.', 
-            ]);
-            
-            $validated['tahun_ajaran_id'] = $tahun->id;
-            Agenda::create($validated);
-            return redirect()->route('agenda.index')->with('success', 'agenda berhasil disimpan');   
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }    
+        $this->service->store($request->validated());
+
+        return redirect()->route('agenda.index')
+            ->with('success', 'Agenda berhasil disimpan');
     }
 
-    public function edit($id)
+    public function edit(Agenda $agenda): View
     {
-        if (user()?->hasRole('admin')) {
-            $agenda = Agenda::findOrFail($id);
-            return view('informasi.agenda.edit', compact('agenda'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.agenda.edit', compact('agenda'));
     }
 
-    public function update(Request $request, $id)
+    public function update(AgendaRequest $request, Agenda $agenda): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'kegiatan' => 'required',
-                'tanggal' => 'required',
-                'unit' => 'required',
-            ], [
-                'kegiatan.required' => 'Nama agenda wajib diisi.',
-                'tanggal.required' => 'Tanggal bulan wajib diisi.',
-                'unit.required' => 'Jumlah unit harus berupa angka.', 
-            ]);
-            $agenda = Agenda::findOrFail($id);
-            $agenda->update($validated);
-            return redirect()->route('agenda.index')->with('success', 'agenda berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->update($agenda, $request->validated());
+
+        return redirect()->route('agenda.index')
+            ->with('success', 'Agenda berhasil diupdate');
     }
 
-    public function destroy($id)
+    public function destroy(Agenda $agenda): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $agenda = Agenda::findOrFail($id);
-            $agenda->delete();
-            return redirect()->route('agenda.index')->with('success', 'agenda berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->delete($agenda);
+
+        return redirect()->route('agenda.index')
+            ->with('success', 'Agenda berhasil dihapus');
     }
 }

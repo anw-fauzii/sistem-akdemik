@@ -3,104 +3,51 @@
 namespace App\Http\Controllers\Puskesmas;
 
 use App\Http\Controllers\Controller;
-use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Kelas;
-use App\Models\Kesehatan;
 use App\Models\TahunAjaran;
+use App\Services\Puskesmas\PuskesmasKesehatanService;
+use Illuminate\View\View;
 
 class KesehatanController extends Controller
 {
-    public function indexKelas()
+    public function __construct(
+        protected PuskesmasKesehatanService $service
+    ) {}
+
+    public function indexKelas(?BulanSpp $bulanSpp = null): View
     {
-        $tahunAjaran = TahunAjaran::latest()->first();
-        $bulanTerbaru = BulanSpp::latest()->first();
-        $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $tahunAjaran  = TahunAjaran::latest()->firstOrFail();
+        $bulanTerbaru = $bulanSpp ?? BulanSpp::latest()->firstOrFail();
+        $bulan_spp    = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
 
-        $kelasList = Kelas::with(['anggotaKelas.siswa'])
-            ->where('tahun_ajaran_id', $tahunAjaran->id)
-            ->get();
+        $progresKesehatan = $this->service->getProgresKesehatan($tahunAjaran, $bulanTerbaru);
 
-        $dataKesehatan = Kesehatan::where('bulan_spp_id', $bulanTerbaru->id ?? null)->get();
-
-        $progresKesehatan = $kelasList->map(function ($kelas) use ($dataKesehatan) {
-            $anggotaIds = $kelas->anggotaKelas->pluck('id');
-
-            $totalSiswa = $anggotaIds->count();
-            $sudahIsi = $dataKesehatan->whereIn('anggota_kelas_id', $anggotaIds)->count();
-            $persen = $totalSiswa > 0 ? round(($sudahIsi / $totalSiswa) * 100) : 0;
-
-            return [
-                'kelas' => $kelas,
-                'total' => $totalSiswa,
-                'terisi' => $sudahIsi,
-                'persen' => $persen,
-            ];
-        });
-        return view('tk.puskesmas.index', compact('kelasList', 'bulan_spp', 'bulanTerbaru', 'progresKesehatan'));
+        return view('tk.puskesmas.index', compact('bulan_spp', 'bulanTerbaru', 'progresKesehatan'));
     }
 
-    public function showKelas($id)
+    public function detailKelas(BulanSpp $bulanSpp, Kelas $kelas): View
     {
-        $tahunAjaran = TahunAjaran::latest()->first();
-        $bulanTerbaru = BulanSpp::findOrFail($id);
-        $bulan_spp = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $tahunAjaran  = TahunAjaran::latest()->firstOrFail();
+        $bulan_spp    = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        
+        $anggotaKelasList = $this->service->getAnggotaDenganKesehatan($kelas, $bulanSpp);
+        
+        $dataKesehatan = $anggotaKelasList->pluck('dataKesehatan')->filter()->keyBy('anggota_kelas_id');
 
-        $kelasList = Kelas::with(['anggotaKelas.siswa'])
-            ->where('tahun_ajaran_id', $tahunAjaran->id)
-            ->get();
-
-        $dataKesehatan = Kesehatan::where('bulan_spp_id', $bulanTerbaru->id ?? null)->get();
-
-        $progresKesehatan = $kelasList->map(function ($kelas) use ($dataKesehatan) {
-            $anggotaIds = $kelas->anggotaKelas->pluck('id');
-
-            $totalSiswa = $anggotaIds->count();
-            $sudahIsi = $dataKesehatan->whereIn('anggota_kelas_id', $anggotaIds)->count();
-            $persen = $totalSiswa > 0 ? round(($sudahIsi / $totalSiswa) * 100) : 0;
-
-            return [
-                'kelas' => $kelas,
-                'total' => $totalSiswa,
-                'terisi' => $sudahIsi,
-                'persen' => $persen,
-            ];
-        });
-        return view('tk.puskesmas.index', compact('kelasList', 'bulan_spp', 'bulanTerbaru', 'progresKesehatan'));
+        return view('tk.puskesmas.detail', [
+            'bulanTerbaru'     => $bulanSpp,
+            'kelas'            => $kelas,
+            'bulan_spp'        => $bulan_spp,
+            'anggotaKelasList' => $anggotaKelasList,
+            'dataKesehatan'    => $dataKesehatan
+        ]);
     }
 
-    public function detailKelas($bulan_spp_id, $kelas_id)
+    public function editKelas(BulanSpp $bulanSpp, Kelas $kelas): View
     {
-        $tahunAjaran = TahunAjaran::latest()->first();
-        $kelas = Kelas::findOrFail($kelas_id);
-        if (!$kelas) {
-            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
-        }
-        $anggotaKelasList = AnggotaKelas::with('siswa')
-            ->where('kelas_id', $kelas->id)
-            ->get();
-        $bulanTerbaru = BulanSpp::findOrFail($bulan_spp_id);
-        $bulan_spp = BulanSpp::whereTahunAjaranId($tahunAjaran->id)->get();
-        $dataKesehatan = Kesehatan::where('bulan_spp_id', $bulanTerbaru->id ?? null)
-            ->whereIn('anggota_kelas_id', $anggotaKelasList->pluck('id'))
-            ->get()
-            ->keyBy('anggota_kelas_id');
-        return view('tk.puskesmas.detail', compact('bulan_spp','anggotaKelasList','dataKesehatan','bulanTerbaru', 'kelas'));
-    }
-
-    public function editKelas($bulan_spp_id, $kelas_id)
-    {
-        $kelas = Kelas::findOrFail($kelas_id);
-        if (!$kelas) {
-            return redirect()->back()->with('error', 'Kelas Tidak ditemukan.');
-        }
-        $bulanTerbaru = BulanSpp::findOrFail($bulan_spp_id);
-        $anggotaKelasList = AnggotaKelas::with(['siswa', 'dataKesehatan' => function ($query) use ($bulanTerbaru) {
-            $query->where('bulan_spp_id', $bulanTerbaru->id);
-        }])->where('kelas_id', $kelas->id)->get();
-        $semuaKosong = $anggotaKelasList->every(function ($anggota) {
-            return $anggota->dataKesehatan === null;
-        });
-        return view('tk.puskesmas.create', compact('anggotaKelasList','bulanTerbaru','semuaKosong','kelas'));
+        $anggotaKelasList = $this->service->getAnggotaDenganKesehatan($kelas, $bulanSpp);
+        $semuaKosong = $anggotaKelasList->every(fn($anggota) => $anggota->dataKesehatan === null);
+        return view('tk.puskesmas.create', compact('anggotaKelasList', 'bulanSpp', 'kelas', 'semuaKosong'));
     }
 }

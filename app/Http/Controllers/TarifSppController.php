@@ -3,101 +3,60 @@
 namespace App\Http\Controllers;
 
 use App\Models\TarifSpp;
-use Illuminate\Http\Request;
+use App\Http\Requests\TarifSppRequest;
+use App\Services\TarifSppService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class TarifSppController extends Controller
 {
-    public function index()
-    {
-        if (user()?->hasRole('admin')) {
-            $tarif_spp = TarifSpp::all();
-            return view('data_master.tarif_spp.index', compact('tarif_spp'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+    public function __construct(
+        protected TarifSppService $service
+    ) {
+        // Asumsi middleware diset di route, tapi bisa juga di sini
+        // $this->middleware(['auth', 'role:admin']);
     }
 
-    public function create()
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            return view('data_master.tarif_spp.create');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.tarif_spp.index', [
+            'tarif_spp' => $this->service->getAll()
+        ]);
     }
 
-    public function store(Request $request)
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'unit' => 'required',
-                'tahun_masuk' => 'required',
-                'spp' => 'required',
-                'biaya_makan' => 'required',
-                'snack' => 'required',
-            ], [
-                'unit.required' => 'Nama tarif_spp wajib diisi.',
-                'tahun_masuk.required' => 'Tanggal tarif wajib diisi.',
-                'spp.required' => 'Jumlah spp harus berupa angka.', 
-                'biaya_makan.required' => 'Jumlah spp harus berupa angka.', 
-                'snack.required' => 'Jumlah spp harus berupa angka.', 
-            ]);
-            $validated['spp'] = (int) str_replace('.', '', $request->spp);
-            $validated['biaya_makan'] = (int) str_replace('.', '', $request->biaya_makan);
-            $validated['snack'] = (int) str_replace('.', '', $request->snack);
-            TarifSpp::create($validated);   
-            return redirect()->route('tarif-spp.index')->with('success', 'tarif_spp berhasil disimpan'); 
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }       
+        return view('data_master.tarif_spp.create');
     }
 
-    public function edit($id)
+    public function store(TarifSppRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tarif_spp = TarifSpp::findOrFail($id);
-            return view('data_master.tarif_spp.edit', compact('tarif_spp'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->store($request->validated());
+
+        return redirect()->route('tarif-spp.index')
+            ->with('success', 'Tarif SPP berhasil disimpan.');
     }
 
-    public function update(Request $request, $id)
+    public function edit(TarifSpp $tarifSpp): View
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'unit' => 'required',
-                'tahun_masuk' => 'required',
-                'spp' => 'required',
-                'biaya_makan' => 'required',
-                'snack' => 'required',
-            ], [
-                'unit.required' => 'Nama tarif_spp wajib diisi.',
-                'tahun_masuk.required' => 'Tanggal tarif wajib diisi.',
-                'spp.required' => 'Jumlah spp harus berupa angka.', 
-                'biaya_makan.required' => 'Jumlah spp harus berupa angka.', 
-                'snack.required' => 'Jumlah spp harus berupa angka.', 
-            ]);
-            $tarif_spp = TarifSpp::findOrFail($id);
-            $validated['spp'] = (int) str_replace('.', '', $request->spp);
-            $validated['biaya_makan'] = (int) str_replace('.', '', $request->biaya_makan);
-            $validated['snack'] = (int) str_replace('.', '', $request->snack);
-            $tarif_spp->update($validated);
-            
-            return redirect()->route('tarif-spp.index')->with('success', 'tarif_spp berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.tarif_spp.edit', compact('tarifSpp'));
     }
 
-    public function destroy($id)
+    public function update(TarifSppRequest $request, TarifSpp $tarifSpp): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tarif_spp = TarifSpp::findOrFail($id);
-            $tarif_spp->delete();
-            return redirect()->route('tarif-spp.index')->with('success', 'tarif_spp berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        $this->service->update($tarifSpp, $request->validated());
+
+        return redirect()->route('tarif-spp.index')
+            ->with('success', 'Tarif SPP berhasil diperbarui.');
+    }
+
+    public function destroy(TarifSpp $tarifSpp): RedirectResponse
+    {
+        try {
+            $this->service->delete($tarifSpp);
+            return redirect()->route('tarif-spp.index')->with('success', 'Tarif SPP berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
         }
     }
 }

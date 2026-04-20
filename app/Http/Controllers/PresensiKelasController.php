@@ -2,273 +2,146 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
 use App\Models\Kelas;
 use App\Models\Presensi;
-use App\Models\Siswa;
+use App\Models\AnggotaKelas;
 use App\Models\TahunAjaran;
+use App\Http\Requests\StorePresensiRequest;
+use App\Services\PresensiKelasService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class PresensiKelasController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        protected PresensiKelasService $service
+    ) {
+        $this->middleware('auth')->except('handle'); // Handle diakses mesin
+    }
+
+    public function index()
     {
-        if (user()?->hasRole('guru_sd')) {
-            $tahunAjaran = TahunAjaran::latest()->first();
-            $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                ->where(function ($query) {
-                    $query->where('guru_nipy', Auth::user()->email)
-                        ->orWhere('pendamping_nipy', Auth::user()->email);
-                })->firstOrFail();
-            $kelas_id = $kelas->id;
-            if (!$kelas) {
-                return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
-            }
-            
-            $bulan = BulanSpp::latest()->first();
-            $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-            $tanggalAwal = Carbon::parse($bulan->bulan_angka);
-            $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasContext(Auth::user(), $tahunAjaran);
 
-            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter);
+        if (!$kelas) return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
 
-            return view('presensi_kelas.index', [
-                'bulan' => $bulan,
-                'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
-                ...$statistik
-            ]);
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        $bulan = BulanSpp::latest()->firstOrFail();
+        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+        
+        $statistik = $this->service->hitungStatistik($kelas->id, $tanggalAwal, $tanggalAwal->copy()->endOfMonth());
+
+        return view('presensi_kelas.index', [
+            'bulan'       => $bulan,
+            'bulan_spp'   => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+            'kelas'       => $kelas,
+            ...$statistik
+        ]);
+    }
+
+    public function edit(string $tanggal)
+    {
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        
+        // 1. Re-use Service: Mengambil kelas yang diajar guru dengan sangat bersih
+        $kelas = $this->service->getKelasContext(Auth::user(), $tahunAjaran);
+
+        if (!$kelas) {
+            return redirect()->back()->with('error', 'Anda tidak memiliki kelas yang diampu.');
         }
+
+        // 2. Eager Loading: Ambil daftar siswa agar tidak N+1 di view
+        $siswaList = AnggotaKelas::with('siswa')->where('kelas_id', $kelas->id)->get();
+
+        // 3. Ambil data presensi khusus di tanggal tersebut
+        $presensi = Presensi::whereIn('anggota_kelas_id', $siswaList->pluck('id'))
+            ->whereDate('tanggal', \Carbon\Carbon::parse($tanggal)->toDateString())
+            ->get()
+            ->keyBy('anggota_kelas_id'); // <--- OPTIMASI SUPER: Ubah menjadi Dictionary/Lookup Table!
+
+        return view('presensi_kelas.edit', compact('siswaList', 'kelas', 'presensi', 'tanggal'));
     }
 
     public function create()
     {
-        if (user()?->hasRole('guru_sd')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasContext(Auth::user(), $tahunAjaran);
 
-            if (!$kelas) {
-                return redirect()->back()->with('error', 'Anda tidak memiliki kelas yang diampu.');
-            }
-            $siswaList = AnggotaKelas::where('kelas_id', $kelas->id)->with('siswa')->get();
-            return view('presensi_kelas.create', compact('siswaList', 'kelas'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        if (!$kelas) return redirect()->back()->with('error', 'Anda tidak memiliki kelas.');
+
+        $siswaList = AnggotaKelas::with('siswa')->where('kelas_id', $kelas->id)->get();
+        return view('presensi_kelas.create', compact('siswaList', 'kelas'));
     }
 
-    public function store(Request $request)
+    public function store(StorePresensiRequest $request)
     {
-        if (user()?->hasRole('guru_sd')) {
-            $request->validate([
-                'tanggal' => 'required|date',
-                'presensi' => 'array',
-                'waktu' => 'array',
-            ]);
-
-            $tanggal = Carbon::parse($request->tanggal)->toDateString();
-            $jamMasukStandar = Carbon::parse($tanggal . ' 07:30:00');
-
-            foreach ($request->presensi as $anggota_kelas_id => $status) {
-                if (empty($status)) {
-                    continue;
-                }
-                $waktuInput = $request->waktu[$anggota_kelas_id] ?? '07:30';
-                $waktuPresensi = Carbon::parse($tanggal . ' ' . $waktuInput);
-
-                $isLate = false;
-                $lateMinutes = null;
-
-                if ($status === 'Hadir') {
-                    $isLate = $waktuPresensi->gt($jamMasukStandar);
-                    $lateMinutes = $isLate ? $jamMasukStandar->diffInMinutes($waktuPresensi) : 0;
-                }
-
-                $existing = Presensi::where('anggota_kelas_id', $anggota_kelas_id)
-                    ->whereBetween('tanggal', [
-                        Carbon::parse($tanggal)->startOfDay(),
-                        Carbon::parse($tanggal)->endOfDay(),
-                    ])
-                    ->first();
-
-                    if ($existing) {
-                        $existing->update([
-                            'tanggal' => $waktuPresensi,
-                            'status' => $status,
-                            'terlambat' => $isLate,
-                            'menit_terlambat' => $lateMinutes,
-                        ]);
-                    } else {
-                        Presensi::create([
-                            'anggota_kelas_id' => $anggota_kelas_id,
-                            'tanggal' => $waktuPresensi,
-                            'status' => $status,
-                            'terlambat' => $isLate,
-                            'menit_terlambat' => $lateMinutes,
-                        ]);
-                    }
-            }
-
-            return redirect()->route('presensi-kelas.index')->with('success', 'Presensi berhasil disimpan.');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function edit($id)
-    {
-        if (user()?->hasRole('guru_sd')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $kelas = Kelas::where('tahun_ajaran_id', $tahun_ajaran->id)
-                        ->where('guru_nipy', Auth::user()->email)
-                        ->first();
-
-            if (!$kelas) {
-                return redirect()->back()->with('error', 'Anda tidak memiliki kelas yang diampu.');
-            }
-            $siswaList = AnggotaKelas::where('kelas_id', $kelas->id)->get();
-            $presensi = Presensi::whereIn('anggota_kelas_id', $siswaList->pluck('id'))
-                                ->whereDate('tanggal', $id)
-                                ->get();
-            $tanggal = $id;
-            return view('presensi_kelas.edit', compact('siswaList', 'kelas', 'presensi','tanggal'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->simpanPresensiMassal($request->validated());
+        return redirect()->route('presensi-kelas.index')->with('success', 'Presensi berhasil disimpan.');
     }
 
     public function show($id)
     {
-        if (user()?->hasAnyRole(['guru_sd','admin','dapur'])) {
-            $tahunAjaran = TahunAjaran::latest()->first();
-            if(user()?->hasRole('guru_sd')){
-                $bulan = BulanSpp::findOrFail($id);
-                $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');   
-                $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-                    ->where(function ($query) {
-                        $query->where('guru_nipy', Auth::user()->email)
-                            ->orWhere('pendamping_nipy', Auth::user()->email);
-                    })->firstOrFail();
-            }elseif(user()?->hasRole('admin') || user()?->hasRole('dapur')){
-                $bulan = BulanSpp::latest()->first();
-                $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-                $kelas = Kelas::find($id);
-            }
-            $kelas_id = $kelas->id;
-            $data_kelas  = Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get();
-            $tanggalAwal = Carbon::parse($bulan->bulan_angka);
-            $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
-            
-            if (!$kelas) {
-                return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
-            }
-            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter);
-            return view('presensi_kelas.index', [
-                'bulan' => $bulan,
-                'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
-                'data_kelas' => $data_kelas,
-                'kelas' => $kelas,
-                ...$statistik
-            ]);
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        
+        // Cek role untuk menentukan dari mana bulan diambil
+        $bulan = user()?->hasRole('guru_sd') ? BulanSpp::findOrFail($id) : BulanSpp::latest()->firstOrFail();
+        $kelasId = user()?->hasRole('guru_sd') ? null : $id; // Jika admin, parameter id adalah kelasId
+
+        $kelas = $this->service->getKelasContext(user(), $tahunAjaran, $kelasId);
+
+        if (!$kelas) return redirect()->back()->with('error', 'Kelas tidak ditemukan.');
+
+        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
+        $statistik = $this->service->hitungStatistik($kelas->id, $tanggalAwal, $tanggalAwal->copy()->endOfMonth());
+
+        return view('presensi_kelas.index', [
+            'bulan'       => $bulan,
+            'bulan_spp'   => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+            'data_kelas'  => Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get(),
+            'kelas'       => $kelas,
+            ...$statistik
+        ]);
     }
 
+    /**
+     * API Endpoint untuk Mesin Scanner (IoT)
+     */
     public function handle(Request $request)
     {
-        $originalData = $request->getContent();
-        $decoded = json_decode($originalData, true);
+        $data = json_decode($request->getContent(), true);
 
-        if (!isset($decoded['type'], $decoded['cloud_id'], $decoded['data'])) {
+        if (!isset($data['type'], $data['cloud_id'], $data['data'])) {
             return response()->json(['status' => 'invalid data'], 400);
         }
 
-        $data = $decoded['data'];
-        $pin = $data['pin'];
-        $scanTime = Carbon::parse($data['scan']);
-        $tanggal = $scanTime->format('Y-m-d');
+        $scanTime = Carbon::parse($data['data']['scan']);
+        $jam_masuk = $scanTime->copy()->setTime(7, 30, 0);
 
-        $jam_masuk = Carbon::parse($tanggal . ' 07:30:00');
-        $isLate = $scanTime->gt($jam_masuk);
-        $lateMinutes = $isLate ? $jam_masuk->diffInMinutes($scanTime) : 0;
-
-        $siswa = Siswa::where('nis', $pin)->first();
-
-        $anggota = $siswa->anggotaKelasAktif; 
+        // Cari anggota kelas aktif (Lebih aman dari cara lama)
+        $tahunAjaran = TahunAjaran::latest()->first();
+        $anggota = AnggotaKelas::whereHas('siswa', fn($q) => $q->where('nis', $data['data']['pin']))
+                    ->whereHas('kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id))
+                    ->first();
 
         if (!$anggota) {
-            Log::warning("PIN $pin tidak ditemukan di anggota_kelas");
+            \Illuminate\Support\Facades\Log::warning("PIN {$data['data']['pin']} tidak memiliki kelas aktif.");
             return response()->json(['status' => 'pin not found'], 404);
         }
 
-        $presensi = Presensi::firstOrCreate(
+        Presensi::firstOrCreate(
             [
                 'anggota_kelas_id' => $anggota->id,
-                'tanggal' => $scanTime
+                'tanggal'          => $scanTime->format('Y-m-d H:i:s')
             ],
             [
-                'status' => 'Hadir',
-                'terlambat' => $isLate,
-                'menit_terlambat' => $lateMinutes
+                'status'          => 'Hadir',
+                'terlambat'       => $scanTime->gt($jam_masuk),
+                'menit_terlambat' => $scanTime->gt($jam_masuk) ? $jam_masuk->diffInMinutes($scanTime) : 0
             ]
         );
 
         return response()->json(['status' => 'success'], 200);
-    }
-
-    private function hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas_id, $bulanFilter)
-    {
-        $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas_id)->get();
-        $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-                            ->whereMonth('tanggal', date('m', strtotime($bulanFilter)))
-                            ->whereYear('tanggal', date('Y', strtotime($bulanFilter)))
-                            ->get();
-        $tanggal_tercatat =$presensi->pluck('tanggal')
-                ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString())
-                ->unique()
-                ->sort()
-                ->values(); 
-        $hariEfektif = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-                ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-                    ->selectRaw('DATE(tanggal) as tgl') 
-                    ->distinct()
-                    ->count();
-        $totalHadir = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('status', 'hadir')
-            ->count();
-        $totalTepatWaktu = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('terlambat', FALSE)
-            ->count();
-        if ($hariEfektif > 0) {
-            $persentaseHadir = round(($totalHadir / $hariEfektif) * 100, 1);
-            $persentaseTidakHadir = round(100 - $persentaseHadir, 1);
-            $persentaseTepatWaktu = round(($totalTepatWaktu / $hariEfektif) * 100, 1);
-            $persentaseTerlambat = round(100 - $persentaseTepatWaktu, 1);
-        } else {
-            $persentaseHadir = 0;
-            $persentaseTidakHadir = 0;
-            $persentaseTepatWaktu = 0;
-            $persentaseTerlambat = 0;
-        }
-
-        return [
-            'persentaseHadir' => $persentaseHadir,
-            'persentaseTidakHadir' => $persentaseTidakHadir,
-            'persentaseTepatWaktu' => $persentaseTepatWaktu,
-            'persentaseTerlambat' => $persentaseTerlambat,
-            'anggotaKelas' => $anggotaKelas,
-            'presensi' => $presensi,
-            'tanggal_tercatat' => $tanggal_tercatat,
-        ];
     }
 }

@@ -7653,8 +7653,8 @@
                 "webprofiler"
             ],
             "support": {
-                "issues": "https://github.com/barryvdh/laravel-debugbar/issues",
-                "source": "https://github.com/barryvdh/laravel-debugbar/tree/v3.15.4"
+                "issues": "https://github.com/fruitcake/laravel-debugbar/issues",
+                "source": "https://github.com/fruitcake/laravel-debugbar/tree/v3.15.4"
             },
             "time": "2025-04-16T06:32:06+00:00"
         },

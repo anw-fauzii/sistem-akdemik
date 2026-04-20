@@ -3,57 +3,43 @@
 namespace App\Http\Controllers\PesertaDidik;
 
 use App\Http\Controllers\Controller;
-use App\Models\AnggotaKelas;
-use App\Models\Kesehatan;
 use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
+use App\Services\PesertaDidik\KesehatanSiswaService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 
 class KesehatanController extends Controller
 {
-    public function index(Request $request)
-    {
-        if (user()?->hasRole('siswa_tk')) {
-            $tahunAjaran = TahunAjaran::latest()->first();
-            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
-                        ->whereHas('kelas', function ($query) use ($tahunAjaran) {
-                            $query->where('tahun_ajaran_id', $tahunAjaran->id);
-                        })
-                        ->first();
+    public function __construct(
+        protected KesehatanSiswaService $service
+    ) {}
 
-            if (!$anggotaKelas) {
-                return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
-            }
-            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
-                ->whereSiswaNis(Auth::user()->email)
-                ->get();
-            $kesehatan = Kesehatan::with('bulanSpp')->whereAnggotaKelasId($anggotaKelas->id)->get();
-            return view('pesertaDidik.kesehatan.index', compact('anggotaKelas', 'tahun_selama_belajar', 'kesehatan', 'tahunAjaran'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+    public function index(): View|RedirectResponse
+    {
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        
+        return $this->renderKesehatanView($tahunAjaran);
     }
 
-    public function show($id)
+    public function show(TahunAjaran $tahunAjaran): View|RedirectResponse
     {
-        if (user()?->hasRole('siswa_tk')) {
-            $tahunAjaran = TahunAjaran::findOrFail($id);
-            $anggotaKelas = AnggotaKelas::whereSiswaNis(Auth::user()->email)
-                        ->whereHas('kelas', function ($query) use ($id) {
-                            $query->where('tahun_ajaran_id', $id);
-                        })
-                        ->first();
+        return $this->renderKesehatanView($tahunAjaran);
+    }
 
-            if (!$anggotaKelas) {
-                return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun.');
-            }
-            $tahun_selama_belajar = AnggotaKelas::with('kelas.tahun_ajaran')
-                ->whereSiswaNis(Auth::user()->email)
-                ->get();
-            $kesehatan = Kesehatan::with('bulanSpp')->whereAnggotaKelasId($anggotaKelas->id)->get();
-            return view('pesertaDidik.kesehatan.index', compact('anggotaKelas', 'tahun_selama_belajar', 'kesehatan', 'tahunAjaran'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+    private function renderKesehatanView(TahunAjaran $tahunAjaran): View|RedirectResponse
+    {
+        $nis = Auth::user()->email; 
+        $anggotaKelas = $this->service->getAnggotaKelasByTahun($nis, $tahunAjaran);
+        if (!$anggotaKelas) {
+            return redirect()->back()->with('error', 'Anda belum masuk kelas mana pun pada tahun ajaran ini.');
         }
+
+        return view('pesertaDidik.kesehatan.index', [
+            'tahunAjaran'          => $tahunAjaran,
+            'anggotaKelas'         => $anggotaKelas,
+            'tahun_selama_belajar' => $this->service->getRiwayatBelajar($nis),
+            'kesehatan'            => $this->service->getDataKesehatan($anggotaKelas->id),
+        ]);
     }
 }

@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class AdministrasiKelas extends Model
 {
     use HasFactory;
+
     protected $table = 'administrasi_kelas';
+    
     protected $fillable = [
         'tahun_ajaran_id',
         'kelas_id',
@@ -18,7 +20,7 @@ class AdministrasiKelas extends Model
         'status',
     ];
 
-    public function tahun_ajaran()
+    public function tahunAjaran()
     {
         return $this->belongsTo(TahunAjaran::class);
     }
@@ -28,13 +30,9 @@ class AdministrasiKelas extends Model
         return $this->belongsTo(Kelas::class);
     }
 
-    public function guru()
-    {
-        return $this->belongsTo(Guru::class);
-    }
-
-    public function kategori_administrasi()
+    public function kategoriAdministrasi()
     {
         return $this->belongsTo(KategoriAdministrasi::class);
     }
+
 }

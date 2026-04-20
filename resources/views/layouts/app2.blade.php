@@ -19,40 +19,50 @@
     @yield('title')
 
     <meta http-equiv="Content-Language" content="en">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <!-- BASIC META -->
     <title>Sistem Informasi Akademik - Yayasan Prima Insani</title>
-    <meta name="description" content="Sistem Informasi Akademik Yayasan Prima Insani untuk absensi, nilai, kelas, dan data siswa">
+    <meta name="description"
+        content="Sistem Informasi Akademik Yayasan Prima Insani untuk absensi, nilai, kelas, dan data siswa">
     <meta property="og:title" content="Sistem Informasi Akademik Yayasan Prima Insani">
-    <meta property="og:description" content="SIMAK Yayasan Prima Insani — Kelola absensi, nilai, kelas, dan data siswa secara online">
+    <meta property="og:description"
+        content="SIMAK Yayasan Prima Insani — Kelola absensi, nilai, kelas, dan data siswa secara online">
     <meta property="og:url" content="https://akademik.primainsanigarut.sch.id/">
     <meta property="og:type" content="website">
     <meta property="og:image" content="https://akademik.primainsanigarut.sch.id/logo.png">
     <meta property="og:image:width" content="512">
     <meta property="og:image:height" content="512">
     <meta property="og:image:type" content="image/png">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
     <meta name="description" content="This is an example dashboard created using build-in elements and components.">
     <meta name="msapplication-tap-highlight" content="no">
-  	<link rel="icon" href="{{asset('logo.png')}}" type="image/png">
-      <script src="{{ asset('js/main_tambahan.js') }}"></script>
-      <link rel="stylesheet" href="{{ asset('css/main_tambahan.css') }}">
+    <link rel="icon" href="{{ asset('logo.png') }}" type="image/png">
+    <script src="{{ asset('js/main_tambahan.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/main_tambahan.css') }}">
     <link rel="stylesheet" href="{{ asset('Icon-font-7-stroke/assets/Pe-icon-7-stroke.css') }}">
     <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap4.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" /> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+        integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+        crossorigin="anonymous" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
     <script type="text/javascript" src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.0/jquery.validate.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" integrity="sha512-RXf+QSDCUQs5uwRKaDoXt55jygZZm2V++WUZduaU/Ui/9EGp3f/2KZVahFZBKGH0s774sd3HmrhUy+SgOFQLVQ==" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js"
+        integrity="sha512-RXf+QSDCUQs5uwRKaDoXt55jygZZm2V++WUZduaU/Ui/9EGp3f/2KZVahFZBKGH0s774sd3HmrhUy+SgOFQLVQ=="
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"
+        integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous">
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
     @stack('css')
 </head>
+
 <body>
     <div id="loadingOverlay" class="loader-overlay d-none">
         <div class="loader-content">
@@ -62,77 +72,77 @@
     </div>
 
     <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
-        @include('layouts.navbar')             
+        @include('layouts.navbar')
         <div class="app-main">
-            @include('layouts.sidebar')   
+            @include('layouts.sidebar')
             <div class="app-main__outer">
-            @yield('content') 
-            @include('layouts.footer')                      
-             </div>
+                @yield('content')
+                @include('layouts.footer')
+            </div>
         </div>
     </div>
     @stack('crud')
     <script>
-    $(document).ready(function(){
-        $('#myTable').dataTable({ 
-            "ordering": false,
-            "processing": true,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
+        $(document).ready(function() {
+            $('#myTable').dataTable({
+                "ordering": false,
+                "processing": true,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
+            $('#myTable2').dataTable({
+                "ordering": false,
+                "processing": true,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
+            $('#myTable3').dataTable({
+                "ordering": true,
+                "processing": true,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
+            $('#myTable4').dataTable({
+                "ordering": false,
+                "processing": true,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
+            $('#myTable5').dataTable({
+                "ordering": true,
+                "processing": true,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
+            $('#myTable6').dataTable({
+                "ordering": false,
+                "processing": false,
+                "searching": false,
+                "lengthMenu": [
+                    [25, 50, 100, 1000, -1],
+                    ['25', '50', '100', '1000', 'All']
+                ],
+            });
         });
-        $('#myTable2').dataTable({ 
-            "ordering": false,
-            "processing": true,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
-        });
-        $('#myTable3').dataTable({ 
-            "ordering": true,
-            "processing": true,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
-        });
-        $('#myTable4').dataTable({ 
-            "ordering": false,
-            "processing": true,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
-        });
-        $('#myTable5').dataTable({ 
-            "ordering": true,
-            "processing": true,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
-        });
-        $('#myTable6').dataTable({ 
-            "ordering": false,
-            "processing": false,
-            "searching":false,
-            "lengthMenu": [
-            [ 25, 50, 100, 1000, -1 ],
-            [ '25', '50', '100', '1000', 'All' ]
-        ],
-        });
-    });
-    @if (Session::has('success'))
-        toastr.success('{{ Session::get('success') }}');
-    @elseif(Session::has('error'))
-        toastr.error('{{ Session::get('error') }}');
-    @elseif(Session::has('warning'))
-        toastr.warning('{{ Session::get('warning') }}');
-    @endif
+        @if (Session::has('success'))
+            toastr.success('{{ Session::get('success') }}');
+        @elseif (Session::has('error'))
+            toastr.error('{{ Session::get('error') }}');
+        @elseif (Session::has('warning'))
+            toastr.warning('{{ Session::get('warning') }}');
+        @endif
     </script>
-    @if(session('status') && session('status') == 'success')
+    @if (session('status') && session('status') == 'success')
         <script>
             Swal.fire({
                 icon: 'success',
@@ -154,14 +164,17 @@
             cursor: pointer;
             margin: 5px;
         }
+
         .btn-swal-confirm {
             background-color: #3085d6;
             color: white;
         }
+
         .btn-swal-cancel {
             background-color: #d33;
             color: white;
         }
     </style>
 </body>
+
 </html>

@@ -1,135 +1,190 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Presensi</title>
+    <title>Detail Presensi Ekstrakurikuler</title>
 @endsection
 
 @section('content')
-<div class="app-main__inner">
-    <div class="app-page-title">
-        <div class="page-title-wrapper">
-            <div class="page-title-heading">
-                <div class="page-title-icon">
-                    <i class="pe-7s-smile icon-gradient bg-mean-fruit"></i>
-                </div>
-                <div>Presensi {{ \Carbon\Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y') }}
-                    <div class="page-title-subheading">
-                        Merupakan Presensi Ekstrakurikuler {{$ekstrakurikuler->nama_ekstrakurikuler}}
+    <div class="app-main__inner">
+        <div class="app-page-title">
+            <div class="page-title-wrapper">
+                <div class="page-title-heading">
+                    <div class="page-title-icon">
+                        <i class="pe-7s-date icon-gradient bg-mean-fruit"></i>
                     </div>
-                </div>
-            </div>  
-        </div> 
-    </div>
-    <div class="row">
-        <div class="col-md-6 col-xl-4">
-            <div class="card mb-3 widget-content"  style="border-bottom: 4px solid var(--yellow);"">
-                <div class="widget-content-wrapper">
-                    <div class="widget-content-left">
-                        <div class="widget-heading">Sakit</div>
-                        <div class="widget-subheading">Siswa yang Sakit</div>
-                    </div>
-                    <div class="widget-content-right">
-                        <div class="widget-numbers"><span>{{$presensi->where('status', 'sakit')->count()}}</span></div>
+                    <div>
+                        Presensi
+                        {{ $bulan->nama_bulan ?? \Carbon\Carbon::parse($bulan->bulan_angka)->translatedFormat('F Y') }}
+                        <div class="page-title-subheading">
+                            Laporan Kehadiran Ekstrakurikuler <strong>{{ $ekstrakurikuler->nama_ekstrakurikuler }}</strong>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-4">
-            <div class="card mb-3 widget-content" style="border-bottom: 4px solid var(--green);">
-                <div class="widget-content-wrapper">
-                    <div class="widget-content-left">
-                        <div class="widget-heading">Izin</div>
-                        <div class="widget-subheading">Total Clients Profit</div>
+
+        <div class="row">
+            <div class="col-md-6 col-xl-4">
+                <div class="card mb-3 widget-content border-bottom border-warning border-4 shadow-sm">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Sakit</div>
+                            <div class="widget-subheading">Total Izin Sakit</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-warning">
+                                <span>{{ $presensi->where('status', 'sakit')->count() }}</span></div>
+                        </div>
                     </div>
-                    <div class="widget-content-right">
-                        <div class="widget-numbers"><span>{{$presensi->where('status', 'izin')->count()}}</span></div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="card mb-3 widget-content border-bottom border-success border-4 shadow-sm">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Izin</div>
+                            <div class="widget-subheading">Total Izin Keperluan</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-success">
+                                <span>{{ $presensi->where('status', 'izin')->count() }}</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4">
+                <div class="card mb-3 widget-content border-bottom border-danger border-4 shadow-sm">
+                    <div class="widget-content-wrapper">
+                        <div class="widget-content-left">
+                            <div class="widget-heading">Alpha</div>
+                            <div class="widget-subheading">Tanpa Keterangan</div>
+                        </div>
+                        <div class="widget-content-right">
+                            <div class="widget-numbers text-danger">
+                                <span>{{ $presensi->where('status', 'alpha')->count() }}</span></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-6 col-xl-4">
-            <div class="card mb-3 widget-content" style="border-bottom: 4px solid var(--red);"">
-                <div class="widget-content-wrapper">
-                    <div class="widget-content-left">
-                        <div class="widget-heading">Alpha</div>
-                        <div class="widget-subheading">People Interested</div>
-                    </div>
-                    <div class="widget-content-right">
-                        <div class="widget-numbers"><span>{{$presensi->where('status', 'alpha')->count()}}</span></div>
-                    </div>
+
+        <div class="main-card card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <a href="{{ route('presensi-ekstrakurikuler.create') }}" class="btn btn-primary font-weight-bold">
+                    <i class="pe-7s-plus mr-1"></i> Isi Presensi Hari Ini
+                </a>
+
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle font-weight-bold" type="button"
+                        id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="pe-7s-filter mr-1"></i> FILTER BULAN
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenu2">
+                        <li>
+                            <a href="{{ route('presensi-ekstrakurikuler.index') }}"
+                                class="dropdown-item font-weight-bold text-primary">
+                                Bulan Ini Terkini
+                            </a>
+                        </li>
+                        <div class="dropdown-divider"></div>
+
+                        @foreach ($bulan_spp as $itemBulan)
+                            <li>
+                                <a href="{{ route('presensi-ekstrakurikuler.show', $itemBulan->id) }}"
+                                    class="dropdown-item {{ $itemBulan->id == $bulan->id ? 'active' : '' }}">
+                                    {{ $itemBulan->nama_bulan }}
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="main-card card">
-        <div class="card-header">
-            <a href="{{route('presensi-ekstrakurikuler.create')}}" class="btn btn-primary">Tambah Baru</a>
-                &nbsp;<button class="btn btn-warning dropdown" type="button" id="dropdownMenu2" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="metismenu-icon pe-7s-refresh-2"></i> PERIODE
-                </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownMenu2">
-                    @foreach($bulan_spp as $bulan)
-                    <li>
-                        <a href="{{ route('presensi-ekstrakurikuler.show', $bulan->id) }}" class="dropdown-item">
-                            {{ $bulan->nama_bulan }}
-                        </a>
-                    </li>
-                    @endforeach
-                </ul> 
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="mb-0 table table-hover table-striped" id="myTable2">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Nama</th>
-                            @foreach ($tanggal_tercatat as $tanggal)
-                                <th class="text-center">{{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}</th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if ($tanggal_tercatat->isEmpty()) 
-                        <tr>
-                            <td colspan="2" class="text-center">Belum ada data </td>
-                        </tr>
-                        @else
-                        @php
-                            $no = 1;
-                        @endphp
-                            @foreach ($anggotaEkstrakurikuler as $anggota)
+
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="mb-0 table table-hover table-bordered table-striped" id="myTable2">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="text-center align-middle" width="5%">No</th>
+                                <th class="align-middle">Nama Siswa</th>
+                                @foreach ($tanggal_tercatat as $tanggal)
+                                    <th class="text-center align-middle"
+                                        title="{{ \Carbon\Carbon::parse($tanggal)->translatedFormat('l, d M Y') }}">
+                                        {{ \Carbon\Carbon::parse($tanggal)->format('d/m') }}
+                                    </th>
+                                @endforeach
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if ($tanggal_tercatat->isEmpty())
                                 <tr>
-                                    <td>{{$no++}}</td>
-                                    <td>{{ $anggota->anggotaKelas->siswa->nama_lengkap }} <strong>({{ $anggota->anggotaKelas->siswa->kelas->nama_kelas }})</strong></td>
-                                    @foreach ($tanggal_tercatat as $tanggal)
-                                        @php
-                                            $presensiData = $presensi->where('anggota_ekstrakurikuler_id', $anggota->id)->where('tanggal', $tanggal)->first();
-                                        @endphp
+                                    <td colspan="100%" class="text-center text-muted py-4">
+                                        <i class="pe-7s-info fa-2x d-block mb-2"></i>
+                                        Belum ada data presensi yang tercatat pada bulan ini.
+                                    </td>
+                                </tr>
+                            @else
+                                @foreach ($anggotaEkstrakurikuler as $anggota)
+                                    <tr>
+                                        <td class="text-center">{{ $loop->iteration }}</td>
+
+                                        <td>
+                                            {{ $anggota->anggotaKelas->siswa->nama_lengkap ?? '-' }}
+                                            <strong
+                                                class="text-muted">({{ $anggota->anggotaKelas->kelas->nama_kelas ?? '-' }})</strong>
+                                        </td>
+
+                                        @foreach ($tanggal_tercatat as $tanggal)
+                                            @php
+                                                $presensiData = $presensi
+                                                    ->where('anggota_ekstrakurikuler_id', $anggota->id)
+                                                    ->where('tanggal', $tanggal)
+                                                    ->first();
+                                            @endphp
+
                                             @if ($presensiData)
                                                 @if ($presensiData->status == 'hadir')
-                                                <td class="text-center"> &#10003; </td>
+                                                    <td class="text-center text-success font-weight-bold" title="Hadir">
+                                                        &#10004;</td>
                                                 @elseif ($presensiData->status == 'sakit')
-                                                <td class="text-center" style="background-color: yellow;"> S </td>
+                                                    <td class="text-center bg-warning text-dark font-weight-bold"
+                                                        title="Sakit">S</td>
                                                 @elseif ($presensiData->status == 'izin')
-                                                <td class="text-center" style="background-color: green; color:white">  I </td>
+                                                    <td class="text-center bg-success text-white font-weight-bold"
+                                                        title="Izin">I</td>
                                                 @elseif ($presensiData->status == 'alpha')
-                                                <td class="text-center" style="background-color: red; color:white">  A </td>
+                                                    <td class="text-center bg-danger text-white font-weight-bold"
+                                                        title="Alpha">A</td>
                                                 @else
-                                                    {{ $presensiData->status }} 
+                                                    <td class="text-center text-muted">
+                                                        {{ strtoupper($presensiData->status) }}</td>
                                                 @endif
                                             @else
-                                                <td class="text-center" style="background-color: black;"> -</td>
+                                                <td class="text-center bg-secondary text-white font-weight-bold"
+                                                    title="Tidak Tercatat">-</td>
                                             @endif
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        @endif
-                    </tbody>
-                </table>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
+
+                @if ($tanggal_tercatat->isNotEmpty())
+                    <div class="mt-3 small text-muted">
+                        <strong>Keterangan:</strong>
+                        <span class="text-success font-weight-bold ml-2">&#10004;</span> = Hadir,
+                        <span class="badge badge-warning text-dark ml-2">S</span> = Sakit,
+                        <span class="badge badge-success ml-2">I</span> = Izin,
+                        <span class="badge badge-danger ml-2">A</span> = Alpha,
+                        <span class="badge badge-secondary ml-2">-</span> = Kosong / Belum Diisi
+                    </div>
+                @endif
+
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> 
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
 @endsection

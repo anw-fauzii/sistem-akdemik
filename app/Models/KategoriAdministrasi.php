@@ -21,11 +21,14 @@ class KategoriAdministrasi extends Model
         'semester' => 'boolean',
     ];
 
-    public function administrasi_guru(){
+    // PERBAIKAN: Gunakan CamelCase
+    public function administrasiGuru()
+    {
         return $this->hasMany(AdministrasiGuru::class);
     }
 
-    public function administrasi_kelas(){
+    public function administrasiKelas()
+    {
         return $this->hasMany(AdministrasiKelas::class);
     }
 }

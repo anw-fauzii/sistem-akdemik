@@ -2,430 +2,114 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AnggotaKelas;
 use App\Models\BulanSpp;
-use App\Models\Presensi;
 use App\Models\Kelas;
-use App\Models\Siswa;
 use App\Models\TahunAjaran;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\Http;
+use App\Services\FingerspotSyncService;
+use App\Services\LaporanPresensiService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class LaporanPresensiController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected LaporanPresensiService $laporanService,
+        protected FingerspotSyncService $syncService
+    ) {}
+
+    public function index(): View
     {
-        $tahun_ajaran = TahunAjaran::latest()->first();
-        $kelas = Kelas::whereTahunAjaranId($tahun_ajaran->id)->whereJenjang('SD')->get();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get();
+        
         return view('laporan.presensi.index', compact('kelas'));
     }
 
-    public function presensiHariIni()
+    /**
+     * API untuk Chart/Dashboard hari ini. Dioptimasi mencegah N+1 (Super Cepat).
+     */
+    public function presensiHariIni(): JsonResponse
     {
         $tanggal = now()->toDateString();
-        $tahunAjaran = TahunAjaran::latest()->first();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
 
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-            ->with(['anggotaKelas.siswa'])->where('jenjang','SD')
+        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->where('jenjang', 'SD')->get();
+        $kelasIds = $kelasList->pluck('id');
+
+        // OPTIMASI: Hitung agregat langsung di level Database menggunakan JOIN
+        $statistik = DB::table('anggota_kelas')
+            ->join('kelas', 'anggota_kelas.kelas_id', '=', 'kelas.id')
+            ->leftJoin('presensi', function ($join) use ($tanggal) {
+                $join->on('anggota_kelas.id', '=', 'presensi.anggota_kelas_id')
+                     ->whereDate('presensi.tanggal', '=', $tanggal);
+            })
+            ->whereIn('anggota_kelas.kelas_id', $kelasIds)
+            ->selectRaw("
+                kelas.nama_kelas,
+                COUNT(anggota_kelas.id) as total_siswa,
+                SUM(CASE WHEN presensi.id IS NULL THEN 1 ELSE 0 END) as belum_scan,
+                SUM(CASE WHEN presensi.status IN ('alpha', 'izin', 'sakit') THEN 1 ELSE 0 END) as tidak_masuk,
+                SUM(CASE WHEN presensi.status = 'hadir' THEN 1 ELSE 0 END) as sudah_scan
+            ")
+            ->groupBy('kelas.id', 'kelas.nama_kelas')
             ->get();
 
-        $presensiHariIni = Presensi::whereDate('tanggal', $tanggal)->get()->keyBy(function ($item) {
-            return $item->anggota_kelas_id;
-        });
-
-        $hasil = [];
-
-        foreach ($kelasList as $kelas) {
-            $sudahScan = 0;
-            $tidakMasuk = 0;
-            $belumScan = 0;
-
-            foreach ($kelas->anggotaKelas as $anggota) {
-                $presensi = $presensiHariIni->get($anggota->id);
-
-                if ($presensi) {
-                    if (in_array($presensi->status, ['alpha', 'izin', 'sakit'])) {
-                        $tidakMasuk++;
-                    } else {
-                        $sudahScan++;
-                    }
-                } else {
-                    $belumScan++;
-                }
-            }
-
-            $hasil[] = [
-                'kelas' => $kelas->nama_kelas,
-                'sudah_scan' => $sudahScan,
-                'belum_scan' => $belumScan,
-                'tidak_masuk' => $tidakMasuk,
-            ];
-        }
-
-        return response()->json($hasil);
+        return response()->json($statistik);
     }
 
-    public function ambilHariIni()
+    public function ambilHariIni(): RedirectResponse
     {
-        $cloud_ids = [
-            'C2630450C30A1D24',
-            'C262C44523180D2B',
-            'C262C4452319112B',
-            'C262C44523201F31',
-            'C262C44523270B2F',
-            'C262C4452336242D',
-            'C2630450C3391926'
-        ];
-
-        $api_token = config('services.fingerspot.api_token');
-
-        $today = Carbon::now('Asia/Jakarta')->toDateString();
-
-        $allLogs = [];
-
-        foreach ($cloud_ids as $cloud_id) {
-
-            $maxRetry = 3;
-            $attempt = 0;
-            $response = null;
-
-            do {
-                sleep(1);
-
-                $response = Http::timeout(30)->withHeaders([
-                    'Authorization' => 'Bearer ' . $api_token,
-                    'Content-Type'  => 'application/json',
-                ])->post('https://developer.fingerspot.io/api/get_attlog', [
-                    'trans_id'  => uniqid(),
-                    'cloud_id'  => $cloud_id,
-                    'start_date' => $today,
-                    'end_date'   => $today,
-                ]);
-
-                $attempt++;
-
-            } while ((!$response || !$response->successful()) && $attempt < $maxRetry);
-
-            if (!$response || !$response->successful()) {
-                Log::error('Fingerspot gagal ambil data', [
-                    'cloud_id' => $cloud_id,
-                    'status'   => $response ? $response->status() : null,
-                    'body'     => $response ? $response->body() : null,
-                ]);
-                continue;
-            }
-
-            $data = $response->json();
-            $logs = $data['data'] ?? [];
-
-            foreach ($logs as $log) {
-                if (!isset($log['pin'], $log['scan_date'])) {
-                    continue;
-                }
-
-                $nis = $log['pin'];
-                $waktu = Carbon::parse($log['scan_date']);
-                $tanggal = $waktu->toDateString();
-
-                if (!isset($allLogs[$nis][$tanggal]) || $waktu->lt($allLogs[$nis][$tanggal])) {
-                    $allLogs[$nis][$tanggal] = $waktu;
-                }
-            }
+        try {
+            $this->syncService->syncToday();
+            return redirect()->back()->with('success', 'Data presensi hari ini berhasil diambil dan disimpan.');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal menyinkronkan data: ' . $e->getMessage());
         }
-
-        foreach ($allLogs as $nis => $tanggalList) {
-
-            // Normalisasi ulang dari API
-            $nis = preg_replace('/[\s\x{00A0}\x{200B}]/u', '', trim($nis));
-
-            $siswa = Siswa::whereRaw(
-                'REPLACE(REPLACE(REPLACE(nis, CHAR(194,160), ""), CHAR(226,128,139), ""), " ", "") = ?',
-                [$nis]
-            )->first();
-
-            if (!$siswa) {
-                Log::warning('NIS tidak ditemukan', ['nis' => $nis]);
-                continue;
-            }
-
-            $anggota = $siswa->anggotaKelasAktif;
-            if (!$anggota) {
-                Log::warning('Anggota kelas aktif tidak ditemukan', [
-                    'nis' => $nis,
-                    'siswa_id' => $siswa->id
-                ]);
-                continue;
-            }
-
-            foreach ($tanggalList as $tanggal => $waktuMasuk) {
-
-                $jamMasuk = Carbon::createFromFormat('Y-m-d H:i', $tanggal . ' 07:35');
-
-                $menitTerlambat = max(0, $jamMasuk->diffInMinutes($waktuMasuk, false));
-
-                Presensi::firstOrCreate(
-                    [
-                        'anggota_kelas_id' => $anggota->id,
-                        'tanggal' => $tanggal, 
-                    ],
-                    [
-                        'status' => 'hadir',
-                        'terlambat' => $menitTerlambat > 0,
-                        'menit_terlambat' => $menitTerlambat,
-                    ]
-                );
-            }
-        }
-
-        return redirect()->back()->with(
-            'success',
-            'Data presensi hari ini berhasil diambil dan disimpan dengan aman.'
-        );
     }
 
-    public function pekanan()
+    public function pekanan(): View
     {
         return view('laporan.presensi.pekanan');
     }
 
-    public function pekananCari(Request $request)
+    public function bulanan(?BulanSpp $bulanSpp = null): \Illuminate\Contracts\View\View|\Illuminate\Http\RedirectResponse
     {
-        $tanggal = $request->tanggal;
-        $tanggalCarbon = Carbon::parse($tanggal);
-        $bulan = $tanggalCarbon->month;
-        $tahun = $tanggalCarbon->year;
-
-        $tanggalAwalBulan = Carbon::create($tahun, $bulan, 1);
-        $seninPertama = $tanggalAwalBulan->copy()->startOfWeek(Carbon::MONDAY);
-        $pekanTanggal = collect();
-        for ($pekan = 1; $pekan <= 5; $pekan++) {
-            $start = $seninPertama->copy()->addWeeks($pekan - 1);
-            $end = $start->copy()->addDays(6);
-
-
-            for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                if ($date->month == $bulan) {
-                    $pekanTanggal->put($date->format('Y-m-d'), $pekan);
-                }
-            }
-        }
-
-        $pekanKe = $pekanTanggal->get($tanggalCarbon->format('Y-m-d'), 1);
-        $namaBulan = $tanggalCarbon->translatedFormat('F'); 
-
-        $judul = "Bulan $namaBulan Minggu ke-$pekanKe";
-
-        $tahunAjaran=TahunAjaran::latest()->first();
-        $pekanPertama = $tanggalCarbon->copy()->startOfWeek(Carbon::MONDAY);
-        $pekanTerakhir =$pekanPertama->copy()->endOfWeek();
-        $kelasList = Kelas::whereTahunAjaranId($tahunAjaran->id)->whereJenjang('SD')->get();
-        $dataChart = [];
-
-        $anggotaKelas = AnggotaKelas::whereIn('kelas_id', $kelasList->pluck('id'))->get()->groupBy('kelas_id');
-
-        $presensis = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->flatten()->pluck('id'))
-            ->whereBetween('tanggal', [$pekanPertama, $pekanTerakhir])
-            ->get()
-            ->groupBy('anggota_kelas_id');
-
-        $dataChart = [];
-
-        $totalTerlambatSekolah = 0;
-        $terlambatPerKelas = [];
-
-        foreach ($kelasList as $kelas) {
-            $anggota = $anggotaKelas[$kelas->id] ?? collect();
-
-            $presensiKelas = $anggota->flatMap(
-                fn ($a) => $presensis[$a->id] ?? collect()
-            );
-
-            $jumlahTerlambat = $presensiKelas
-                ->where('terlambat', true)
-                ->count();
-
-            $terlambatPerKelas[] = [
-                'nama' => $kelas->nama_kelas,
-                'jumlah' => $jumlahTerlambat,
-            ];
-
-            $totalTerlambatSekolah += $jumlahTerlambat;
-        }
-        $dataChart = [];
-
-        foreach ($terlambatPerKelas as $item) {
-            $persen = $totalTerlambatSekolah > 0
-                ? round(($item['jumlah'] / $totalTerlambatSekolah) * 100, 1)
-                : 0;
-
-            $dataChart[] = [
-                'name' => $item['nama'],
-                'y' => $persen,
-                'x' => $item['jumlah'], 
-            ];
-        }
-        return view('laporan.presensi.pekanan',compact('dataChart','tahunAjaran','judul','tanggal'));
-    }
-
-    public function bulanan()
-    {
-        $tahunAjaran = TahunAjaran::latest()->first();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->whereJenjang('SD')->get();
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        
+        // 1. OPTIMASI N+1: Selalu bawa relasi Anggota Kelas agar Blade & Service tidak nge-loop query
+        $kelasList = Kelas::with(['anggotaKelas'])
+            ->where('tahun_ajaran_id', $tahunAjaran->id)
+            ->where('jenjang', 'SD')
+            ->get();
 
         if ($kelasList->isEmpty()) {
-            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
+            return redirect()->back()->with('error', 'Tidak ada data kelas SD pada tahun ajaran ini.');
         }
 
-        $bulan = BulanSpp::latest()->first();
-        $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
-        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
+        // 2. LOGIKA DEFAULT BULAN YANG CERDAS
+        $bulan = $bulanSpp ?? BulanSpp::latest()->firstOrFail();
+        
+        // 3. KEAMANAN TANGGAL: Pastikan selalu dihitung dari awal bulan
+        $tanggalAwal = \Carbon\Carbon::parse($bulan->bulan_angka)->startOfMonth();
+        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth(); 
+        
         $statistikPerKelas = [];
-
         foreach ($kelasList as $kelas) {
-            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter);
-
+            // Karena service mengembalikan array statistik, kita gabungkan dengan data kelasnya
             $statistikPerKelas[] = [
                 'kelas' => $kelas,
-                ...$statistik
+                ...$this->laporanService->getStatistikBulanan($kelas, $tanggalAwal, $tanggalAkhir)
             ];
         }
 
         return view('laporan.presensi.bulanan', [
-            'bulan' => $bulan,
-            'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
+            'bulan'             => $bulan,
+            'bulan_spp'         => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(), // Untuk Dropdown Filter
             'statistikPerKelas' => $statistikPerKelas,
         ]);
     }
-
-    public function bulananShow($id)
-    {
-        $tahunAjaran = TahunAjaran::latest()->first();
-        $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->get();
-
-        if ($kelasList->isEmpty()) {
-            return redirect()->back()->with('error', 'Anda tidak mengajar kelas mana pun.');
-        }
-
-        $bulan = BulanSpp::findOrFail($id);
-        $bulanFilter = Carbon::parse($bulan->bulan_angka)->format('Y-m');
-        $tanggalAwal = Carbon::parse($bulan->bulan_angka);
-        $tanggalAkhir = $tanggalAwal->copy()->endOfMonth();
-        $statistikPerKelas = [];
-
-        foreach ($kelasList as $kelas) {
-            $statistik = $this->hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter);
-
-            $statistikPerKelas[] = [
-                'kelas' => $kelas,
-                ...$statistik
-            ];
-        }
-
-        return view('laporan.presensi.bulanan', [
-            'bulan' => $bulan,
-            'bulan_spp' => BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get(),
-            'statistikPerKelas' => $statistikPerKelas,
-        ]);
-    }
-
-
-    private function hitungStatistikPresensi($tanggalAwal, $tanggalAkhir, $kelas, $bulanFilter)
-    {
-        $anggotaKelas = AnggotaKelas::where('kelas_id', $kelas->id)->get();
-
-        $presensi = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-                            ->whereMonth('tanggal', date('m', strtotime($bulanFilter)))
-                            ->whereYear('tanggal', date('Y', strtotime($bulanFilter)))
-                            ->get();
-
-        $tanggal_tercatat = $presensi->pluck('tanggal')
-            ->map(fn($item) => \Carbon\Carbon::parse($item)->toDateString())
-            ->unique()
-            ->sort()
-            ->values();
-
-        $hariEfektif = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->selectRaw('DATE(tanggal) as tgl')
-            ->distinct()
-            ->count();
-
-        $totalHadir = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('status', 'hadir')
-            ->count();
-
-        $totalTepatWaktu = Presensi::whereIn('anggota_kelas_id', $anggotaKelas->pluck('id'))
-            ->whereBetween('tanggal', [$tanggalAwal, $tanggalAkhir])
-            ->where('terlambat', false)
-            ->count();
-
-        if ($hariEfektif > 0) {
-            $persentaseHadir = round(($totalHadir / $hariEfektif) * 100, 1);
-            $persentaseTidakHadir = round(100 - $persentaseHadir, 1);
-            $persentaseTepatWaktu = round(($totalTepatWaktu / $hariEfektif) * 100, 1);
-            $persentaseTerlambat = round(100 - $persentaseTepatWaktu, 1);
-        } else {
-            $persentaseHadir = 0;
-            $persentaseTidakHadir = 0;
-            $persentaseTepatWaktu = 0;
-            $persentaseTerlambat = 0;
-        }
-
-        return [
-            'persentaseHadir' => $persentaseHadir,
-            'persentaseTidakHadir' => $persentaseTidakHadir,
-            'persentaseTepatWaktu' => $persentaseTepatWaktu,
-            'persentaseTerlambat' => $persentaseTerlambat,
-            'anggotaKelas' => $anggotaKelas,
-            'presensi' => $presensi,
-            'tanggal_tercatat' => $tanggal_tercatat,
-        ];
-    }
-
-
-    // public function simpanNantiButuhdatapresensiHariIni()
-    // {
-    //     $tanggal = now()->toDateString();
-    //     $tahunAjaran = TahunAjaran::latest()->first();
-
-    //     $kelasList = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
-    //     ->with(['anggotaKelas.siswa'])
-    //     ->get();
-    //     $presensiHariIni = Presensi::whereDate('tanggal', $tanggal)->get()->keyBy(function ($item) {
-    //         return $item->anggota_kelas_id;
-    //     });
-
-    //     $hasil = [];
-
-    //     foreach ($kelasList as $kelas) {
-    //         $rekap = [
-    //             'kelas' => $kelas->nama_kelas,
-    //             'sudah_scan' => [],
-    //             'tidak_masuk' => [],
-    //             'belum_scan' => [],
-    //         ];
-
-    //         foreach ($kelas->anggotaKelas as $anggota) {
-    //             $presensi = $presensiHariIni->get($anggota->id);
-
-    //             if ($presensi) {
-    //                 if (in_array($presensi->status, ['alpha', 'izin', 'sakit'])) {
-    //                     $rekap['tidak_masuk'][] = $anggota->siswa->nama_lengkap;
-    //                 } else {
-    //                     $rekap['sudah_scan'][] = $anggota->siswa->nama_lengkap;
-    //                 }
-    //             } else {
-    //                 $rekap['belum_scan'][] = $anggota->siswa->nama_lengkap;
-    //             }
-    //         }
-
-    //         $hasil[] = $rekap;
-    //     }
-
-    //     return response()->json($hasil);
-    // }
 }

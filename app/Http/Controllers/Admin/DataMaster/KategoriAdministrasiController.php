@@ -4,88 +4,57 @@ namespace App\Http\Controllers\Admin\DataMaster;
 
 use App\Http\Controllers\Controller;
 use App\Models\KategoriAdministrasi;
-use Illuminate\Http\Request;
+use App\Http\Requests\KategoriAdministrasiRequest;
+use App\Services\KategoriAdministrasiService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class KategoriAdministrasiController extends Controller
 {
-        public function index()
+    public function __construct(
+        protected KategoriAdministrasiService $service
+    ) {}
+
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriAdministrasi::all();
-            return view('data_master.kategori_administrasi.index', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.kategori_administrasi.index', [
+            'kategori' => $this->service->getAll()
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            return view('data_master.kategori_administrasi.create');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.kategori_administrasi.create');
     }
 
-    public function store(Request $request)
+    public function store(KategoriAdministrasiRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'nama_kategori' => 'required',
-                'jenis' => 'required',
-                'semester' => 'required',
-            ], [
-                'nama_kategori.required' => 'Nama kategori wajib diisi.',
-                'jenis.required' => 'Jenis kategori wajib diisi.',
-                'semester.required' => 'Pilihan Semester wajib diisi.',
-            ]);
-            
-            KategoriAdministrasi::create($validated);
-            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil disimpan');   
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }    
+        $this->service->store($request->validated());
+
+        return redirect()->route('kategori-administrasi.index')
+            ->with('success', 'Kategori berhasil disimpan');
     }
 
-    public function edit($id)
+    public function edit(KategoriAdministrasi $kategoriAdministrasi): View
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriAdministrasi::findOrFail($id);
-            return view('data_master.kategori_administrasi.edit', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.kategori_administrasi.edit', [
+            'kategori' => $kategoriAdministrasi
+        ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(KategoriAdministrasiRequest $request, KategoriAdministrasi $kategoriAdministrasi): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'nama_kategori' => 'required',
-                'jenis' => 'required',
-                'semester' => 'required',
-            ], [
-                'nama_kategori.required' => 'Nama kategori wajib diisi.',
-                'jenis.required' => 'Jenis kategori wajib diisi.',
-                'semester.required' => 'Pilihan Semester wajib diisi.',
-            ]);
-            
-            $kategori = KategoriAdministrasi::findOrFail($id);
-            $kategori->update($validated);
-            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->update($kategoriAdministrasi, $request->validated());
+
+        return redirect()->route('kategori-administrasi.index')
+            ->with('success', 'Kategori berhasil diupdate');
     }
 
-    public function destroy($id)
+    public function destroy(KategoriAdministrasi $kategoriAdministrasi): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $kategori = KategoriAdministrasi::findOrFail($id);
-            $kategori->delete();
-            return redirect()->route('kategori-administrasi.index')->with('success', 'kategori berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->delete($kategoriAdministrasi);
+
+        return redirect()->route('kategori-administrasi.index')
+            ->with('success', 'Kategori berhasil dihapus');
     }
 }

@@ -4,20 +4,22 @@
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="modalCreateLabel">Tambah ekstrakurikuler</h5>
+                    <h5 class="modal-title" id="modalCreateLabel">Tambah Anggota Ekstrakurikuler</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
 
                 <div class="modal-body">
-                    <input type="hidden" name="ekstrakurikuler_id" value="{{$ekstrakurikuler->id}}">
+                    <input type="hidden" name="ekstrakurikuler_id" value="{{ $ekstrakurikuler->id }}">
+
                     <div class="form-group">
-                        <label for="siswa">Pilih Siswa</label>
-                        <select multiple="multiple" size="10" name="siswa_nis[]" id="siswa_nis" class="duallistbox form-control">
-                           @foreach($siswa_belum_masuk_ekstrakurikuler as $belum_masuk_ekstrakurikuler)
-                                <option value="{{$belum_masuk_ekstrakurikuler->id}}">
-                                    {{$belum_masuk_ekstrakurikuler->nis}} | {{ $belum_masuk_ekstrakurikuler->siswa_nama }} ({{ $belum_masuk_ekstrakurikuler->kelas }})
+                        <label for="anggota_kelas_ids">Pilih Siswa</label>
+                        <select multiple="multiple" size="10" name="anggota_kelas_ids[]" id="anggota_kelas_ids"
+                            class="duallistbox form-control">
+                            @foreach ($siswa_belum_masuk_ekstrakurikuler as $belum_masuk)
+                                <option value="{{ $belum_masuk->id }}">
+                                    {{ $belum_masuk->nis }} | {{ $belum_masuk->siswa_nama }} ({{ $belum_masuk->kelas }})
                                 </option>
                             @endforeach
                         </select>
@@ -26,56 +28,49 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" id="submitBtn" class="btn btn-primary">Simpan</button>
+                    <button type="submit" id="submitBtn" class="btn btn-primary">
+                        <i class="fas fa-save mr-1"></i> Simpan
+                    </button>
                 </div>
             </div>
         </form>
     </div>
 </div>
-<!-- Tambahkan di head -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap4-duallistbox/4.0.2/bootstrap-duallistbox.min.css">
 
-<!-- Tambahkan di sebelum </body> -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap4-duallistbox/4.0.2/jquery.bootstrap-duallistbox.min.js"></script>
+<link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap4-duallistbox/4.0.2/bootstrap-duallistbox.min.css">
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap4-duallistbox/4.0.2/jquery.bootstrap-duallistbox.min.js">
+</script>
 
 <script>
     function showCreateModal() {
         $('#modalCreate').appendTo('body').modal('show');
     }
 
-    document.addEventListener("DOMContentLoaded", function () {
-        // Inisialisasi dual listbox
+    document.addEventListener("DOMContentLoaded", function() {
+        // PERBAIKAN: Teks Dual Listbox disesuaikan, tanpa perlu hack console.log
         $('.duallistbox').bootstrapDualListbox({
-            nonSelectedListLabel: 'Siswa yang belum masuk kelas',
-            selectedListLabel: 'Siswa hang dipilih',
+            nonSelectedListLabel: '<strong class="text-primary">Siswa Belum Masuk Ekskul</strong>',
+            selectedListLabel: '<strong class="text-success">Siswa Akan Ditambahkan</strong>',
             moveOnSelect: false,
-            infoText: 'Total {0} mata pelajaran',
+            infoText: 'Total {0} siswa',
             infoTextEmpty: 'Kosong',
-            filterPlaceHolder: 'Cari...',
-            filterTextClear: 'Hapus Filter'
+            filterPlaceHolder: 'Cari Nama / NIS...',
+            filterTextClear: 'Hapus Pencarian'
         });
 
         // Spinner saat submit
         const form = document.getElementById("createForm");
         const submitBtn = document.getElementById("submitBtn");
 
-        form.addEventListener("submit", function () {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = `
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...`;
+        form.addEventListener("submit", function() {
+            // Validasi: Jangan kunci tombol jika box kanan masih kosong
+            if ($('#anggota_kelas_ids').val().length > 0) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML =
+                    '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...';
+            }
         });
     });
 </script>
-<script>
-    // Override console.log dari plugin ini
-    const originalConsoleLog = console.log;
-    console.log = function(message, ...args) {
-        if (typeof message === 'string' && message.includes('Total {0} mata pelajaran')) {
-            return;
-        }
-        originalConsoleLog.apply(console, [message, ...args]);
-    };
-</script>
-

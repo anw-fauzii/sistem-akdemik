@@ -93,10 +93,16 @@
                         <div class="col-md-6">
                             <div class="position-relative form-group">
                                 <label>Upload Surat / Bukti</label>
-                                <input type="file" name="file" class="form-control">
+                                <input type="file" name="file"
+                                    class="form-control @error('file') is-invalid @enderror">
                                 <small class="text-muted">
                                     Format: JPG, PNG, PDF (Max 2MB)
                                 </small>
+                                @error('file')
+                                    <div class="invalid-feedback" style="font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
 

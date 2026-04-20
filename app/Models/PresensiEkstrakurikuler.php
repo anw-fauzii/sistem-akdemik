@@ -17,7 +17,7 @@ class PresensiEkstrakurikuler extends Model
 
     protected $dates = ['tanggal'];
 
-    public function anggota_ekstrakurikuler()
+    public function anggotaEkstrakurikuler()
     {
         return $this->belongsTo(AnggotaEkstrakurikuler::class);
     }   

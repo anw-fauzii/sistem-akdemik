@@ -2,319 +2,73 @@
 
 namespace App\Http\Controllers;
 
-use App\Imports\SiswaImport;
-use App\Models\BerkebutuhanKhusus;
-use App\Models\JenjangPendidikan;
-use App\Models\Kelas;
-use App\Models\Pekerjaan;
-use App\Models\Penghasilan;
-use App\Models\Siswa;
-use App\Models\TahunAjaran;
-use App\Models\TarifSpp;
-use App\Models\Transportasi;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Response;
-use Maatwebsite\Excel\Facades\Excel;
+use App\Http\Requests\SiswaRequest;
+use App\Services\SiswaService;
+use App\Models\{Siswa, TahunAjaran, Pekerjaan, Penghasilan, Transportasi, BerkebutuhanKhusus, JenjangPendidikan, TarifSpp, Kelas};
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected SiswaService $service
+    ) {}
+
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            $siswa = Siswa::all();
-            return view('data_master.siswa.index', compact('siswa'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        return view('data_master.siswa.index', [
+            'siswa' => $this->service->getAll()
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('data_master.siswa.create', $this->getFormData());
+    }
+
+    public function store(SiswaRequest $request): RedirectResponse
+    {
+        try {
+            $this->service->createSiswa($request->validated());
+            return redirect()->route('siswa.index')->with('success', 'Siswa berhasil ditambahkan');
+        } catch (\Exception $e) {
+            return back()->withInput()->with('error', 'Gagal: ' . $e->getMessage());
         }
     }
 
-    public function create()
+    public function show(Siswa $siswa): View
     {
-        if (user()?->hasRole('admin')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $pekerjaan = Pekerjaan::select('id', 'nama_pekerjaan')->get();
-            $penghasilan = Penghasilan::select('id', 'nama_penghasilan')->get();
-            $transportasi = Transportasi::select('id', 'nama_transportasi')->get();
-            $berkebutuhan_khusus = BerkebutuhanKhusus::select('id', 'nama_berkebutuhan_khusus')->get();
-            $pendidikan = JenjangPendidikan::select('id', 'nama_jenjang_pendidikan')->get();
-            $tarif_spp = TarifSpp::select('id', 'unit','tahun_masuk')->get();
-            $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
-            return view('data_master.siswa.create', compact('tarif_spp','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function store(Request $request)
-    {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'nis' => 'required|unique:siswa,nis', 
-                'kelas_id' => 'required',
-                'jenis_pendaftaran' => 'required',
-                'nama_lengkap' => 'required',
-                'jenis_kelamin' => 'required',
-                'nisn' => 'nullable|unique:siswa,nisn', 
-                'nik' => 'nullable|unique:siswa,nik', 
-                'tempat_lahir' => 'required',
-                'tanggal_lahir' => 'required',
-                'akta_lahir' => 'nullable|unique:siswa,akta_lahir', 
-                'kewarganegaraan' => 'required',
-                'nama_negara' => 'required',
-                'berkebutuhan_khusus_id' => 'required',
-                'alamat' => 'required',
-                'rt' => 'required',
-                'rw' => 'required',
-                'desa' => 'required',
-                'kecamatan' => 'required',
-                'kabupaten' => 'required',
-                'provinsi' => 'required',
-                'kode_pos' => 'required',
-                'tempat_tinggal' => 'required',
-                'transportasi_id' => 'required',
-                'anak_ke' => 'required',
-                'jumlah_saudara' => 'required',
-                
-                'nik_ayah' => 'required', 
-                'nama_ayah' => 'required', 
-                'lahir_ayah' => 'required',
-                'jenjang_pendidikan_ayah_id' => 'required', 
-                'pekerjaan_ayah_id' => 'required',
-                'penghasilan_ayah_id' => 'required',
-                'berkebutuhan_khusus_ayah_id' => 'required',
-        
-                'nik_ibu' => 'required', 
-                'nama_ibu' => 'required', 
-                'lahir_ibu' => 'required',
-                'jenjang_pendidikan_ibu_id' => 'required',
-                'pekerjaan_ibu_id' => 'required',
-                'penghasilan_ibu_id' => 'required',
-                'berkebutuhan_khusus_ibu_id' => 'required',
-        
-                'nomor_hp' => 'required',
-                'whatsapp' => 'required',
-                'email' => 'required',
-        
-                'tinggi_badan' => 'required',
-                'berat_badan' => 'required',
-                'jarak' => 'required',
-                'waktu_tempuh' => 'required',
-                'tarif_spp_id' => 'required',
-            ], [
-                'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-                'gelar.required' => 'Gelar wajib diisi.',
-                'jabatan.required' => 'Jabatan wajib diisi.',
-                'nipy.required' => 'NIPY wajib diisi.',
-                'nipy.unique' => 'NIPY sudah digunakan.',
-                'telepon.required' => 'Telepon wajib diisi.',
-                'jenis_kelamin.required' => 'Jenis kelamin wajib diisi.',
-                'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
-                'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
-                'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
-                'nuptk.required' => 'NUPTK sudah digunakan.',
-                'alamat.required' => 'Alamat wajib diisi.',
-            ]);
-
-            DB::beginTransaction(); // Memulai transaksi
-
-            try {
-                $user = User::create([
-                    'name' => $validated['nama_lengkap'],
-                    'email' => $validated['nis'],
-                    'password' => Hash::make('pass1234'),
-                ]);
-
-                $siswa = new Siswa($validated); 
-                $siswa->nis = $validated['nis'];
-                $siswa->agama = 1;
-                $siswa->save();
-                $user->assignRole('siswa');
-        
-                DB::commit(); 
-        
-                return redirect()->route('siswa.index')->with('success', 'Siswa berhasil ditambahkan.');
-            } catch (\Exception $e) {
-                DB::rollBack(); 
-        
-                return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-            }
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function show($id)
-    {
-        $siswa = Siswa::findOrFail($id);
         return view('data_master.siswa.show', compact('siswa'));
     }
 
-    public function edit($id)
+    public function edit(Siswa $siswa): View
     {
-        if (user()?->hasRole('admin')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $pekerjaan = Pekerjaan::select('id', 'nama_pekerjaan')->get();
-            $penghasilan = Penghasilan::select('id', 'nama_penghasilan')->get();
-            $transportasi = Transportasi::select('id', 'nama_transportasi')->get();
-            $berkebutuhan_khusus = BerkebutuhanKhusus::select('id', 'nama_berkebutuhan_khusus')->get();
-            $pendidikan = JenjangPendidikan::select('id', 'nama_jenjang_pendidikan')->get();
-            $tarif_spp = TarifSpp::select('id', 'unit','tahun_masuk')->get();
-            $kelas  = Kelas::whereTahunAjaranId($tahun_ajaran->id)->get();
-            $siswa = Siswa::findOrFail($id);
-            return view('data_master.siswa.edit', compact('tarif_spp','siswa','kelas','berkebutuhan_khusus','transportasi','penghasilan','pekerjaan','pendidikan'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('data_master.siswa.edit', array_merge(['siswa' => $siswa], $this->getFormData()));
     }
 
-    public function update(Request $request, $id)
+    public function update(SiswaRequest $request, Siswa $siswa): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'nis' => 'required|unique:siswa,nis,' . $id . ',nis', 
-                'kelas_id' => 'required',
-                'jenis_pendaftaran' => 'required',
-                'nama_lengkap' => 'required',
-                'jenis_kelamin' => 'required',
-                'nisn' => 'nullable|unique:siswa,nisn,' . $id . ',nis',
-                'nik' => 'nullable|unique:siswa,nik,' . $id . ',nis',
-                'tempat_lahir' => 'required',
-                'tanggal_lahir' => 'required',
-                'akta_lahir' => 'nullable|unique:siswa,akta_lahir,' . $id . ',nis',
-                'kewarganegaraan' => 'required',
-                'nama_negara' => 'required',
-                'berkebutuhan_khusus_id' => 'required',
-                'alamat' => 'required',
-                'rt' => 'required',
-                'rw' => 'required',
-                'desa' => 'required',
-                'kecamatan' => 'required',
-                'kabupaten' => 'required',
-                'provinsi' => 'required',
-                'kode_pos' => 'required',
-                'tempat_tinggal' => 'required',
-                'transportasi_id' => 'required',
-                'anak_ke' => 'required',
-                'jumlah_saudara' => 'required',
-                
-                'nik_ayah' => 'required', 
-                'nama_ayah' => 'required', 
-                'lahir_ayah' => 'required',
-                'jenjang_pendidikan_ayah_id' => 'required', 
-                'pekerjaan_ayah_id' => 'required',
-                'penghasilan_ayah_id' => 'required',
-                'berkebutuhan_khusus_ayah_id' => 'required',
-        
-                'nik_ibu' => 'required',
-                'nama_ibu' => 'required', 
-                'lahir_ibu' => 'required',
-                'jenjang_pendidikan_ibu_id' => 'required',
-                'pekerjaan_ibu_id' => 'required',
-                'penghasilan_ibu_id' => 'required',
-                'berkebutuhan_khusus_ibu_id' => 'required',
-        
-                'nomor_hp' => 'required',
-                'whatsapp' => 'required',
-                'email' => 'required',
-        
-                'tinggi_badan' => 'required',
-                'berat_badan' => 'required',
-                'jarak' => 'required',
-                'waktu_tempuh' => 'required',
-                'tarif_spp_id' => 'required',
-            ], [
-                'nama_lengkap.required' => 'Nama lengkap wajib diisi.',
-                'gelar.required' => 'Gelar wajib diisi.',
-                'jabatan.required' => 'Jabatan wajib diisi.',
-                'nipy.required' => 'NIPY wajib diisi.',
-                'nipy.unique' => 'NIPY sudah digunakan.',
-                'telepon.required' => 'Telepon wajib diisi.',
-                'jenis_kelamin.required' => 'Jenis kelamin wajib diisi.',
-                'tempat_lahir.required' => 'Tempat lahir wajib diisi.',
-                'tanggal_lahir.required' => 'Tanggal lahir wajib diisi.',
-                'tanggal_lahir.date' => 'Tanggal lahir tidak valid.',
-                'nuptk.required' => 'NUPTK sudah digunakan.',
-                'alamat.required' => 'Alamat wajib diisi.',
-            ]);
-
-            DB::beginTransaction();
-
-            try {
-                $user = User::where('email', $id)->first();
-                if (!$user) {
-                    throw new \Exception("User dengan nis $id tidak ditemukan.");
-                }
-        
-                $user->update([
-                    'name' => $validated['nama_lengkap'],
-                    'email' => $validated['nis'],
-                ]);
-        
-                $siswa = Siswa::where('nis', $user->email)->first();
-                if (!$siswa) {
-                    throw new \Exception("Siswa dengan NIS $id tidak ditemukan.");
-                }
-        
-                $siswa->update($validated);
-        
-                DB::commit();
-        
-                return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil diupdate.');
-        
-            } catch (\Exception $e) {
-                DB::rollBack();
-                return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
-            }
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->updateSiswa($siswa, $request->validated());
+        return redirect()->route('siswa.index')->with('success', 'Data siswa diperbarui');
     }
 
-    public function destroy($id)
+    public function destroy(Siswa $siswa): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $siswa = Siswa::findOrFail($id);
-            if ($siswa->user) { 
-                $siswa->user->delete();
-            }
-            $siswa->delete();
-            return redirect()->route('siswa.index')->with('success', 'Siswa dan akun User terkait berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->deleteSiswa($siswa);
+        return redirect()->route('siswa.index')->with('success', 'Siswa berhasil dihapus');
     }
 
-    public function import(Request $request)
+    private function getFormData(): array
     {
-        if (user()?->hasRole('admin')) {
-            $request->validate([
-                'file_import' => 'required|mimes:xlsx,csv,xls',
-            ]);
-
-            try {
-                Excel::import(new SiswaImport, $request->file('file_import'));
-                return back()->with('success', 'Peserta didik berhasil diimport');
-            } catch (\Exception $e) {
-                return back()->with('error', 'Terjadi error: ' . $e->getMessage());
-            }
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function format()
-    {
-        if (user()?->hasRole('admin')) {
-            $file = public_path() . "/format_excel/format_import_siswa.xlsx";
-            $headers = array(
-                'Content-Type: application/xlsx',
-            );
-            return Response::download($file, 'format_import_siswa ' . date('Y-m-d H_i_s') . '.xlsx', $headers);
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $tahun_ajaran = TahunAjaran::latest()->first();
+        return [
+            'pekerjaan'           => Pekerjaan::all(['id', 'nama_pekerjaan']),
+            'penghasilan'         => Penghasilan::all(['id', 'nama_penghasilan']),
+            'transportasi'        => Transportasi::all(['id', 'nama_transportasi']),
+            'berkebutuhan_khusus' => BerkebutuhanKhusus::all(['id', 'nama_berkebutuhan_khusus']),
+            'pendidikan'          => JenjangPendidikan::all(['id', 'nama_jenjang_pendidikan']),
+            'tarif_spp'           => TarifSpp::all(['id', 'unit', 'tahun_masuk']),
+            'kelas'               => Kelas::whereTahunAjaranId($tahun_ajaran?->id)->get(),
+        ];
     }
 }

@@ -4,91 +4,55 @@ namespace App\Http\Controllers\Admin\Informasi;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pengumuman;
-use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
+use App\Http\Requests\PengumumanRequest;
+use App\Services\PengumumanService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PengumumanController extends Controller
 {
-    public function index()
+    public function __construct(
+        protected PengumumanService $service
+    ) {}
+
+    public function index(): View
     {
-        if (user()?->hasRole('admin')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $pengumuman = Pengumuman::whereTahunAjaranId($tahun_ajaran->id)->get();
-            return view('informasi.pengumuman.index', compact('pengumuman'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.pengumuman.index', [
+            'pengumuman' => $this->service->getActiveAnnouncements()
+        ]);
     }
 
-    public function create()
+    public function create(): View
     {
-        if (user()?->hasRole('admin')) {
-            return view('informasi.pengumuman.create');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.pengumuman.create');
     }
 
-    public function store(Request $request)
+    public function store(PengumumanRequest $request): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $tahun = TahunAjaran::latest()->first();
-            $validated = $request->validate([
-                'judul' => 'required',
-                'isi' => 'required',
-                'tanggal' => 'required|date',
-            ], [
-                'judul.required' => 'Nama pengumuman wajib diisi.',
-                'isi.required' => 'Tanggal bulan wajib diisi.',
-                'tanggal.required' => 'Jumlah unit harus berupa angka.', 
-            ]);
-            
-            $validated['tahun_ajaran_id'] = $tahun->id;
-            Pengumuman::create($validated);
-            return redirect()->route('pengumuman.index')->with('success', 'pengumuman berhasil disimpan');  
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }      
+        $this->service->store($request->validated());
+
+        return redirect()->route('pengumuman.index')
+            ->with('success', 'Pengumuman berhasil disimpan');
     }
 
-    public function edit($id)
+    public function edit(Pengumuman $pengumuman): View
     {
-        if (user()?->hasRole('admin')) {
-            $pengumuman = Pengumuman::findOrFail($id);
-            return view('informasi.pengumuman.edit', compact('pengumuman'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        return view('informasi.pengumuman.edit', compact('pengumuman'));
     }
 
-    public function update(Request $request, $id)
+    public function update(PengumumanRequest $request, Pengumuman $pengumuman): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $validated = $request->validate([
-                'judul' => 'required',
-                'isi' => 'required',
-                'tanggal' => 'required|date',
-            ], [
-                'judul.required' => 'Nama pengumuman wajib diisi.',
-                'isi.required' => 'Tanggal bulan wajib diisi.',
-                'tanggal.required' => 'Jumlah unit harus berupa angka.', 
-            ]);
-            $pengumuman = Pengumuman::findOrFail($id);
-            $pengumuman->update($validated);
-            return redirect()->route('pengumuman.index')->with('success', 'pengumuman berhasil diupdate');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->update($pengumuman, $request->validated());
+
+        return redirect()->route('pengumuman.index')
+            ->with('success', 'Pengumuman berhasil diupdate');
     }
 
-    public function destroy($id)
+    public function destroy(Pengumuman $pengumuman): RedirectResponse
     {
-        if (user()?->hasRole('admin')) {
-            $pengumuman = Pengumuman::findOrFail($id);
-            $pengumuman->delete();
-            return redirect()->route('pengumuman.index')->with('success', 'pengumuman berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+        $this->service->delete($pengumuman);
+
+        return redirect()->route('pengumuman.index')
+            ->with('success', 'Pengumuman berhasil dihapus');
     }
 }

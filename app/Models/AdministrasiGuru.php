@@ -18,7 +18,7 @@ class AdministrasiGuru extends Model
         'status',
     ];
 
-    public function tahun_ajaran()
+    public function tahunAjaran()
     {
         return $this->belongsTo(TahunAjaran::class);
     }
@@ -28,7 +28,7 @@ class AdministrasiGuru extends Model
         return $this->belongsTo(Guru::class);
     }
 
-    public function kategori_administrasi()
+    public function kategoriAdministrasi()
     {
         return $this->belongsTo(KategoriAdministrasi::class);
     }

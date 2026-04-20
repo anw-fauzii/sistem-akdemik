@@ -92,13 +92,11 @@
                                 @enderror
                             </div>
                         </div>
-
-                        {{-- Upload File --}}
                         <div class="col-md-6">
                             <div class="position-relative form-group">
                                 <label>Upload Surat / Bukti</label>
-                                <input type="file" name="file" class="form-control">
-
+                                <input type="file" name="file"
+                                    class="form-control @error('file') is-invalid @enderror">
                                 @if ($surat->file)
                                     <small class="text-muted">
                                         File saat ini:
@@ -107,9 +105,13 @@
                                         </a>
                                     </small>
                                 @endif
+                                @error('file')
+                                    <div class="invalid-feedback" style="font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
-
                     </div>
 
                     <div class="form-group">

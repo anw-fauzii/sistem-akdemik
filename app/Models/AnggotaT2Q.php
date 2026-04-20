@@ -19,9 +19,4 @@ class AnggotaT2Q extends Model
     {
         return $this->belongsTo(AnggotaKelas::class);
     }
-
-    public function kelas()
-    {
-        return $this->belongsTo(Kelas::class);
-    }
 }

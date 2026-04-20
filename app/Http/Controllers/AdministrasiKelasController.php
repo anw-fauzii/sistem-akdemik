@@ -4,88 +4,95 @@ namespace App\Http\Controllers;
 
 use App\Models\AdministrasiKelas;
 use App\Models\KategoriAdministrasi;
-use App\Models\Kelas;
 use App\Models\TahunAjaran;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreAdministrasiKelasRequest;
+use App\Services\AdministrasiKelasService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 use Yaza\LaravelGoogleDriveStorage\Gdrive;
 
 class AdministrasiKelasController extends Controller
 {
-    public function index(){
-        if (user()?->hasRole('guru_sd')) {
-            $tahun_ajaran = TahunAjaran::latest()->first();
-            $kelas = Kelas::where(function($q){
-                $q->where('guru_nipy', Auth::user()->email)
-                ->orWhere('pendamping_nipy', Auth::user()->email);
-            })->whereTahunAjaranId($tahun_ajaran->id)->first();
-            $kategori = KategoriAdministrasi::whereJenis('kelas')->with(['administrasi_kelas' => function($q) use($kelas)   {
-                $q->where('kelas_id', $kelas->id);
-            }])->get();
-            return view('administrasi.kelas.index', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
+    public function __construct(
+        protected AdministrasiKelasService $service
+    ) {
     }
 
-    public function create(){
-        if (user()?->hasRole('guru_sd')) {
-            $kategori = KategoriAdministrasi::whereJenis('kelas')->get();
-            return view('administrasi.kelas.create', compact('kategori'));
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
-        }
-    }
-
-    public function store(Request $request)
+    public function index(): View|RedirectResponse
     {
-        $tahun_ajaran = TahunAjaran::latest()->first();
-        $kelas = Kelas::where(function($q){
-                $q->where('guru_nipy', Auth::user()->email)
-                ->orWhere('pendamping_nipy', Auth::user()->email);
-            })->whereTahunAjaranId($tahun_ajaran->id)->first();
-        $kategori_adm = KategoriAdministrasi::find($request->judul);
-        $nama_tahun_ajaran = str_replace('/', '_', $tahun_ajaran->nama_tahun_ajaran);
-        $basePath = $nama_tahun_ajaran . '/Kelas/' . $kelas->nama_kelas . '/' . $kategori_adm->nama_kategori;
-        if ($request->filled('semester')) {
-            $basePath .= '/Semester ' . $request->semester;
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasAktif(Auth::user()->email, $tahunAjaran->id);
+
+        // Proteksi: Jika guru tidak punya kelas, cegah error Fatal!
+        if (!$kelas) {
+            return redirect()->route('dashboard')->with('error', 'Anda tidak terdaftar sebagai wali kelas atau pendamping pada tahun ajaran ini.');
         }
-        if ($request->hasFile('link')) {
-            foreach ($request->file('link') as $file) {
-                $filename = $basePath . '/' . $file->getClientOriginalName();
-                Gdrive::put($filename, $file);
-                AdministrasiKelas::create([
-                    'tahun_ajaran_id'         => $tahun_ajaran->id,
-                    'kelas_id'                => $kelas->id,
-                    'kategori_administrasi_id'=> $request->judul,
-                    'keterangan'              => $file->getClientOriginalName(),
-                    'link'                    => $filename,
-                ]);
-            }
-        }
-        return redirect()
-            ->route('administrasi-kelas.index')
-            ->with('success', 'Administrasi berhasil diupload');
+
+        $kategori = KategoriAdministrasi::where('jenis', 'kelas')
+            ->with(['administrasiKelas' => fn($q) => $q->where('kelas_id', $kelas->id)])
+            ->get();
+
+        return view('administrasi.kelas.index', compact('kategori', 'kelas'));
     }
 
-    public function show($id)
+    public function create(): View|RedirectResponse
     {
-        $administrasi = AdministrasiKelas::findOrFail($id);
-        $data = Gdrive::get($administrasi->link);
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasAktif(Auth::user()->email, $tahunAjaran->id);
+
+        if (!$kelas) {
+            return redirect()->route('administrasi-kelas.index')->with('error', 'Akses ditolak. Anda tidak memiliki kelas.');
+        }
+
+        $kategori = KategoriAdministrasi::where('jenis', 'kelas')->get();
+        return view('administrasi.kelas.create', compact('kategori'));
+    }
+
+    public function store(StoreAdministrasiKelasRequest $request): RedirectResponse
+    {
+        try {
+            $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+            $kelas = $this->service->getKelasAktif(Auth::user()->email, $tahunAjaran->id);
+            
+            abort_if(!$kelas, 403, 'Anda tidak memiliki kelas.');
+
+            $this->service->uploadFiles($request->validated(), $request->file('files'), $kelas, $tahunAjaran);
+            
+            return redirect()->route('administrasi-kelas.index')->with('success', 'Administrasi Kelas berhasil diunggah');
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Upload GDrive Kelas Gagal: ' . $e->getMessage());
+            return back()->with('error', 'Gagal mengunggah file.')->withInput();
+        }
+    }
+
+    public function show(AdministrasiKelas $administrasiKelas): Response
+    {
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasAktif(Auth::user()->email, $tahunAjaran->id);
+        abort_if(!$kelas || $administrasiKelas->kelas_id !== $kelas->id, 403, 'Akses ditolak.');
+
+        $data = Gdrive::get($administrasiKelas->link);
+
         return response($data->file, 200)
             ->header('Content-Type', $data->ext)
-            ->header('Content-disposition', 'attachment; filename="'.$data->filename.'"');
+            ->header('Content-disposition', 'attachment; filename="' . $data->filename . '"');
     }
 
-    public function destroy($id)
+    public function destroy(AdministrasiKelas $administrasiKelas): RedirectResponse
     {
-        if (user()?->hasRole('guru_sd')) {
-            $administrasi = AdministrasiKelas::findOrFail($id);
-            Gdrive::delete($administrasi->link);
-            $administrasi->delete();
-            return redirect()->route('administrasi-kelas.index')->with('success', 'Administrasi berhasil dihapus');
-        } else {
-            return response()->view('errors.403', [abort(403)], 403);
+        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
+        $kelas = $this->service->getKelasAktif(Auth::user()->email, $tahunAjaran->id);
+
+        // PROTEKSI: Hanya wali kelas yang bersangkutan yang bisa menghapus!
+        abort_if(!$kelas || $administrasiKelas->kelas_id !== $kelas->id, 403, 'Akses ditolak.');
+
+        try {
+            $this->service->deleteFile($administrasiKelas);
+            return redirect()->route('administrasi-kelas.index')->with('success', 'Administrasi Kelas berhasil dihapus');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus file.');
         }
     }
 }

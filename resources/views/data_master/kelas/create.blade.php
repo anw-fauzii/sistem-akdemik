@@ -96,6 +96,11 @@
                                             {{ $item->nama_lengkap }}, {{ $item->gelar }}.</option>
                                     @endforeach
                                 </select>
+                                @error('guru_nipy')
+                                    <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -110,6 +115,11 @@
                                             {{ $item->nama_lengkap }}, {{ $item->gelar }}.</option>
                                     @endforeach
                                 </select>
+                                @error('pendamping_nipy')
+                                    <div class="invalid-feedback" style="font-style: italic; font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
                             </div>
                         </div>
                     </div>
