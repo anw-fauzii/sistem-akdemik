@@ -19,6 +19,7 @@ class PrestasiSiswaRequest extends FormRequest
             'peringkat'          => 'required|string|max:50',
             'tanggal'            => 'required|date',
             'file_sertifikat'    => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'keterangan'         => 'nullable|string|max:255'
         ];
     }
 
@@ -55,6 +56,8 @@ class PrestasiSiswaRequest extends FormRequest
             'file_sertifikat.file'      => 'Sertifikat harus berupa file.',
             'file_sertifikat.mimes'     => 'Format sertifikat hanya diperbolehkan: JPG, JPEG, PNG, atau PDF.',
             'file_sertifikat.max'       => 'Ukuran file sertifikat maksimal adalah 2MB.',
+
+            'keterangan.string'         => 'Keterangan harus berupa teks.',
         ];
     }
 }

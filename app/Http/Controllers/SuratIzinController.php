@@ -5,6 +5,7 @@ use App\Http\Requests\SuratIzinRequest;
 use App\Models\SuratIzin;
 use App\Services\SuratIzinService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class SuratIzinController extends Controller
@@ -15,22 +16,23 @@ class SuratIzinController extends Controller
 
     public function index(): View
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (user()?->hasRole('siswa_sd')) {
-            $anggota = $this->service->getActiveStudentMember($user->email);
-            $suratIzin = $anggota 
-                ? SuratIzin::where('anggota_kelas_id', $anggota->id)->latest()->get()
-                : collect();
-            
-            return view('surat_izin.siswa_index', compact('suratIzin'));
+            return view('surat_izin.siswa_index', [
+                'suratIzin' => $this->service->getListForSiswa($user->email)
+            ]);
         }
 
-        $suratIzin = SuratIzin::with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
-                        ->latest()
-                        ->get();
+        if (user()?->hasAnyRole(['guru_sd', 'guru_tk'])) {
+            return view('surat_izin.admin_index', [
+                'suratIzin' => $this->service->getListForGuru($user->email)
+            ]);
+        }
 
-        return view('surat_izin.admin_index', compact('suratIzin'));
+        return view('surat_izin.admin_index', [
+            'suratIzin' => $this->service->getAllList()
+        ]);
     }
 
     public function create(): View
@@ -52,6 +54,14 @@ class SuratIzinController extends Controller
         );
 
         return redirect()->route('surat-izin.index')->with('success', 'Surat izin berhasil dikirim');
+    }
+
+    public function show(SuratIzin $suratIzin): View
+    {
+        // Eager load relasi untuk detail view
+        $suratIzin->load(['anggotaKelas.siswa', 'anggotaKelas.kelas']);
+        
+        return view('surat_izin.show', compact('suratIzin'));
     }
 
     public function edit(SuratIzin $suratIzin): View

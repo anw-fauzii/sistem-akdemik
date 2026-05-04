@@ -54,7 +54,6 @@ class PresensiKelasService
                     $lateMinutes = $isLate ? $jamMasukStandar->diffInMinutes($waktuPresensi) : 0;
                 }
 
-                // Optimalisasi: updateOrCreate langsung menangani logika cek & insert
                 Presensi::updateOrCreate(
                     [
                         'anggota_kelas_id' => $anggota_kelas_id,
@@ -67,6 +66,23 @@ class PresensiKelasService
                         'menit_terlambat' => $lateMinutes,
                     ]
                 );
+            }
+        });
+    }
+
+    public function hapusPresensiSatuKelas(array $data): void
+    {
+        $tanggalBase = Carbon::parse($data['tanggal'])->format('Y-m-d');
+        $siswaIds = $data['siswa_ids']; 
+
+        DB::transaction(function () use ($siswaIds, $tanggalBase) {
+            // Skalabilitas: Menggunakan whereIn & whereDate agar hanya butuh 1 Query (No Looping)
+            $deletedCount = Presensi::whereIn('anggota_kelas_id', $siswaIds)
+                ->whereDate('tanggal', $tanggalBase)
+                ->delete();
+
+            if ($deletedCount === 0) {
+                Log::info("Hapus Massal: Eksekusi jalan, tapi tidak ada data yang cocok untuk dihapus pada tanggal {$tanggalBase}");
             }
         });
     }

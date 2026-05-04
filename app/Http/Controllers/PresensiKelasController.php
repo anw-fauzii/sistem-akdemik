@@ -12,6 +12,7 @@ use App\Services\PresensiKelasService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class PresensiKelasController extends Controller
 {
@@ -105,9 +106,24 @@ class PresensiKelasController extends Controller
         ]);
     }
 
-    /**
-     * API Endpoint untuk Mesin Scanner (IoT)
-     */
+    public function destroyMassal(Request $request): \Illuminate\Http\RedirectResponse
+    {
+        $validated = $request->validate([
+            'tanggal'   => 'required|date',
+            'siswa_ids' => 'required|array|min:1' // Pastikan array tidak kosong
+        ]);
+        
+        try {
+            // 2. Lempar data yang sudah tervalidasi ke Service
+            $this->service->hapusPresensiSatuKelas($validated);
+
+            return redirect()->route('presensi-kelas.index')->with('success', 'Seluruh presensi pada tanggal tersebut telah dibersihkan.');
+        } catch (\Exception $e) {
+            Log::error('Error Destroy Massal Presensi: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal menghapus data. Silakan coba lagi.');
+        }
+    }
+
     public function handle(Request $request)
     {
         $data = json_decode($request->getContent(), true);

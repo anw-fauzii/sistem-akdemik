@@ -26,25 +26,25 @@
                 <table class="table table-bordered">
                     <tr>
                         <th>Nama Siswa</th>
-                        <td>{{ $surat->anggotaKelas->siswa->nama_lengkap ?? '-' }}</td>
+                        <td>{{ $suratIzin->anggotaKelas->siswa->nama_lengkap ?? '-' }}</td>
                     </tr>
 
                     <tr>
                         <th>Kelas</th>
-                        <td>{{ $surat->anggotaKelas->kelas->nama_kelas ?? '-' }}</td>
+                        <td>{{ $suratIzin->anggotaKelas->kelas->nama_kelas ?? '-' }}</td>
                     </tr>
 
                     <tr>
                         <th>Tanggal</th>
-                        <td>{{ $surat->tanggal->format('d M Y') }}</td>
+                        <td>{{ $suratIzin->tanggal->format('d M Y') }}</td>
                     </tr>
 
                     <tr>
                         <th>Jenis</th>
                         <td>
-                            @if ($surat->jenis == 'sakit')
+                            @if ($suratIzin->jenis == 'sakit')
                                 <span class="badge badge-danger">Sakit</span>
-                            @elseif($surat->jenis == 'izin')
+                            @elseif($suratIzin->jenis == 'izin')
                                 <span class="badge badge-warning">Izin</span>
                             @else
                                 <span class="badge badge-info">Lainnya</span>
@@ -54,14 +54,14 @@
 
                     <tr>
                         <th>Keterangan</th>
-                        <td>{{ $surat->keterangan ?? '-' }}</td>
+                        <td>{{ $suratIzin->keterangan ?? '-' }}</td>
                     </tr>
 
                     <tr>
                         <th>File</th>
                         <td>
-                            @if ($surat->file)
-                                <a href="{{ asset('storage/' . $surat->file) }}" target="_blank"
+                            @if ($suratIzin->file)
+                                <a href="{{ asset('storage/' . $suratIzin->file) }}" target="_blank"
                                     class="btn btn-info btn-sm">
                                     Lihat File
                                 </a>

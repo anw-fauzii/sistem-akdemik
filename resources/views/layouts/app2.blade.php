@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header">
+    <div class="app-container app-theme-white body-tabs-shadow fixed-sidebar fixed-header closed-sidebar">
         @include('layouts.navbar')
         <div class="app-main">
             @include('layouts.sidebar')

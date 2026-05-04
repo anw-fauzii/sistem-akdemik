@@ -50,50 +50,63 @@ class FingerspotSyncService
 
                 $nis = $log['pin'];
                 $waktu = Carbon::parse($log['scan_date']);
+                $tanggalKey = $waktu->toDateString();
                 
-                // Hanya ambil scan pertama (paling awal) di hari tersebut
-                if (!isset($allLogs[$nis]) || $waktu->lt($allLogs[$nis])) {
-                    $allLogs[$nis] = $waktu;
+                // Hanya simpan scan pertama (paling awal) per siswa per hari
+                if (!isset($allLogs[$nis][$tanggalKey]) || $waktu->lt($allLogs[$nis][$tanggalKey])) {
+                    $allLogs[$nis][$tanggalKey] = $waktu;
                 }
             }
         }
 
-        $this->processLogsToDatabase($allLogs, $today);
+        // Panggil service database. Parameter $today tidak perlu dikirim lagi
+        $this->processLogsToDatabase($allLogs);
     }
 
     /**
      * Memproses data mentah ke tabel Presensi
      */
-    private function processLogsToDatabase(array $logs, string $tanggal): void
+    private function processLogsToDatabase(array $logs): void
     {
-        DB::transaction(function () use ($logs, $tanggal) {
-            foreach ($logs as $nis => $waktuMasuk) {
-                // Normalisasi NIS kotor (Zero-width space/NBSP)
+        DB::transaction(function () use ($logs) {
+            // Looping Level 1: NIS Siswa
+            foreach ($logs as $nis => $dailyLogs) {
+                
                 $cleanNis = preg_replace('/[\s\x{00A0}\x{200B}]/u', '', trim($nis));
 
                 $siswa = Siswa::whereRaw('REPLACE(REPLACE(REPLACE(nis, CHAR(194,160), ""), CHAR(226,128,139), ""), " ", "") = ?', [$cleanNis])
-                    ->with('anggotaKelasAktif') // Eager load untuk cegah N+1
+                    ->with('anggotaKelasAktif') 
                     ->first();
 
                 if (!$siswa || !$siswa->anggotaKelasAktif) {
                     Log::warning('Sinkronisasi Absen: Siswa/Anggota Kelas tidak ditemukan', ['nis' => $cleanNis]);
-                    continue;
+                    continue; 
                 }
 
-                $jamMasuk = Carbon::parse($tanggal . ' 07:35');
-                $menitTerlambat = max(0, $jamMasuk->diffInMinutes($waktuMasuk, false));
+                // Looping Level 2: Tanggal Scan (Karena satu siswa bisa punya data di beberapa tanggal jika API delay)
+                foreach ($dailyLogs as $tanggalKey => $waktuMasuk) {
+                    
+                    // 1. Dinamis: Jam patokan berdasarkan tanggal scan, BUKAN hari ini
+                    $jamMasuk = Carbon::parse($tanggalKey . ' 07:35:00');
+                    $menitTerlambat = max(0, $jamMasuk->diffInMinutes($waktuMasuk, false));
 
-                Presensi::firstOrCreate(
-                    [
-                        'anggota_kelas_id' => $siswa->anggotaKelasAktif->id,
-                        'tanggal'          => $tanggal, 
-                    ],
-                    [
-                        'status'          => 'hadir',
-                        'terlambat'       => $menitTerlambat > 0,
-                        'menit_terlambat' => $menitTerlambat,
-                    ]
-                );
+                    // 2. CEK DUPLIKASI BERDASARKAN TANGGAL SAJA (Tanpa Jam)
+                    $sudahAbsen = Presensi::where('anggota_kelas_id', $siswa->anggotaKelasAktif->id)
+                        ->whereDate('tanggal', $tanggalKey)
+                        ->exists();
+
+                    // 3. JIKA BELUM ABSEN, SIMPAN DENGAN WAKTU PRESISI LENGKAP
+                    if (!$sudahAbsen) {
+                        Presensi::create([
+                            'anggota_kelas_id' => $siswa->anggotaKelasAktif->id,
+                            // toDateTimeString() akan menyimpan contoh: "2026-04-28 07:15:23"
+                            'tanggal'          => $waktuMasuk->toDateTimeString(), 
+                            'status'           => 'hadir',
+                            'terlambat'        => $menitTerlambat > 0,
+                            'menit_terlambat'  => $menitTerlambat,
+                        ]);
+                    }
+                }
             }
         });
     }

@@ -92,6 +92,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/jenjang-pendidikan', JenjangPendidikanController::class)->except(['show']);
     Route::resource('/bulan-spp', BulanSppController::class)->except(['show']);
     Route::resource('/presensi-kelas', PresensiKelasController::class)->except(['update','destroy']);
+    Route::post('/presensi-kelas/destroy-massal', [PresensiKelasController::class, 'destroyMassal'])
+    ->name('presensi-kelas.destroy-massal');
     Route::resource('/presensi-ekstrakurikuler', PresensiEkstrakurikulerController::class)->except(['edit','update','destroy'])->parameters([
         'presensi-ekstrakurikuler' => 'bulanSpp'
     ]);

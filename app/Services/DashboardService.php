@@ -87,7 +87,6 @@ class DashboardService
 
         $anggotaKelasIds = AnggotaKelas::where('kelas_id', $kelas->id)->pluck('id');
         
-        // Tarik presensi kelas ini ke RAM
         $presensiAll = Presensi::whereIn('anggota_kelas_id', $anggotaKelasIds)->get();
         $daftarBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
 

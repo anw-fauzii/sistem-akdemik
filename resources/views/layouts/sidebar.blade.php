@@ -269,11 +269,12 @@
                     </li>
                 @endrole
                 @role(['admin', 'dapur'])
+                    <li class="app-sidebar__heading">Presensi</li>
                     <li>
                         <a href="{{ route('laporan.presensi.index') }}"
                             class="{{ request()->is('laporan/presensi', 'presensi-kelas*') ? 'mm-active' : '' }}">
                             <i class="metismenu-icon pe-7s-timer"></i>
-                            Laporan Presensi
+                            Rekap Harian
                         </a>
                     </li>
                 @endrole
@@ -417,7 +418,13 @@
                             </li>
                         </ul>
                     </li>
-
+                    <li>
+                        <a href="{{ route('surat-izin.index') }}"
+                            class="{{ request()->is('surat-izin*') ? 'mm-active' : '' }}">
+                            <i class="metismenu-icon pe-7s-mail-open-file"></i>
+                            Surat Izin
+                        </a>
+                    </li>
                     <li>
                         <a href="#"
                             class="{{ request()->is('administrasi-guru*', 'administrasi-kelas*', 'administrasi-rapot*') ? 'mm-active' : '' }}">
