@@ -83,4 +83,9 @@ class AnggotaKelas extends Model
             'prestasi_siswa_id'
         );
     }
+
+    public function riwayatKedisiplinan()
+    {
+        return $this->hasMany(KedisiplinanSiswa::class, 'anggota_kelas_id');
+    }
 }

@@ -47,8 +47,7 @@ class PrestasiSiswaController extends Controller
      */
     public function edit(PrestasiSiswa $prestasiSiswa): View
     {
-        // Gunakan Route Model Binding (PrestasiSiswa langsung jadi object)
-        $prestasi = $prestasiSiswa->load('anggotaKelas'); // Eager load relasi pivot
+        $prestasi = $prestasiSiswa->load('anggotaKelas'); 
         $anggotaKelas = $this->service->getAnggotaKelasForSelection();
 
         return view('prestasi_siswa.edit', compact('prestasi', 'anggotaKelas'));

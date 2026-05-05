@@ -106,17 +106,23 @@
                     </li>
                     <li>
                         <a href="#"
-                            class="{{ request()->is('kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-active' : '' }}">
+                            class="{{ request()->is('kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-active' : '' }}">
                             <i class="metismenu-icon pe-7s-rocket"></i>
                             Data Master
                             <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                         </a>
                         <ul
-                            class="{{ request()->is('kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-show' : '' }}">
+                            class="{{ request()->is('kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-show' : '' }}">
                             <li>
                                 <a href="{{ route('tahun-ajaran.index') }}"
                                     class="{{ request()->is('tahun-ajaran*') ? 'mm-active' : '' }}">
                                     Tahun Ajaran
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('kedisiplinan-poin.index') }}"
+                                    class="{{ request()->is('kedisiplinan-poin*') ? 'mm-active' : '' }}">
+                                    Poin Kedisiplinan
                                 </a>
                             </li>
                             <li>
@@ -488,6 +494,29 @@
                             <i class="metismenu-icon pe-7s-star"></i>
                             Prestasi
                         </a>
+                    </li>
+                    <li>
+                        <a href="#"
+                            class="{{ request()->is('akumulasi-poin-kedisiplinan*', 'kedisiplinan-siswa*') ? 'mm-active' : '' }}">
+                            <i class="metismenu-icon pe-7s-target"></i>
+                            Kedisiplinan
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul
+                            class="{{ request()->is('akumulasi-poin-kedisiplinan*', 'kedisiplinan-siswa*') ? 'mm-show' : '' }}">
+                            <li>
+                                <a href="{{ route('kedisiplinan-siswa.index') }}"
+                                    class="{{ request()->is('kedisiplinan-siswa*') ? 'mm-active' : '' }}">
+                                    Riwayat
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('akumulasi-poin-kedisiplinan.index') }}"
+                                    class="{{ request()->is('akumulasi-poin-kedisiplinan*') ? 'mm-active' : '' }}">
+                                    Akumulasi
+                                </a>
+                            </li>
+                        </ul>
                     </li>
                     <li>
                         <a href="{{ route('surat-izin.index') }}"

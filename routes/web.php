@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\DataPelengkap\TransportasiController;
 use App\Http\Controllers\AdministrasiGuruController;
 use App\Http\Controllers\AdministrasiKelasController;
 use App\Http\Controllers\AdministrasiRapotController;
+use App\Http\Controllers\AkumulasiPoinKedisiplinanController;
 use App\Http\Controllers\AnggotaEkstrakurikulerController;
 use App\Http\Controllers\AnggotaJemputanController;
 use App\Http\Controllers\AnggotaKelasController;
@@ -25,6 +26,8 @@ use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\ExportPdfController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JemputanController;
+use App\Http\Controllers\KedisiplinanPoinController;
+use App\Http\Controllers\KedisiplinanSiswaController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\LaporanKeuanganController;
 use App\Http\Controllers\LaporanPresensiController;
@@ -98,8 +101,8 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
         'presensi-ekstrakurikuler' => 'bulanSpp'
     ]);
     // Route Edit dan Update Harian
-Route::get('/presensi-ekstrakurikuler/edit-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'edit'])->name('presensi-ekstrakurikuler.edit-harian');
-Route::put('/presensi-ekstrakurikuler/update-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'update'])->name('presensi-ekstrakurikuler.update-harian');
+    Route::get('/presensi-ekstrakurikuler/edit-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'edit'])->name('presensi-ekstrakurikuler.edit-harian');
+    Route::put('/presensi-ekstrakurikuler/update-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'update'])->name('presensi-ekstrakurikuler.update-harian');
 
 // (Route::resource Anda yang sudah ada biarkan saja di bawahnya)
     Route::resource('/pembayaran-spp', PembayaranSppController::class)->only(['index','store','destroy']);
@@ -178,6 +181,9 @@ Route::put('/presensi-ekstrakurikuler/update-harian/{tanggal}', [App\Http\Contro
     Route::post('pesan-saran/{pesanSaran}/kirim', [PesanSaranController::class, 'kirim'])->name('pesan-saran.kirim');
     Route::get('pesan-saran/{pesanSaran}/fetch', [PesanSaranController::class, 'fetch'])->name('pesan-saran.fetch');
     Route::get('/pesan-saran-data', [PesanSaranController::class, 'data'])->name('pesan-saran.index.data');
+    Route::resource('/kedisiplinan-poin', KedisiplinanPoinController::class)->except(['show']);
+    Route::resource('/kedisiplinan-siswa', KedisiplinanSiswaController::class)->except(['show']);
+    Route::get('/akumulasi-poin-kedisiplinan', [AkumulasiPoinKedisiplinanController::class, 'index'])->name('akumulasi-poin-kedisiplinan.index');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
