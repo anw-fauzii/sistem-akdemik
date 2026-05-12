@@ -106,13 +106,13 @@
                     </li>
                     <li>
                         <a href="#"
-                            class="{{ request()->is('kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-active' : '' }}">
+                            class="{{ request()->is('target-capaian-tahsin*', 'kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-active' : '' }}">
                             <i class="metismenu-icon pe-7s-rocket"></i>
                             Data Master
                             <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                         </a>
                         <ul
-                            class="{{ request()->is('kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-show' : '' }}">
+                            class="{{ request()->is('target-capaian-tahsin*', 'kedisiplinan-poin*', 'kategori-administrasi*', 'tahun-ajaran*', 'guru*', 'siswa*', 'kelas*', 'ekstrakurikuler*', 'anggota-t2q*', 'jemputan*') ? 'mm-show' : '' }}">
                             <li>
                                 <a href="{{ route('tahun-ajaran.index') }}"
                                     class="{{ request()->is('tahun-ajaran*') ? 'mm-active' : '' }}">
@@ -158,7 +158,13 @@
                             <li>
                                 <a href="{{ route('anggota-t2q.index') }}"
                                     class="{{ request()->is('anggota-t2q*') ? 'mm-active' : '' }}">
-                                    Kelempok T2Q
+                                    Kelompok T2Q
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('target-capaian-tahsin.index') }}"
+                                    class="{{ request()->is('target-capaian-tahsin*') ? 'mm-active' : '' }}">
+                                    Capaian T2Q
                                 </a>
                             </li>
                             <li>
@@ -532,6 +538,28 @@
                         <i class="metismenu-icon pe-7s-chat"></i>
                         E-Curhat
                     </a>
+                </li>
+                <li>
+                    <a href="#"
+                        class="{{ request()->is('yaumiyah-tahsin*', 'yaumiyah-tahfiz*') ? 'mm-active' : '' }}">
+                        <i class="metismenu-icon pe-7s-notebook"></i>
+                        Yaumiyah
+                        <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                    </a>
+                    <ul class="{{ request()->is('yaumiyah-tahsin*', 'yaumiyah-tahfiz*') ? 'mm-show' : '' }}">
+                        <li>
+                            <a href="{{ route('yaumiyah-tahsin.index') }}"
+                                class="{{ request()->is('yaumiyah-tahsin*') ? 'mm-active' : '' }}">
+                                Tahsin
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('yaumiyah-tahfiz.index') }}"
+                                class="{{ request()->is('yaumiyah-tahfiz*') ? 'mm-active' : '' }}">
+                                Tahfiz
+                            </a>
+                        </li>
+                    </ul>
                 </li>
                 <li>
                     <a href="{{ route('logout') }}" class="dropdown-item"

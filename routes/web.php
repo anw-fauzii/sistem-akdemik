@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DataMaster\KategoriMataPelajaranController;
 use App\Http\Controllers\Admin\DataMaster\MataPelajaranController;
 use App\Http\Controllers\Admin\DataMaster\PembelajaranController;
 use App\Http\Controllers\Admin\DataMaster\TahunAjaranController;
+use App\Http\Controllers\Admin\DataMaster\TargetCapaianTahsinController;
 use App\Http\Controllers\Admin\Informasi\AgendaController;
 use App\Http\Controllers\Admin\Informasi\PengumumanController;
 use App\Http\Controllers\Admin\DataPelengkap\BerkebutuhanKhususController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\AnggotaJemputanController;
 use App\Http\Controllers\AnggotaKelasController;
 use App\Http\Controllers\AnggotaT2QController;
 use App\Http\Controllers\BulanSppController;
+use App\Http\Controllers\CetakController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\ExportPdfController;
@@ -51,6 +53,8 @@ use App\Http\Controllers\TK\KesehatanController as TkKesehatanController;
 use App\Http\Controllers\Puskesmas\KesehatanController as PuskesmasKesehatanController;
 use App\Http\Controllers\SuratIzinController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\YaumiyahTahfizController;
+use App\Http\Controllers\YaumiyahTahsinController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -175,6 +179,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/prestasi-siswa', PrestasiSiswaController::class);
     Route::resource('/surat-izin', SuratIzinController::class);
     Route::resource('/kategori-administrasi', KategoriAdministrasiController::class);
+    Route::resource('/target-capaian-tahsin', TargetCapaianTahsinController::class);
     Route::resource('/pesan-saran', PesanSaranController::class)->parameters([
         'pesan-saran' => 'pesanSaran'
     ]);
@@ -184,12 +189,24 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/kedisiplinan-poin', KedisiplinanPoinController::class)->except(['show']);
     Route::resource('/kedisiplinan-siswa', KedisiplinanSiswaController::class)->except(['show']);
     Route::get('/akumulasi-poin-kedisiplinan', [AkumulasiPoinKedisiplinanController::class, 'index'])->name('akumulasi-poin-kedisiplinan.index');
+    Route::get('/cetak-tahsin', [CetakController::class, 'cetakTahsin']);
+    Route::resource('/yaumiyah-tahsin', YaumiyahTahsinController::class)->except(['create']);
+    Route::get('/yaumiyah-tahsin/create/{tingkat}', [YaumiyahTahsinController::class, 'create'])->name('yaumiyah-tahsin.create');
+    Route::get('/yaumiyah-tahsin/{tingkat}/statistik', [YaumiyahTahsinController::class, 'statistik'])->name('yaumiyah-tahsin.statistik');
+    Route::get('/yaumiyah-tahsin/{tingkat}/lengkap', [YaumiyahTahsinController::class, 'lengkap'])->name('yaumiyah-tahsin.lengkap');
+    Route::get('/yaumiyah-tahsin/{tingkat}/print', [YaumiyahTahsinController::class, 'print'])->name('yaumiyah-tahsin.print');
+    Route::get('/get-bulan-spp/{tahun_ajaran_id}', [YaumiyahTahsinController::class, 'getBulanByTahun'])->name('get-bulan-spp');
+    Route::resource('/yaumiyah-tahfiz', YaumiyahTahfizController::class)->except(['create']);
+    Route::get('/yaumiyah-tahfiz/create/{tingkat}', [YaumiyahTahfizController::class, 'create'])->name('yaumiyah-tahfiz.create');
+    Route::get('/yaumiyah-tahfiz/{tingkat}/statistik', [YaumiyahTahfizController::class, 'statistik'])->name('yaumiyah-tahfiz.statistik');
+    Route::get('/yaumiyah-tahfiz/{tingkat}/lengkap', [YaumiyahTahfizController::class, 'lengkap'])->name('yaumiyah-tahfiz.lengkap');
+    Route::get('/yaumiyah-tahfiz/{tingkat}/print', [YaumiyahTahfizController::class, 'print'])->name('yaumiyah-tahfiz.print');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
 Route::get('/optimize', function () {
-    $exitCode = Artisan::call('optimize');
+    $exitCode = Artisan::call('optimize');  
     return '<h1>Clear Config cleared</h1>';
 });
 require __DIR__.'/auth.php';

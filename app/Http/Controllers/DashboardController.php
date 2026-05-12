@@ -40,6 +40,10 @@ class DashboardController extends Controller
         if (user()?->hasRole('puskesmas')) {
             $data = $this->dashboardService->getPuskesmasDashboardData();
             return view('dashboard.puskesmas', $data);
+        } 
+        if (user()?->hasRole('t2q_sd')) {
+            $data = $this->dashboardService->getPuskesmasDashboardData();
+            return view('dashboard.puskesmas', $data);
         }  
 
         abort(403, 'Role tidak dikenali.');
