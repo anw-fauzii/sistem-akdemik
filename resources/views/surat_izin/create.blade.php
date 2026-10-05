@@ -43,11 +43,26 @@
                         {{-- Tanggal --}}
                         <div class="col-md-6">
                             <div class="position-relative form-group">
-                                <label>Tanggal</label>
-                                <input type="date" name="tanggal"
-                                    class="form-control @error('tanggal') is-invalid @enderror"
-                                    value="{{ old('tanggal', date('Y-m-d')) }}">
-                                @error('tanggal')
+                                <label>Tanggal Mulai</label>
+                                <input type="date" name="tanggal_mulai"
+                                    class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                                    value="{{ old('tanggal_mulai', date('Y-m-d')) }}">
+                                @error('tanggal_mulai')
+                                    <div class="invalid-feedback" style="font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Tanggal Selesai --}}
+                        <div class="col-md-6">
+                            <div class="position-relative form-group">
+                                <label>Tanggal Selesai</label>
+                                <input type="date" name="tanggal_selesai"
+                                    class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                                    value="{{ old('tanggal_selesai', date('Y-m-d')) }}">
+                                @error('tanggal_selesai')
                                     <div class="invalid-feedback" style="font-size: 0.7rem;">
                                         {{ strtolower($message) }}
                                     </div>
@@ -63,8 +78,6 @@
                                     <option value="" disabled selected>-- Pilih Jenis --</option>
                                     <option value="sakit" {{ old('jenis') == 'sakit' ? 'selected' : '' }}>Sakit</option>
                                     <option value="izin" {{ old('jenis') == 'izin' ? 'selected' : '' }}>Izin</option>
-                                    <option value="lainnya" {{ old('jenis') == 'lainnya' ? 'selected' : '' }}>Lainnya
-                                    </option>
                                 </select>
                                 @error('jenis')
                                     <div class="invalid-feedback" style="font-size: 0.7rem;">

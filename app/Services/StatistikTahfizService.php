@@ -4,8 +4,9 @@ namespace App\Services;
 
 use App\Models\AnggotaT2Q;
 use App\Models\BulanSpp;
+use App\Models\Kelas;
 use App\Models\TahunAjaran;
-use App\Models\TargetCapaianTahsin; // <-- Pastikan ini benar, atau ganti ke TargetCapaianTahfiz jika ada
+use App\Models\TargetCapaianTahsin;
 use App\Models\YaumiyahTahfiz;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -13,45 +14,39 @@ use Carbon\Carbon;
 
 class StatistikTahfizService
 {
-    public function generateDashboardDataDidik(string $guruNipy, string $tingkat, ?int $bulanSppId = null): array
+    public function generateDashboardDataDidik(string $guruNipy, string $tingkat, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaran = null): array
     {
         $siswaQuery = AnggotaT2Q::where('guru_nipy', $guruNipy);
-        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId);
+        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId, $tahunAjaran);
     }
 
-    /**
-     * Dashboard Lengkap (Helicopter View untuk Kepala Sekolah / Yayasan).
-     */
-    public function generateDashboardDataLengkap(string $tingkat, ?int $bulanSppId = null): array
+    public function generateDashboardDataLengkap(string $tingkat, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaran = null): array
     {
-        $siswaQuery = AnggotaT2Q::query(); // Tanpa filter guru
-        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId);
+        $siswaQuery = AnggotaT2Q::query(); 
+        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId, $tahunAjaran);
     }
 
-    /**
-     * Resolve bulan SPP (Dari request atau ambil yang terbaru).
-     */
+    public function generateDashboardDataByKelas(?Kelas $kelas = null, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaranAktif = null): array
+    {
+        $siswaQuery = AnggotaT2Q::whereHas('anggotaKelas', function($query) use ($kelas) {
+            $query->where('kelas_id', $kelas->id);
+        });
+
+        $tingkatan = $kelas->tingkatan_kelas;
+
+        return $this->buildDashboardMetrics($siswaQuery, $tingkatan, $bulanSppId, $tahunAjaranAktif);
+    }
+
     private function resolveBulanSpp(?int $bulanSppId): BulanSpp
     {
-        if ($bulanSppId) {
-            return BulanSpp::findOrFail($bulanSppId);
-        }
-        
-        return BulanSpp::latest('bulan_angka')->firstOrFail();
+        return $bulanSppId ? BulanSpp::findOrFail($bulanSppId) : BulanSpp::latest('bulan_angka')->firstOrFail();
     }
 
-    private function buildDashboardMetrics(Builder $siswaQuery, string $tingkat, ?int $bulanSppId): array
+    private function buildDashboardMetrics(Builder $siswaQuery, string $tingkat, ?int $bulanSppId, ?TahunAjaran $tahunAjaranAktif): array
     {
-        // 1. Resolve Data Bulan
         $bulanSpp = $this->resolveBulanSpp($bulanSppId);
-        
-        // Parse untuk menjaga Type Safety jika bulan_angka masih string di beberapa kondisi
         $parsedDate = Carbon::parse($bulanSpp->bulan_angka);
-        $targetMonth = $parsedDate->format('m');
-        $targetYear = $parsedDate->format('Y');
-        $namaBulan = $bulanSpp->nama_bulan;
-
-        // 2. Ambil Data Siswa Aktif
+        
         $siswa = $siswaQuery->with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
             ->whereHas('anggotaKelas', fn (Builder $query) => $query->tahunAjaranAktif())
             ->where('tingkat', $tingkat)
@@ -60,24 +55,20 @@ class StatistikTahfizService
         $siswaIds = $siswa->pluck('id')->toArray();
         $totalSiswa = $siswa->count();
 
-        // Guard Clause: Hindari eksekusi query berat jika tidak ada siswa
         if (empty($siswaIds)) {
             return $this->emptyDashboardResponse($tingkat, $bulanSpp);
         }
 
-        // --- OPTIMISASI QUERY: Buat Base Query ---
         $baseYaumiyahQuery = YaumiyahTahfiz::whereIn('anggota_t2q_id', $siswaIds)
-            ->whereMonth('tanggal', $targetMonth)
-            ->whereYear('tanggal', $targetYear);
+            ->whereMonth('tanggal', $parsedDate->format('m'))
+            ->whereYear('tanggal', $parsedDate->format('Y'));
 
-        // 3. Kalkulasi Agregat Langsung di Database
         $aggregateStats = (clone $baseYaumiyahQuery)
             ->select(
                 DB::raw('COALESCE(AVG(nilai), 0) as avg_bulan_ini'),
                 DB::raw('COUNT(id) as total_setoran')
             )->first();
 
-        // 4. Ambil Hafalan (Surah) Terakhir per Siswa dengan Sub-Query (Menghindari N+1)
         $latestYaumiyahIds = (clone $baseYaumiyahQuery)
             ->select(DB::raw('MAX(id) as id'))
             ->groupBy('anggota_t2q_id')
@@ -87,14 +78,9 @@ class StatistikTahfizService
             ->whereIn('id', $latestYaumiyahIds)
             ->get();
 
-        $sebaranJilid = $latestYaumiyah->groupBy(function($item) {
-            return $item->surahAlquran->nama_surah_arab ?? 'Belum Ada Hafalan';
-        })->map->count();
+        $sebaranJilid = $latestYaumiyah->groupBy(fn($item) => $item->surahAlquran->nama_surah_arab ?? 'Belum Ada Hafalan')->map->count();
 
-        // 5. Logika Target vs Realisasi
-        $tahunAjaranAktif = TahunAjaran::latest()->first();
-        
-        // Catatan: Model TargetCapaianTahsin dipakai di sini sesuai legacy code.
+        // MENGHINDARI N+1: Gunakan $tahunAjaranAktif yang di-passing dari Controller
         $targetCapaian = TargetCapaianTahsin::with('surahAlquran')
             ->where('tahun_ajaran_id', $tahunAjaranAktif->id ?? null)
             ->where('tingkat', $tingkat)
@@ -114,14 +100,12 @@ class StatistikTahfizService
             }
         }
 
-        // 6. Tren Nilai Harian
         $trenNilai = (clone $baseYaumiyahQuery)
             ->selectRaw('tanggal, avg(nilai) as rata_rata')
             ->groupBy('tanggal')
             ->orderBy('tanggal')
             ->get();
 
-        // 7. Ranking Siswa (Memanfaatkan Collection Map secara efisien)
         $rankSiswa = (clone $baseYaumiyahQuery)
             ->selectRaw('anggota_t2q_id, avg(nilai) as rata_rata, count(*) as total_setoran')
             ->groupBy('anggota_t2q_id')
@@ -136,13 +120,11 @@ class StatistikTahfizService
         });
 
         $siswaYangSetor = $siswaStats->where('total_setoran', '>', 0);
-        $topSiswa = $siswaYangSetor->sortByDesc('rata_rata')->take(5);
-        $bottomSiswa = $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->sortBy('rata_rata')->take(5);
 
         return [
             'tingkat'         => $tingkat,
             'bulanSpp'        => $bulanSpp,
-            'namaBulan'       => $namaBulan,
+            'namaBulan'       => $bulanSpp->nama_bulan,
             'totalSiswa'      => $totalSiswa,
             'avgBulanIni'     => $aggregateStats->avg_bulan_ini,
             'totalSetoran'    => $aggregateStats->total_setoran,
@@ -152,15 +134,12 @@ class StatistikTahfizService
             'belumMencapai'   => $belumMencapai,
             'targetJilidNama' => $targetJilidNama,
             'trenNilai'       => $trenNilai,
-            'topSiswa'        => $topSiswa,
-            'bottomSiswa'     => $bottomSiswa,
-            'perluPerhatian'  => $bottomSiswa->count(),
+            'topSiswa'        => $siswaYangSetor->sortByDesc('rata_rata')->take(5),
+            'bottomSiswa'     => $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->sortBy('rata_rata')->take(5),
+            'perluPerhatian'  => $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->count(),
         ];
     }
 
-    /**
-     * Data kosong jika belum ada siswa di tingkat ini.
-     */
     private function emptyDashboardResponse(string $tingkat, BulanSpp $bulanSpp): array
     {
         return [

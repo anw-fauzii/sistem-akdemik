@@ -14,7 +14,8 @@ class SuratIzinRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'tanggal' => 'required|date',
+            'tanggal_mulai' => 'required|date',
+            'tanggal_selesai' => 'required|date',
             'jenis' => 'required|in:sakit,izin,lainnya',
             'file' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
             'keterangan' => 'nullable|string',
@@ -29,8 +30,10 @@ class SuratIzinRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'tanggal.required' => 'Waduh, tanggalnya jangan lupa diisi ya!',
-            'tanggal.date'     => 'Format tanggalnya salah nih.',
+            'tanggal_mulai.required' => 'Waduh, tanggal mulainya jangan lupa diisi ya!',
+            'tanggal_selesai.required' => 'Waduh, tanggal selesainya jangan lupa diisi ya!',
+            'tanggal_mulai.date'     => 'Format tanggal mulainya salah nih.',
+            'tanggal_selesai.date'   => 'Format tanggal selesainya salah nih.',
             'jenis.required'   => 'Pilih dulu jenis izinnya: Sakit atau Izin.',
             'jenis.in'         => 'Pilihan jenis izin tidak valid.',
             'file.mimes' => 'File harus berupa gambar (jpg, png) atau PDF.',

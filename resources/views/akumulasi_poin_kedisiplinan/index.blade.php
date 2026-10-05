@@ -27,7 +27,7 @@
                 <form method="GET" action="{{ route('akumulasi-poin-kedisiplinan.index') }}" class="form-inline">
                     <div class="mb-2 mr-sm-2 mb-sm-0 position-relative form-group">
                         <label for="kelas_id" class="mr-sm-2">Pilih Kelas:</label>
-                        <select name="kelas_id" id="kelas_id" class="form-control" required>
+                        <select name="kelas_id" id="kelas_id" class="multiselect-dropdown form-control" required>
                             <option value="">-- Pilih Kelas --</option>
                             @foreach ($kelasList as $kelas)
                                 <option value="{{ $kelas->id }}" {{ $kelasTerpilih == $kelas->id ? 'selected' : '' }}>

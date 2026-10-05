@@ -23,7 +23,7 @@
 
         <div class="main-card card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <button type="button" class="btn btn-primary" onclick="showCreateModal()">
+                <button type="button" class="btn btn-primary" onclick="i()">
                     <i class="pe-7s-plus mr-1"></i> TAMBAH SISWA
                 </button>
                 @include('data_master.t2q.modalCreate')
@@ -47,6 +47,10 @@
                                     <td class="text-center align-middle">{{ $item->anggotaKelas->kelas->nama_kelas ?? '-' }}
                                     </td>
                                     <td class="text-center align-middle">
+                                        <button type="button" class="btn btn-sm btn-warning" title="Pindah Guru"
+                                            onclick="showEditModal('{{ $item->id }}', '{{ $item->anggotaKelas->siswa->nama_lengkap ?? '-' }}')">
+                                            <i class="pe-7s-pen" style="font-size: 1rem; color:white;"></i>
+                                        </button>
                                         <form action="{{ route('anggota-t2q.destroy', $item->id) }}" method="POST"
                                             class="delete-form d-inline-block">
                                             @csrf
@@ -58,6 +62,7 @@
                                         </form>
                                     </td>
                                 </tr>
+                                @include('data_master.t2q.modalEdit')
                             @empty
                                 <tr>
                                     <td colspan="4" class="text-center text-muted py-4">

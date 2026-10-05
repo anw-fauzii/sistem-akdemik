@@ -50,7 +50,8 @@
                                     </td>
 
                                     <td>
-                                        {{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}
+                                        {{ $item->tanggal_mulai?->format('d M Y') ?? 'Belum diset' }} - 
+                                        {{ $item->tanggal_selesai?->format('d M Y') ?? 'Belum diset' }}
                                     </td>
 
                                     <td>

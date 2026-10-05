@@ -72,4 +72,17 @@ class AnggotaT2QService
             $anggotaT2Q->delete();
         });
     }
+
+    public function changeGuru(AnggotaT2Q $anggotaT2Q, string $newGuruNipy): void
+    {
+        DB::transaction(function () use ($anggotaT2Q, $newGuruNipy) {
+            $anggotaT2Q->load('anggotaKelas.siswa');
+
+            if ($siswa = $anggotaT2Q->anggotaKelas?->siswa) {
+                $siswa->update(['guru_nipy' => $newGuruNipy]);
+            }
+
+            $anggotaT2Q->update(['guru_nipy' => $newGuruNipy]);
+        });
+    }
 }

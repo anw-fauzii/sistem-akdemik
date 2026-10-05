@@ -17,7 +17,6 @@ class AdministrasiGuruController extends Controller
     public function __construct(
         protected AdministrasiGuruService $service
     ) {
-        // Sentralisasi Role: Kunci seluruh akses khusus untuk Guru SD
         $this->middleware(['auth', 'role:guru_sd']);
     }
 
@@ -39,7 +38,7 @@ class AdministrasiGuruController extends Controller
     public function store(StoreAdministrasiGuruRequest $request): RedirectResponse
     {
         try {
-            $this->service->uploadFiles($request->validated(), $request->file('files'));
+            $this->service->uploadFiles($request->validated(), $request->file('file'));
             return redirect()->route('administrasi-guru.index')->with('success', 'Administrasi berhasil diupload');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Upload GDrive Gagal: ' . $e->getMessage());
@@ -49,7 +48,6 @@ class AdministrasiGuruController extends Controller
 
     public function show(AdministrasiGuru $administrasiGuru): Response
     {
-        // PROTEKSI KEAMANAN: Pastikan yang mau diunduh adalah file miliknya sendiri!
         abort_if($administrasiGuru->guru_nipy !== Auth::user()->email, 403, 'Akses ditolak.');
 
         $data = Gdrive::get($administrasiGuru->link);

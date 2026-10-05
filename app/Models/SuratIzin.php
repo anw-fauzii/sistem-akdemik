@@ -12,14 +12,16 @@ class SuratIzin extends Model
 
     protected $fillable = [
         'anggota_kelas_id',
-        'tanggal',
+        'tanggal_mulai',
+        'tanggal_selesai',
         'jenis',
         'keterangan',
         'file'
     ];
 
     protected $casts = [
-        'tanggal' => 'date',
+        'tanggal_mulai' => 'date',
+        'tanggal_selesai' => 'date',
     ];
 
     public function anggotaKelas()

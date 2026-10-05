@@ -15,7 +15,8 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('anggota_kelas_id');
             $table->foreign('anggota_kelas_id')->references('id')->on('anggota_kelas')->onDelete('cascade')->onUpdate('cascade');
-            $table->date('tanggal');
+            $table->date('tanggal_mulai');
+            $table->date('tanggal_selesai');
             $table->enum('jenis', ['sakit', 'izin', 'lainnya']);
             $table->text('keterangan')->nullable();
             $table->string('file')->nullable();

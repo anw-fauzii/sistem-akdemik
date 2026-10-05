@@ -63,11 +63,10 @@
                         <tbody>
                             @foreach ($anggotaKelasList as $anggota)
                                 @php
-                                    // PERBAIKAN 3: Langsung ambil dari relasi Eager Loading! Sangat elegan.
                                     $kesehatan = $anggota->dataKesehatan;
                                 @endphp
                                 <tr>
-                                    <td>{{ $anggota->siswa->nama_lengkap ?? '-' }}</td>
+                                    <td>({{ $anggota->siswa->usia ?? ''  }}) {{ $anggota->siswa->nama_lengkap ?? '-' }}</td>
                                     <td>{{ $kesehatan->tb ?? '0' }}</td>
                                     <td>{{ $kesehatan->bb ?? '0' }}</td>
                                     <td>{{ $kesehatan->lila ?? '0' }}</td>

@@ -3,10 +3,10 @@
 
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Cetak Rekap Tahsin - Tingkat {{ $tingkat }}</title>
+    <title>Cetak Rekap Tahfiz - Tingkat {{ $tingkat }}</title>
 
     <style>
-        /* MENGGUNAKAN FONT CUSTOM ARAB */
+        /* MENGGUNAKAN FONT CUSTOM ARAB (Sesuai Referensi Anda) */
         @font-face {
             font-family: 'Traditional Arabic';
             font-style: normal;
@@ -18,13 +18,14 @@
             margin: 1cm;
         }
 
+        /* Margin diperkecil agar isi tabel muat */
         body {
             font-family: 'Helvetica', sans-serif;
             color: #000;
             font-size: 9pt;
         }
 
-        /* KOP SURAT */
+        /* ... (CSS Kop Surat & Judul sama seperti sebelumnya) ... */
         .kop-surat {
             text-align: center;
             border-bottom: 2px solid #000;
@@ -57,8 +58,6 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
-            table-layout: fixed;
-            /* KUNCI UTAMA AGAR KOLOM PRESISI & TIDAK MELAR */
         }
 
         th,
@@ -68,8 +67,6 @@
             text-align: center;
             vertical-align: middle;
             font-size: 8pt;
-            word-wrap: break-word;
-            /* Mencegah teks tumpah keluar kotak */
         }
 
         th {
@@ -86,11 +83,12 @@
         .font-arab {
             font-family: 'Traditional Arabic', sans-serif;
             font-size: 14pt;
-            line-height: 0.5;
-            /* Diubah agar teks Arab yang panjang (turun baris) tidak saling tumpuk */
+            /* Sesuaikan ukurannya */
+            line-height: 0.4;
+            /* Diubah jadi 1 agar tidak terlalu mepet ke atas */
+            /* Direction RTL dihilangkan karena ArPHP sudah me-reverse susunan hurufnya */
         }
 
-        /* TANDA TANGAN */
         .signature-table {
             width: 100%;
             margin-top: 30px;
@@ -109,7 +107,7 @@
         }
 
         .img-ttd {
-            height: 60px;
+            height: 70px;
             /* Sesuaikan tinggi TTD agar pas dengan spasi */
             margin-top: 5px;
             margin-bottom: 5px;
@@ -164,9 +162,8 @@
     </div>
 
     <hr style="border: none; border-top: 2px solid black; margin-top: 10px; margin-bottom: 15px; width: 100%;">
-
     <div class="judul-laporan">
-        REKAP PERKEMBANGAN CAPAIAN TAHSIN QURAN<br>
+        REKAP PERKEMBANGAN CAPAIAN TAHFIZ QURAN<br>
         TAHUN AJARAN {{ $tahunAjaran->nama_tahun_ajaran ?? '2024-2025' }}
     </div>
 
@@ -221,7 +218,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ 2 + count($hariPekanIni) * 3 }}">Belum ada data siswa.</td>
+                    <td colspan="{{ 3 + count($hariPekanIni) * 3 }}">Belum ada data siswa.</td>
                 </tr>
             @endforelse
         </tbody>

@@ -32,5 +32,7 @@ class AdministrasiGuru extends Model
     {
         return $this->belongsTo(KategoriAdministrasi::class);
     }
+
+    
     
 }

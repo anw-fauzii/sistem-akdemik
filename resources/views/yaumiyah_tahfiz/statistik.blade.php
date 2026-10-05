@@ -1,7 +1,8 @@
 @extends('layouts.app2')
 
 @section('title')
-    <title>Statistik Tahfiz - Tingkat {{ $tingkat }}</title>
+    <title>Dashboard Statistik Tahfiz
+        {{ isset($kelas) && $kelas ? 'Kelas ' . $kelas->nama_kelas : 'Tingkat ' . $tingkat }}</title>
     <script src="https://code.highcharts.com/highcharts.js"></script>
 @endsection
 
@@ -14,9 +15,13 @@
                     <div class="page-title-icon shadow-sm bg-white">
                         <i class="pe-7s-graph2 text-success"></i>
                     </div>
-                    <div>Dashboard Statistik Tahfiz - Tingkat {{ $tingkat }}
+                    <div>
+                        Dashboard Statistik Tahfiz
+                        {{ isset($kelas) && $kelas ? 'Kelas ' . $kelas->nama_kelas : 'Tingkat ' . $tingkat }}
+
                         <div class="page-title-subheading">
-                            Ringkasan performa kelas dan pencapaian siswa periode <strong>{{ $namaBulan }}</strong>.
+                            Rekap perkembangan capaian tahsin untuk
+                            {{ isset($kelas) && $kelas ? 'Kelas ' . $kelas->nama_kelas : 'Jenjang Tingkat ' . $tingkat }}
                         </div>
                     </div>
                 </div>
@@ -46,8 +51,16 @@
                         </div>
 
                         <div>
-                            <form id="form-filter-statistik"
-                                action="{{ route('yaumiyah-tahfiz.statistik', ['tingkat' => $tingkat]) }}" method="GET">
+                            @php
+                                if (request()->routeIs('yaumiyah-tahfiz.statistik')) {
+                                    $actionUrl = route('yaumiyah-tahfiz.statistik', ['tingkat' => $tingkat]);
+                                } elseif (request()->routeIs('yaumiyah-tahfiz.lengkap')) {
+                                    $actionUrl = route('yaumiyah-tahfiz.lengkap', ['tingkat' => $tingkat]);
+                                } else {
+                                    $actionUrl = route('yaumiyah-tahfiz.statistik-kelas', ['kelasId' => $kelas->id]);
+                                }
+                            @endphp
+                            <form id="form-filter-statistik" action="{{ $actionUrl }}" method="GET">
                                 <div class="input-group shadow-sm" style="border-radius: 8px; overflow: hidden;">
                                     <div class="input-group-prepend">
                                         <span class="input-group-text bg-white border-light text-muted">
@@ -63,7 +76,8 @@
                                         @foreach ($tahunajaran as $tahun)
                                             <option value="{{ $tahun->id }}"
                                                 {{ request('tahun_ajaran_id', $tahunAjaranAktif->id ?? '') == $tahun->id ? 'selected' : '' }}>
-                                                {{ $tahun->nama_tahunajaran ?? $tahun->nama_tahun_ajaran }}
+                                                {{ $tahun->nama_tahunajaran ?? $tahun->nama_tahun_ajaran }} -
+                                                {{ $tahun->semester }}
                                             </option>
                                         @endforeach
                                     </select>

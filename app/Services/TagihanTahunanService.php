@@ -13,8 +13,6 @@ class TagihanTahunanService
      */
     public function getActiveTahunAjaran(): TahunAjaran
     {
-        // Saya menstandarkan menggunakan latest() sesuai dengan method store Anda sebelumnya.
-        // Jika aturan bisnis mewajibkan semester 1, tambahkan whereSemester('1') di sini.
         $tahun = TahunAjaran::latest()->first();
 
         if (!$tahun) {

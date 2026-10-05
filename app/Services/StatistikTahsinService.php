@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AnggotaT2Q;
 use App\Models\BulanSpp;
+use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\TargetCapaianTahsin;
 use App\Models\YaumiyahTahsin;
@@ -13,38 +14,39 @@ use Illuminate\Support\Facades\DB;
 
 class StatistikTahsinService
 {
-    public function generateDashboardDataDidik(string $guruNipy, string $tingkat, ?int $bulanSppId = null): array
+    public function generateDashboardDataDidik(string $guruNipy, string $tingkat, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaran = null): array
     {
         $siswaQuery = AnggotaT2Q::where('guru_nipy', $guruNipy);
-        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId);
+        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId, $tahunAjaran);
     }
 
-    public function generateDashboardDataLengkap(string $tingkat, ?int $bulanSppId = null): array
+    public function generateDashboardDataLengkap(string $tingkat, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaran = null): array
     {
         $siswaQuery = AnggotaT2Q::query(); 
-        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId);
+        return $this->buildDashboardMetrics($siswaQuery, $tingkat, $bulanSppId, $tahunAjaran);
+    }
+
+    public function generateDashboardDataByKelas(?Kelas $kelas = null, ?int $bulanSppId = null, ?TahunAjaran $tahunAjaranAktif = null): array
+    {
+        $siswaQuery = AnggotaT2Q::whereHas('anggotaKelas', function($query) use ($kelas) {
+            $query->where('kelas_id', $kelas->id);
+        });
+
+        $tingkatan = $kelas->tingkatan_kelas;
+
+        return $this->buildDashboardMetrics($siswaQuery, $tingkatan, $bulanSppId, $tahunAjaranAktif);
     }
 
     private function resolveBulanSpp(?int $bulanSppId): BulanSpp
     {
-        if ($bulanSppId) {
-            return BulanSpp::findOrFail($bulanSppId);
-        }
-        
-        return BulanSpp::latest('bulan_angka')->firstOrFail();
+        return $bulanSppId ? BulanSpp::findOrFail($bulanSppId) : BulanSpp::latest('bulan_angka')->firstOrFail();
     }
 
-    private function buildDashboardMetrics(Builder $siswaQuery, string $tingkat, ?int $bulanSppId): array
+    private function buildDashboardMetrics(Builder $siswaQuery, string $tingkat, ?int $bulanSppId, ?TahunAjaran $tahunAjaranAktif): array
     {
-        // 1. Resolve Data Bulan
         $bulanSpp = $this->resolveBulanSpp($bulanSppId);
         $parsedDate = Carbon::parse($bulanSpp->bulan_angka);
-        
-        $targetMonth = $parsedDate->format('m');
-        $targetYear = $parsedDate->format('Y');
-        $namaBulan = $bulanSpp->nama_bulan;
 
-        // 2. Ambil Data Siswa Aktif
         $siswa = $siswaQuery->with(['anggotaKelas.siswa', 'anggotaKelas.kelas'])
             ->whereHas('anggotaKelas', fn (Builder $query) => $query->tahunAjaranAktif())
             ->where('tingkat', $tingkat)
@@ -53,25 +55,20 @@ class StatistikTahsinService
         $siswaIds = $siswa->pluck('id')->toArray();
         $totalSiswa = $siswa->count();
 
-        // Guard Clause: Jika tidak ada siswa, kembalikan array kosong agar query selanjutnya tidak error
         if (empty($siswaIds)) {
             return $this->emptyDashboardResponse($tingkat, $bulanSpp);
         }
 
-        // --- OPTIMISASI QUERY: Buat Base Query ---
         $baseYaumiyahQuery = YaumiyahTahsin::whereIn('anggota_t2q_id', $siswaIds)
-            ->whereMonth('tanggal', $targetMonth)
-            ->whereYear('tanggal', $targetYear);
+            ->whereMonth('tanggal', $parsedDate->format('m'))
+            ->whereYear('tanggal', $parsedDate->format('Y'));
 
-        // 3. Kalkulasi Agregat Lagsung di Database (Jauh Lebih Cepat)
         $aggregateStats = (clone $baseYaumiyahQuery)
             ->select(
                 DB::raw('COALESCE(AVG(nilai), 0) as avg_bulan_ini'),
                 DB::raw('COUNT(id) as total_setoran')
             )->first();
 
-        // 4. Ambil Jilid Terakhir per Siswa (Menghindari N+1 & Memory Leak dari ->unique())
-        // Kita menggunakan sub-query untuk mendapatkan tanggal setoran terakhir per siswa
         $latestYaumiyahIds = (clone $baseYaumiyahQuery)
             ->select(DB::raw('MAX(id) as id'))
             ->groupBy('anggota_t2q_id')
@@ -81,12 +78,8 @@ class StatistikTahsinService
             ->whereIn('id', $latestYaumiyahIds)
             ->get();
 
-        $sebaranJilid = $latestYaumiyah->groupBy(function($item) {
-            return $item->daftarJilid->jilid_latin ?? 'Belum Ada Jilid';
-        })->map->count();
+        $sebaranJilid = $latestYaumiyah->groupBy(fn($item) => $item->daftarJilid->jilid_latin ?? 'Belum Ada Jilid')->map->count();
 
-        // 5. Logika Target vs Realisasi
-        $tahunAjaranAktif = TahunAjaran::latest()->first();
         $targetCapaian = TargetCapaianTahsin::with('daftarJilid')
             ->where('tahun_ajaran_id', $tahunAjaranAktif->id ?? null)
             ->where('tingkat', $tingkat)
@@ -112,7 +105,6 @@ class StatistikTahsinService
             ->orderBy('tanggal')
             ->get();
 
-        // 7. Ranking Siswa (Memanfaatkan Collection Map secara efisien)
         $rankSiswa = (clone $baseYaumiyahQuery)
             ->selectRaw('anggota_t2q_id, avg(nilai) as rata_rata, count(*) as total_setoran')
             ->groupBy('anggota_t2q_id')
@@ -127,13 +119,11 @@ class StatistikTahsinService
         });
 
         $siswaYangSetor = $siswaStats->where('total_setoran', '>', 0);
-        $topSiswa = $siswaYangSetor->sortByDesc('rata_rata')->take(5);
-        $bottomSiswa = $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->sortBy('rata_rata')->take(5);
 
         return [
             'tingkat'         => $tingkat,
             'bulanSpp'        => $bulanSpp,
-            'namaBulan'       => $namaBulan,
+            'namaBulan'       => $bulanSpp->nama_bulan,
             'totalSiswa'      => $totalSiswa,
             'avgBulanIni'     => $aggregateStats->avg_bulan_ini,
             'totalSetoran'    => $aggregateStats->total_setoran,
@@ -143,9 +133,9 @@ class StatistikTahsinService
             'belumMencapai'   => $belumMencapai,
             'targetJilidNama' => $targetJilidNama,
             'trenNilai'       => $trenNilai,
-            'topSiswa'        => $topSiswa,
-            'bottomSiswa'     => $bottomSiswa,
-            'perluPerhatian'  => $bottomSiswa->count(),
+            'topSiswa'        => $siswaYangSetor->sortByDesc('rata_rata')->take(5),
+            'bottomSiswa'     => $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->sortBy('rata_rata')->take(5),
+            'perluPerhatian'  => $siswaYangSetor->filter(fn($s) => $s->rata_rata < 75)->count(),
         ];
     }
 

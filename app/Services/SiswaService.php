@@ -12,7 +12,7 @@ class SiswaService
 {
     public function getAll(): Collection
     {
-        return Siswa::with('kelas')->get();
+        return Siswa::with('kelas')->whereStatus(1)->get();
     }
 
     public function createSiswa(array $data): Siswa

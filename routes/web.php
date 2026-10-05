@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAdministrasiController;
 use App\Http\Controllers\Admin\DataMaster\KategoriAdministrasiController;
 use App\Http\Controllers\Admin\DataMaster\KategoriMataPelajaranController;
 use App\Http\Controllers\Admin\DataMaster\MataPelajaranController;
@@ -104,17 +105,16 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/presensi-ekstrakurikuler', PresensiEkstrakurikulerController::class)->except(['edit','update','destroy'])->parameters([
         'presensi-ekstrakurikuler' => 'bulanSpp'
     ]);
-    // Route Edit dan Update Harian
+
     Route::get('/presensi-ekstrakurikuler/edit-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'edit'])->name('presensi-ekstrakurikuler.edit-harian');
     Route::put('/presensi-ekstrakurikuler/update-harian/{tanggal}', [App\Http\Controllers\PresensiEkstrakurikulerController::class, 'update'])->name('presensi-ekstrakurikuler.update-harian');
 
-// (Route::resource Anda yang sudah ada biarkan saja di bawahnya)
     Route::resource('/pembayaran-spp', PembayaranSppController::class)->only(['index','store','destroy']);
     Route::post('/pembayaran-spp/cari', [PembayaranSppController::class, 'cari'])->name('pembayaran-spp.cari');
     Route::resource('/ekstrakurikuler', EkstrakurikulerController::class);
     Route::resource('/anggota-kelas', AnggotaKelasController::class)->only(['index','store', 'destroy']);
     Route::resource('/anggota-ekstrakurikuler', AnggotaEkstrakurikulerController::class)->only(['store', 'destroy']);
-    Route::resource('/anggota-t2q', AnggotaT2QController::class)->only(['index','store', 'destroy','show'])->parameters([
+    Route::resource('/anggota-t2q', AnggotaT2QController::class)->except(['create','edit'])->parameters([
         'anggota-t2q' => 'anggotaT2Q'
     ]);
     Route::get('/dashboard',[DashboardController::class,'index'])->name('dashboard.index');
@@ -168,7 +168,11 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::resource('/kesehatan-siswa', PesertaDidikKesehatanController::class)->only(['index','show']);
 
     Route::resource('/kategori-mata-pelajaran', KategoriMataPelajaranController::class)->except(['show']);
-    Route::resource('/daftar-mata-pelajaran', MataPelajaranController::class);
+    Route::resource('/daftar-mata-pelajaran', MataPelajaranController::class)->parameters([
+        'daftar-mata-pelajaran' => 'mataPelajaran'
+    ]);
+    Route::post('/daftar-mata-pelajaran/import-previous', [MataPelajaranController::class, 'importPrevious'])
+    ->name('daftar-mata-pelajaran.import-previous');
     Route::resource('/pembelajaran', PembelajaranController::class);
 
     Route::resource('/administrasi-guru', AdministrasiGuruController::class);
@@ -176,6 +180,7 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
         'administrasi-kelas' => 'administrasiKelas'
     ]);
     Route::resource('/administrasi-rapot', AdministrasiRapotController::class);
+    Route::get('administrasi-rapot/get-siswa/{tahun_ajaran_id}', [AdministrasiRapotController::class, 'getSiswaByTahun'])->name('administrasi-rapot.get-siswa');
     Route::resource('/prestasi-siswa', PrestasiSiswaController::class);
     Route::resource('/surat-izin', SuratIzinController::class);
     Route::resource('/kategori-administrasi', KategoriAdministrasiController::class);
@@ -196,17 +201,25 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('/yaumiyah-tahsin/{tingkat}/lengkap', [YaumiyahTahsinController::class, 'lengkap'])->name('yaumiyah-tahsin.lengkap');
     Route::get('/yaumiyah-tahsin/{tingkat}/print', [YaumiyahTahsinController::class, 'print'])->name('yaumiyah-tahsin.print');
     Route::get('/get-bulan-spp/{tahun_ajaran_id}', [YaumiyahTahsinController::class, 'getBulanByTahun'])->name('get-bulan-spp');
+    Route::get('/yaumiyah-tahsin/kelas/{kelasId}/statistik', [YaumiyahTahsinController::class, 'statistikPerKelas'])
+    ->name('yaumiyah-tahsin.statistik-kelas');
     Route::resource('/yaumiyah-tahfiz', YaumiyahTahfizController::class)->except(['create']);
     Route::get('/yaumiyah-tahfiz/create/{tingkat}', [YaumiyahTahfizController::class, 'create'])->name('yaumiyah-tahfiz.create');
     Route::get('/yaumiyah-tahfiz/{tingkat}/statistik', [YaumiyahTahfizController::class, 'statistik'])->name('yaumiyah-tahfiz.statistik');
     Route::get('/yaumiyah-tahfiz/{tingkat}/lengkap', [YaumiyahTahfizController::class, 'lengkap'])->name('yaumiyah-tahfiz.lengkap');
     Route::get('/yaumiyah-tahfiz/{tingkat}/print', [YaumiyahTahfizController::class, 'print'])->name('yaumiyah-tahfiz.print');
+    Route::get('/yaumiyah-tahfiz/kelas/{kelasId}/statistik', [YaumiyahTahfizController::class, 'statistikPerKelas'])
+    ->name('yaumiyah-tahfiz.statistik-kelas');
+
+    Route::get('administrasi', [AdminAdministrasiController::class, 'index'])->name('administrasi.index');
+    Route::patch('administrasi/{administrasiGuru}/verify', [AdminAdministrasiController::class, 'verify'])->name('administrasi.verify');
+    Route::get('administrasi/{administrasiGuru}/download', [AdminAdministrasiController::class, 'download'])->name('administrasi.download');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);
 });
 Route::get('/optimize', function () {
     $exitCode = Artisan::call('optimize');  
-    return '<h1>Clear Config cleared</h1>';
+    return '<h1>Clear Config cleared</h1>'; 
 });
 require __DIR__.'/auth.php';

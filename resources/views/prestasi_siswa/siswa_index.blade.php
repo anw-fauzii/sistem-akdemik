@@ -10,7 +10,7 @@
         <div class="app-page-title">
             <div class="page-title-heading">
                 <div class="page-title-icon">
-                    <i class="pe-7s-star icon-gradient bg-mean-fruit"></i>
+                    <i class="pe-7s-medal icon-gradient bg-mean-fruit"></i>
                 </div>
                 <div>Prestasi Saya
                     <div class="page-title-subheading">

@@ -22,7 +22,16 @@ class DashboardService
         return Pengumuman::latest('id')->take(3)->get();
     }
 
-    protected function formatAgenda(string $unit = null): Collection
+    protected function getTahunAjaranAktif(): TahunAjaran
+    {
+        $tahunAjaran = TahunAjaran::latest()->first();
+        if (!$tahunAjaran) {
+            abort(400, 'Data Tahun Ajaran belum diatur di sistem.');
+        }
+        return $tahunAjaran;
+    }
+
+    protected function formatAgenda(?string $unit = null): Collection
     {
         $query = Agenda::query();
         if ($unit) {
@@ -40,25 +49,22 @@ class DashboardService
 
     public function getAdminDashboardData(): array
     {
-        $tahunAjaran = TahunAjaran::latest()->first();
 
         return [
             'agenda'   => $this->formatAgenda(),
             'siswa_tk' => Siswa::whereHas('kelas', fn($q) => $q->where('jenjang', 'PG TK'))->where('status', '1')->count(),
             'siswa_sd' => Siswa::whereHas('kelas', fn($q) => $q->where('jenjang', 'SD'))->where('status', '1')->count(),
-            'kelas'    => Kelas::where('tahun_ajaran_id', $tahunAjaran->id)->count(),
+            'kelas'    => Kelas::where('tahun_ajaran_id', $this->getTahunAjaranAktif()->id)->count(),
             'guru'     => Guru::where('status', '1')->count(),
         ];
     }
 
     public function getSiswaDashboardData(string $email): array
     {
-        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
-        
-        // Eager load relasi kelas untuk mencegah N+1
+
         $kelas = AnggotaKelas::with('kelas')
             ->where('siswa_nis', $email)
-            ->whereHas('kelas', fn($q) => $q->where('tahun_ajaran_id', $tahunAjaran->id))
+            ->whereHas('kelas', fn($q) => $q->where('tahun_ajaran_id', $this->getTahunAjaranAktif()->id))
             ->firstOrFail();
 
         $riwayatKesehatan = Kesehatan::with('bulanSpp')
@@ -78,9 +84,8 @@ class DashboardService
     public function getGuruDashboardData(string $email): array
     {
         $guru = Guru::findOrFail($email);
-        $tahunAjaran = TahunAjaran::latest()->firstOrFail();
         
-        $kelas = Kelas::where('tahun_ajaran_id', $tahunAjaran->id)
+        $kelas = Kelas::where('tahun_ajaran_id', $this->getTahunAjaranAktif()->id)
             ->where(function ($q) use ($email) {
                 $q->where('guru_nipy', $email)->orWhere('pendamping_nipy', $email);
             })->firstOrFail();
@@ -88,14 +93,13 @@ class DashboardService
         $anggotaKelasIds = AnggotaKelas::where('kelas_id', $kelas->id)->pluck('id');
         
         $presensiAll = Presensi::whereIn('anggota_kelas_id', $anggotaKelasIds)->get();
-        $daftarBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaran->id)->get();
+        $daftarBulan = BulanSpp::where('tahun_ajaran_id', $this->getTahunAjaranAktif()->id)->get();
 
         $dataChart = $daftarBulan->map(function ($bulan) use ($presensiAll) {
             $parsedBulan = Carbon::parse($bulan->bulan_angka);
             $awal = $parsedBulan->copy()->startOfMonth()->format('Y-m-d');
             $akhir = $parsedBulan->copy()->endOfMonth()->format('Y-m-d');
 
-            // Optimasi RAM: Gunakan string comparison untuk tanggal
             $presensiBulan = $presensiAll->filter(fn($p) => $p->tanggal >= $awal && $p->tanggal <= $akhir);
             
             $hariEfektif = $presensiBulan->count();
@@ -127,11 +131,9 @@ class DashboardService
         
         $kelasList = Kelas::with(['anggotaKelas.dataKesehatan' => function ($q) use ($bulanAktif) {
             $q->where('bulan_spp_id', $bulanAktif->id);
-        }])->get();
-
+        }])->where('tahun_ajaran_id', $this->getTahunAjaranAktif()->id)->get();
         $statistik = $kelasList->map(function ($kelas) {
             $koleksiKesehatan = $kelas->anggotaKelas->map->dataKesehatan->filter();
-            
             $jumlah = $koleksiKesehatan->count();
             $belumDiperiksa = $kelas->anggotaKelas->count() - $jumlah;
             $tbTotal = $koleksiKesehatan->sum('tb');

@@ -44,7 +44,7 @@
                             @forelse ($suratIzin as $item)
                                 <tr>
                                     <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $item->tanggal->format('d M Y') }}</td>
+                                    <td>{{ $item->tanggal_mulai?->format('d M Y') ?? 'Belum diset' }} - {{ $item->tanggal_selesai?->format('d M Y') ?? 'Belum diset' }}</td>
 
                                     <td>
                                         <span class="badge badge-info">

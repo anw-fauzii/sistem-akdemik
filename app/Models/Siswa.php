@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 
 class Siswa extends Model
 {
@@ -203,5 +204,17 @@ class Siswa extends Model
             ->whereHas('kelas', function ($q) use ($tahunAjaran) {
                 $q->where('tahun_ajaran_id', $tahunAjaran->id);
             });
+    }
+
+    public function getUsiaAttribute()
+    {
+        if (!$this->tanggal_lahir) {
+            return '-';
+        }
+        $usia = Carbon::parse($this->tanggal_lahir)->diff(now());
+        if ($usia->y > 0) {
+            return $usia->y . ' Tahun ' . $usia->m . ' Bulan';
+        }
+        return $usia->m . ' Bulan';
     }
 }

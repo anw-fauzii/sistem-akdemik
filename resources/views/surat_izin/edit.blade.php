@@ -45,11 +45,26 @@
                         {{-- Tanggal --}}
                         <div class="col-md-6">
                             <div class="position-relative form-group">
-                                <label>Tanggal</label>
-                                <input type="date" name="tanggal"
-                                    class="form-control @error('tanggal') is-invalid @enderror"
-                                    value="{{ old('tanggal', $surat->tanggal->format('Y-m-d')) }}">
-                                @error('tanggal')
+                                <label>Tanggal Mulai</label>
+                                <input type="date" name="tanggal_mulai"
+                                    class="form-control @error('tanggal_mulai') is-invalid @enderror"
+                                    value="{{ old('tanggal_mulai', $surat->tanggal_mulai->format('Y-m-d')) }}">
+                                @error('tanggal_mulai')
+                                    <div class="invalid-feedback" style="font-size: 0.7rem;">
+                                        {{ strtolower($message) }}
+                                    </div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        {{-- Tanggal Selesai --}}
+                        <div class="col-md-6">
+                            <div class="position-relative form-group">
+                                <label>Tanggal Selesai</label>
+                                <input type="date" name="tanggal_selesai"
+                                    class="form-control @error('tanggal_selesai') is-invalid @enderror"
+                                    value="{{ old('tanggal_selesai', $surat->tanggal_selesai->format('Y-m-d')) }}">
+                                @error('tanggal_selesai')
                                     <div class="invalid-feedback" style="font-size: 0.7rem;">
                                         {{ strtolower($message) }}
                                     </div>

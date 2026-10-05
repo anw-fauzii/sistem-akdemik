@@ -35,8 +35,8 @@
                     </tr>
 
                     <tr>
-                        <th>Tanggal</th>
-                        <td>{{ $suratIzin->tanggal->format('d M Y') }}</td>
+                        <th>Tanggal Mulai</th>
+                        <td>{{ $suratIzin->tanggal_mulai?->format('d M Y') ?? 'Belum diset' }} - {{ $suratIzin->tanggal_selesai?->format('d M Y') ?? 'Belum diset' }}</td>
                     </tr>
 
                     <tr>

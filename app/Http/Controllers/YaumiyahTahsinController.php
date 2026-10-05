@@ -6,16 +6,19 @@ use App\Http\Requests\StoreYaumiyahTahsinRequest;
 use App\Models\AngkaArab;
 use App\Models\BulanSpp;
 use App\Models\DaftarJilid;
+use App\Models\Kelas;
 use App\Models\SurahAlquran;
 use App\Models\TahunAjaran;
 use App\Services\YaumiyahTahsinService;
 use App\Services\StatistikTahsinService;
 use ArPHP\I18N\Arabic;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
-use PDF;
 
 class YaumiyahTahsinController extends Controller
 {
@@ -23,6 +26,18 @@ class YaumiyahTahsinController extends Controller
         protected YaumiyahTahsinService $yaumiyahService,
         protected StatistikTahsinService $statistikService
     ) {}
+
+    private function resolveCommonData(Request $request): array
+    {
+        $tahunAjaranId = $request->input('tahun_ajaran_id');
+        $tahunAjaranAktif = $tahunAjaranId ? TahunAjaran::find($tahunAjaranId) : TahunAjaran::latest()->first();
+        
+        $listBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaranAktif->id ?? null)
+                        ->orderBy('bulan_angka', 'desc')
+                        ->get();
+
+        return [$tahunAjaranAktif, $listBulan];
+    }
 
     public function index(): View
     {
@@ -48,10 +63,8 @@ class YaumiyahTahsinController extends Controller
     public function store(StoreYaumiyahTahsinRequest $request): RedirectResponse
     {
         try {
-            // Logika penyimpanan massal dilempar ke Service
             $this->yaumiyahService->storeMassal($request->validated('records'));
             return redirect()->back()->with('success', 'Data Yaumiyah Tahsin berhasil disimpan!');
-            
         } catch (\Throwable $e) {
             report($e);
             return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan sistem.');
@@ -61,129 +74,132 @@ class YaumiyahTahsinController extends Controller
     public function show(Request $request, string $id): View
     {
         $tanggalPilih = $request->query('tanggal', now()->format('Y-m-d'));
-        
         $dataPekan = $this->yaumiyahService->getWeeklyMatrix(Auth::user()->email, $id, $tanggalPilih);
 
         return view('yaumiyah_tahsin.show', $dataPekan);
     }
 
-    public function statistik(Request $request, string $tingkat)
+    public function statistik(Request $request, string $tingkat): View
     {
-        $tahunAjaranId = $request->input('tahun_ajaran_id');
-        $bulanSppId = $request->input('bulan_spp_id');
-
-        // 1. Dapatkan Tahun Ajaran (Jika tidak ada di request, ambil yang terbaru/aktif)
-        if (!$tahunAjaranId) {
-            $tahunAjaranAktif = TahunAjaran::latest()->first();
-            $tahunAjaranId = $tahunAjaranAktif->id ?? null;
-        } else {
-            $tahunAjaranAktif = TahunAjaran::find($tahunAjaranId);
-        }
-
-        // 2. Ambil data Bulan yang HANYA milik Tahun Ajaran tersebut
-        $listBulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaranId)
-                        ->orderBy('bulan_angka', 'desc')
-                        ->get();
-
-        // 3. Panggil Service untuk Generate Data
+        [$tahunAjaranAktif, $listBulan] = $this->resolveCommonData($request);
         $statistikData = $this->statistikService->generateDashboardDataDidik(
-            \Illuminate\Support\Facades\Auth::user()->email,
+            Auth::user()->email,
             $tingkat,
-            $bulanSppId ? (int) $bulanSppId : null
+            $request->input('bulan_spp_id') ? (int) $request->input('bulan_spp_id') : null,
+            $tahunAjaranAktif
         );
 
-        // 4. Ambil semua data Tahun Ajaran untuk Dropdown pertama
-        $tahunajaran = TahunAjaran::orderBy('id', 'desc')->get();
-
         return view('yaumiyah_tahsin.statistik', array_merge($statistikData, [
-            'listBulan' => $listBulan,
-            'tahunajaran' => $tahunajaran,
-            'tahunAjaranAktif' => $tahunAjaranAktif, // Kirim ke view untuk default selected
+            'listBulan'        => $listBulan,
+            'tahunajaran'      => TahunAjaran::orderBy('id', 'desc')->get(),
+            'tahunAjaranAktif' => $tahunAjaranAktif,
+            'kelas'            => null, 
         ]));
     }
 
-    public function getBulanByTahun($tahunAjaranId)
+    public function getBulanByTahun(string $tahunAjaranId): JsonResponse
     {
-        $bulan = \App\Models\BulanSpp::where('tahun_ajaran_id', $tahunAjaranId)
+        $bulan = BulanSpp::where('tahun_ajaran_id', $tahunAjaranId)
             ->orderBy('bulan_angka', 'desc')
             ->get()
-            ->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'nama_format' => $item->nama_bulan
-                ];
-            });
+            ->map(fn($item) => [
+                'id' => $item->id,
+                'nama_format' => $item->nama_bulan
+            ]);
 
         return response()->json($bulan);
     }
 
     public function lengkap(Request $request, string $tingkat): View
     {
-        $statistikData = $this->statistikService->generateDashboardDataLengkap($tingkat);
+        [$tahunAjaranAktif, $listBulan] = $this->resolveCommonData($request);
 
-        return view('yaumiyah_tahsin.statistik', $statistikData);
+        $statistikData = $this->statistikService->generateDashboardDataLengkap(
+            $tingkat,
+            $request->input('bulan_spp_id') ? (int) $request->input('bulan_spp_id') : null,
+            $tahunAjaranAktif
+        );
+
+        return view('yaumiyah_tahsin.statistik', array_merge($statistikData, [
+            'listBulan'        => $listBulan,
+            'tahunajaran'      => TahunAjaran::orderBy('id', 'desc')->get(),
+            'tahunAjaranAktif' => $tahunAjaranAktif,
+            'kelas'            => null, 
+        ]));
     }
 
-    public function print(Request $request, string $id)
+    public function statistikPerKelas(Request $request, int $kelasId): View
+    {
+        [$tahunAjaranAktif, $listBulan] = $this->resolveCommonData($request);
+        $kelas = Kelas::findOrFail($kelasId);
+        $statistikData = $this->statistikService->generateDashboardDataByKelas(
+            $kelas,
+            $request->input('bulan_spp_id') ? (int) $request->input('bulan_spp_id') : null,
+            $tahunAjaranAktif
+        );
+
+        return view('yaumiyah_tahsin.statistik', array_merge($statistikData, [
+            'listBulan'        => $listBulan,
+            'tahunajaran'      => TahunAjaran::orderBy('id', 'desc')->get(),
+            'tahunAjaranAktif' => $tahunAjaranAktif,
+            'kelas'            => $kelas,
+        ]));
+    }
+
+    public function print(Request $request, string $id): Response
     {
         $tanggalPilih = $request->query('tanggal', now()->format('Y-m-d'));
-        
-        // Panggil service matriks mingguan
-        $dataPrint = $this->yaumiyahService->getWeeklyMatrix(\Illuminate\Support\Facades\Auth::user()->email, $id, $tanggalPilih);
+        $dataPrint = $this->yaumiyahService->getWeeklyMatrix(Auth::user()->email, $id, $tanggalPilih);
 
-        // --- MULAI LOGIKA KONVERSI ARABIC (ArPHP) ---
+        // Eksekusi pemformatan teks Arab
+        $dataPrint['yaumiyah'] = $this->formatArabicTexts($dataPrint['yaumiyah']);
+
+        $pdf = Pdf::loadView('yaumiyah_tahsin.pdf', $dataPrint)
+            ->setOptions([
+                'isRemoteEnabled' => true,
+                'chroot'          => public_path(),
+            ])
+            ->setPaper('A4', 'landscape'); 
+
+        return $pdf->stream("Rekap-Tahsin-Tingkat-{$id}-{$tanggalPilih}.pdf");
+    }
+
+    /**
+     * PRIVATE METHOD: Ekstrak logika ArPHP.
+     */
+    private function formatArabicTexts(array $yaumiyahData): array
+    {
         $arabic = new Arabic();
-        
-        // Kita modifikasi array $yaumiyah di dalam $dataPrint
-        foreach ($dataPrint['yaumiyah'] as $siswaId => &$recordHarian) {
-            foreach ($recordHarian as $tanggal => &$record) {
+
+        foreach ($yaumiyahData as &$recordHarian) {
+            foreach ($recordHarian as &$record) {
                 
-                // 1. Konversi Nama Surah Arab
                 $teksSurah = $record->surahAlquran->nama_surah_arab ?? '';
-                if (trim($teksSurah) !== '') {
-                    $words = explode(' ', $teksSurah);
-                    $processedWords = [];
-                    foreach ($words as $word) {
-                        if (trim($word) !== '') {
-                            $processedWords[] = @$arabic->utf8Glyphs($word);
-                        }
-                    }
-                    $record->surah_cetak_arab = implode(' ', array_reverse($processedWords));
-                } else {
-                    $record->surah_cetak_arab = '-';
-                }
+                $record->surah_cetak_arab = $this->convertArabicString($arabic, $teksSurah);
+
                 $teksJilid = $record->daftarJilid->jilid_arab ?? '';
-                if (trim($teksJilid) !== '') {
-                    $words = explode(' ', $teksJilid);
-                    $processedWords = [];
-                    foreach ($words as $word) {
-                        if (trim($word) !== '') {
-                            $processedWords[] = @$arabic->utf8Glyphs($word);
-                        }
-                    }
-                    $record->surah_jilid_arab = implode(' ', array_reverse($processedWords));
-                } else {
-                    $record->surah_jilid_arab = '-';
-                }
-                // 2. Kolom Ayat (angka_arab) sudah berupa gambar/teks dari tabel referensi
-                // Jika itu teks biasa, Anda bisa menerapkan logika utf8Glyphs yang sama di sini, 
-                // tapi jika tabel angka_arab Anda sudah berisi string unicode, tidak perlu di-reverse.
+                $record->surah_jilid_arab = $this->convertArabicString($arabic, $teksJilid);
             }
         }
-        // --- SELESAI KONVERSI ARABIC ---
+        return $yaumiyahData;
+    }
 
-        // Render PDF
-        $pdf = Pdf::loadView('yaumiyah_tahsin.pdf', $dataPrint);
+    /**
+     * PRIVATE HELPER: Mencegah duplikasi explode() dan array_reverse()
+     */
+    private function convertArabicString(Arabic $arabic, string $text): string
+    {
+        if (trim($text) === '') {
+            return '-';
+        }
 
-        // Wajib mengaktifkan opsi ini agar Font Custom bisa terbaca oleh DomPDF
-        $pdf->setOptions([
-            'isRemoteEnabled' => true,
-            'chroot' => public_path(),
-        ]);
-
-        $pdf->setPaper('A4', 'landscape'); 
-
-        $namaFile = 'Rekap-Tahsin-Tingkat-'.$id.'-'.$tanggalPilih.'.pdf';
-        return $pdf->stream($namaFile);
+        $words = explode(' ', $text);
+        $processedWords = [];
+        foreach ($words as $word) {
+            if (trim($word) !== '') {
+                $processedWords[] = @$arabic->utf8Glyphs($word);
+            }
+        }
+        return implode(' ', array_reverse($processedWords));
     }
 }

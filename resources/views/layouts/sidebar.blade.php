@@ -193,7 +193,7 @@
                             <li>
                                 <a href="{{ route('daftar-mata-pelajaran.index') }}"
                                     class="{{ request()->is('daftar-mata-pelajaran*') ? 'mm-active' : '' }}">
-                                    Detail
+                                    Daftar Mapel
                                 </a>
                             </li>
                         </ul>
@@ -323,7 +323,7 @@
                     <li>
                         <a href="{{ route('prestasi-siswa.index') }}"
                             class="{{ request()->is('prestasi-siswa*') ? 'mm-active' : '' }}">
-                            <i class="metismenu-icon pe-7s-star"></i>
+                            <i class="metismenu-icon pe-7s-medal"></i>
                             Prestasi
                         </a>
                     </li>
@@ -445,7 +445,7 @@
                             <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
                         </a>
                         <ul
-                            class="{{ request()->is('administrasi-guru*', 'administrasi-kelas*', 'adminstrasi-rapot*') ? 'mm-show' : '' }}">
+                            class="{{ request()->is('administrasi-guru*', 'administrasi-kelas*', 'administrasi-rapot*') ? 'mm-show' : '' }}">
                             <li>
                                 <a href="{{ route('administrasi-guru.index') }}"
                                     class="{{ request()->is('administrasi-guru*') ? 'mm-active' : '' }}">
@@ -493,11 +493,19 @@
                     </li>
                 @endrole
                 @role(['admin'])
+                    <li class="app-sidebar__heading">Administrasi</li>
+                    <li>
+                        <a href="{{ route('administrasi.index') }}"
+                            class="{{ request()->is('administrasi*') ? 'mm-active' : '' }}">
+                            <i class="metismenu-icon pe-7s-portfolio"></i>
+                            Guru
+                        </a>
+                    </li>
                     <li class="app-sidebar__heading">Kesiswaan</li>
                     <li>
                         <a href="{{ route('prestasi-siswa.index') }}"
                             class="{{ request()->is('prestasi-siswa*') ? 'mm-active' : '' }}">
-                            <i class="metismenu-icon pe-7s-star"></i>
+                            <i class="metismenu-icon pe-7s-medal"></i>
                             Prestasi
                         </a>
                     </li>

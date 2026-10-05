@@ -38,4 +38,9 @@ class Guru extends Model
     {
         return $this->hasMany(AnggotaT2Q::class);
     }
+
+    public function administrasiGuru()
+    {
+        return $this->hasMany(AdministrasiGuru::class, 'guru_nipy', 'nipy');
+    }
 }

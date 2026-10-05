@@ -1,66 +1,68 @@
 <?php
-
 namespace App\Http\Controllers\Admin\DataMaster;
 
 use App\Http\Controllers\Controller;
 use App\Models\MataPelajaran;
-use Illuminate\Http\Request;
+use App\Http\Requests\MataPelajaranRequest;
+use App\Models\TahunAjaran;
+use App\Services\KategoriMataPelajaranService;
+use App\Services\MataPelajaranService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class MataPelajaranController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function __construct(
+        protected KategoriMataPelajaranService $kategoriMataPelajaranservice,
+        protected MataPelajaranService $mataPelajaranService
+    ) {}
+
+    public function index(): View
     {
-        //
+        return view('mapel.daftar.index', [
+            'mataPelajaran' => $this->mataPelajaranService->getAll()
+        ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function create(): View
     {
-        //
+        return view('mapel.daftar.create', [
+            'kategori' => $this->kategoriMataPelajaranservice->getAll(),
+            'tahunAjaran' => TahunAjaran::latest()->first(),
+        ]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(MataPelajaranRequest $request): RedirectResponse
     {
-        //
+        $this->mataPelajaranService->store($request->validated());
+        return redirect()->route('daftar-mata-pelajaran.index')->with('success', 'Mata Pelajaran berhasil disimpan');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(MataPelajaran $mataPelajaran)
+    public function edit(MataPelajaran $mataPelajaran): View
     {
-        //
+        return view('mapel.daftar.edit', ['mataPelajaran' => $mataPelajaran,
+            'kategori' => $this->kategoriMataPelajaranservice->getAll(),
+            'tahunAjaran' => TahunAjaran::latest()->first(),
+        ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(MataPelajaran $mataPelajaran)
+    public function update(MataPelajaranRequest $request, MataPelajaran $mataPelajaran): RedirectResponse
     {
-        //
+        $this->mataPelajaranService->update($mataPelajaran, $request->validated());
+        return redirect()->route('daftar-mata-pelajaran.index')->with('success', 'Mata Pelajaran berhasil diupdate');
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, MataPelajaran $mataPelajaran)
+    public function destroy(MataPelajaran $mataPelajaran): RedirectResponse
     {
-        //
+        $this->mataPelajaranService->delete($mataPelajaran);
+        return redirect()->route('daftar-mata-pelajaran.index')->with('success', 'Mata Pelajaran berhasil dihapus');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(MataPelajaran $mataPelajaran)
+    public function importPrevious(MataPelajaranService $service)
     {
-        //
+        $result = $service->duplicateFromPreviousSemester();
+
+        return redirect()->route('daftar-mata-pelajaran.index')
+                ->with($result['status'], $result['message']);
     }
 }

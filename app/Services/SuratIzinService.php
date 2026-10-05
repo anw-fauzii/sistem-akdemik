@@ -4,10 +4,13 @@ namespace App\Services;
 
 use App\Models\SuratIzin;
 use App\Models\AnggotaKelas;
+use App\Models\Presensi;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Pagination\LengthAwarePaginator;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Support\Facades\DB;
 
 class SuratIzinService
 {
@@ -66,11 +69,45 @@ class SuratIzinService
 
     public function store(array $data, ?UploadedFile $file): SuratIzin
     {
-        if ($file) {
-            $data['file'] = $file->store('surat_izin', 'public');
-        }
+        return DB::transaction(function () use ($data, $file) {
+            
+            // 1. Upload File (jika ada)
+            if ($file) {
+                $data['file'] = $file->store('surat_izin', 'public');
+            }
 
-        return SuratIzin::create($data);
+            // 2. Simpan Data Surat Izin
+            $suratIzin = SuratIzin::create($data);
+
+            // 3. INTEGRASI OTOMATIS KE TABEL PRESENSI
+            $startDate = Carbon::parse($data['tanggal_mulai']);
+            $endDate = Carbon::parse($data['tanggal_selesai']);
+
+            // Buat rentang tanggal (Misal: 11 Mei s/d 14 Mei)
+            $period = CarbonPeriod::create($startDate, $endDate);
+
+            foreach ($period as $date) {
+                // LOGIKA CERDAS: Skip otomatis jika hari Sabtu atau Minggu
+                // isWeekend() akan mengecek hari Sabtu (6) dan Minggu (0)
+                if ($date->isWeekend()) {
+                    continue; 
+                }
+
+                Presensi::updateOrCreate(
+                    [
+                        'anggota_kelas_id' => $data['anggota_kelas_id'],
+                        'tanggal'          => $date->format('Y-m-d'),
+                    ],
+                    [
+                        'status'          => $data['jenis'],
+                        'terlambat'       => 0,
+                        'menit_terlambat' => 0,
+                    ]
+                );
+            }
+
+            return $suratIzin;
+        });
     }
 
     public function update(SuratIzin $surat, array $data, ?UploadedFile $file): bool
