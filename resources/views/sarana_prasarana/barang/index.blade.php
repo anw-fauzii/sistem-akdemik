@@ -247,17 +247,17 @@
                 if (kondisi === 'baik') {
                     table
                         .column(5)
-                        .search('^Baik$', true, false)
+                        .search('Baik', true, false)
                         .draw();
                 } else if (kondisi === 'rusak_ringan') {
                     table
                         .column(5)
-                        .search('^Rusak Ringan$', true, false)
+                        .search('Rusak Ringan', true, false)
                         .draw();
                 } else if (kondisi === 'rusak_berat') {
                     table
                         .column(5)
-                        .search('^Rusak Berat$', true, false)
+                        .search('Rusak Berat', true, false)
                         .draw();
                 } else {
                     table
