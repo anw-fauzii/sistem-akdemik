@@ -66,8 +66,8 @@ class KelasController extends Controller
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus');
     }
     
-    // Create & Edit tetap sederhana
-    public function create(): View {
+    public function create(): View 
+    {
         return view('data_master.kelas.create', [
             'guru' => Guru::whereStatus(true)->select('nipy','nama_lengkap','gelar')->get()
         ]);

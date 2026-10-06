@@ -19,7 +19,7 @@ class KategoriBarangRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'id.string' => 'ID harus berupa string.',
+            'id.string' => 'ID harus berupa string.',   
             'nama_kategori_barang.required' => 'Nama kategori wajib diisi.',
         ];
     }
