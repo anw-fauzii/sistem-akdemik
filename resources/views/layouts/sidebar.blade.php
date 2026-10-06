@@ -501,6 +501,36 @@
                             Guru
                         </a>
                     </li>
+                    <li class="app-sidebar__heading">Sarana Prasarana</li>
+                    <li>
+                        <a href="#"
+                            class="{{ request()->is('kategori-barang*', 'lokasi-barang*', 'barang*') ? 'mm-active' : '' }}">
+                            <i class="metismenu-icon pe-7s-box2"></i>
+                            Master Data
+                            <i class="metismenu-state-icon pe-7s-angle-down caret-left"></i>
+                        </a>
+                        <ul
+                            class="{{ request()->is('kategori-barang*', 'lokasi-barang*', 'barang*') ? 'mm-show' : '' }}">
+                            <li>
+                                <a href="{{ route('lokasi-barang.index') }}"
+                                    class="{{ request()->is('lokasi-barang*') ? 'mm-active' : '' }}">
+                                    Lokasi Barang
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('kategori-barang.index') }}"
+                                    class="{{ request()->is('kategori-barang*') ? 'mm-active' : '' }}">
+                                    Kategori Barang
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('barang.index') }}"
+                                    class="{{ request()->is('barang*') ? 'mm-active' : '' }}">
+                                    Data Barang
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="app-sidebar__heading">Kesiswaan</li>
                     <li>
                         <a href="{{ route('prestasi-siswa.index') }}"

@@ -56,6 +56,9 @@ use App\Http\Controllers\SuratIzinController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\YaumiyahTahfizController;
 use App\Http\Controllers\YaumiyahTahsinController;
+use App\Http\Controllers\SaranaPrasarana\KategoriBarangController;
+use App\Http\Controllers\SaranaPrasarana\LokasiBarangController;
+use App\Http\Controllers\SaranaPrasarana\BarangController;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -214,6 +217,12 @@ Route::middleware(['auth','preventBackHistory'])->group(function () {
     Route::get('administrasi', [AdminAdministrasiController::class, 'index'])->name('administrasi.index');
     Route::patch('administrasi/{administrasiGuru}/verify', [AdminAdministrasiController::class, 'verify'])->name('administrasi.verify');
     Route::get('administrasi/{administrasiGuru}/download', [AdminAdministrasiController::class, 'download'])->name('administrasi.download');
+
+    Route::resource('/kategori-barang', KategoriBarangController::class)->except(['show']);
+    Route::resource('/lokasi-barang', LokasiBarangController::class)->except(['show']);
+    Route::resource('/barang', BarangController::class)->except(['show']);
+    Route::post('/barang-import', [BarangController::class, 'import'])->name('barang.import');
+    Route::get('/format-barang-import', [BarangController::class, 'format'])->name('format.barang.import');
 });
 Route::fallback(function () {
     return response()->view('errors.404', [], 404);

@@ -66,7 +66,6 @@ class GuruController extends Controller
         $request->validate(['file_import' => 'required|mimes:xlsx,csv,xls']);
 
         try {
-            // Menggunakan facade Excel
             Excel::import(new GuruImport, $request->file('file_import'));
             return back()->with('success', 'Guru & Staf sedang diproses di latar belakang.');
         } catch (\Exception $e) {
